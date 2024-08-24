@@ -18,16 +18,18 @@ export default function Single() {
             controls: true,
             responsive: true,
             fluid: true,
-            html5: {
-                vhs: {
-                    withCredentials: true,
-                    overrideNative: true
+            // html5: {
+            //     vhs: {
+            //         withCredentials: true,
+            //         overrideNative: true
+            //     }
+            // },
+            sources: [
+                {
+                    src: url,
+                    type: os_type
                 }
-            },
-            sources: [{
-                src: url,
-                type: os_type
-            }]
+            ]
         })
     }
     const playerRef = React.useRef(null);

@@ -11,6 +11,7 @@ import { writeTextFile } from '@tauri-apps/api/fs';
 import { save } from '@tauri-apps/api/dialog';
 import { downloadDir } from '@tauri-apps/api/path';
 import { platform } from '@tauri-apps/api/os';
+overrideGlobalXHR()
 
 export const MainContextProvider = function ({ children }) {
     const headerHeight = 145
@@ -99,7 +100,6 @@ export const MainContextProvider = function ({ children }) {
             setNowPlatform(res)
         });
         invoke('now_mod', {}).then((response) => {
-            overrideGlobalXHR()
             setNowMod(response)
             console.log("now mod", response)
         }).catch(e => {
