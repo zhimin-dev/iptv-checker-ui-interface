@@ -6,12 +6,12 @@ import { invoke } from '@tauri-apps/api'
 import utils from '../utils/common'
 import i18n from "i18next";
 import { appWindow } from '@tauri-apps/api/window'
-import { overrideGlobalXHR } from 'tauri-xhr'
+// import { overrideGlobalXHR } from 'tauri-xhr'
 import { writeTextFile } from '@tauri-apps/api/fs';
 import { save } from '@tauri-apps/api/dialog';
 import { downloadDir } from '@tauri-apps/api/path';
 import { platform } from '@tauri-apps/api/os';
-overrideGlobalXHR()
+// overrideGlobalXHR()
 
 export const MainContextProvider = function ({ children }) {
     const headerHeight = 145
@@ -30,6 +30,7 @@ export const MainContextProvider = function ({ children }) {
     const [nowLanguage, setNowLanguage] = useState('en')
     const [nowWindow, setNowWindow] = useState({ width: 0, height: 0 })
     const [nowPlatform, setNowPlatform] = useState('')
+    const [isWin, setIsWin] = useState(0)
     const [languageList, setLanguageList] = useState([{
         'code': 'en',
         "name": "English"
@@ -99,6 +100,12 @@ export const MainContextProvider = function ({ children }) {
         platform().then(res => {
             setNowPlatform(res)
         });
+        invoke('now_system', {}).then((response) => {
+            setIsWin(response)
+            console.log("now_system", response)
+        }).catch(e => {
+            console.log(e)
+        })
         invoke('now_mod', {}).then((response) => {
             setNowMod(response)
             console.log("now mod", response)
@@ -863,7 +870,7 @@ export const MainContextProvider = function ({ children }) {
             getM3uBody,
             needFastSource, onChangeNeedFastSource, nowMod, getBodyType,
             nowLanguage, changeLanguage, languageList, nowWindow, clientSaveFile,
-            nowPlatform
+            nowPlatform, isWin
         }}>
             {children}
         </MainContext.Provider>

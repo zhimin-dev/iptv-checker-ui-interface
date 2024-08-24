@@ -3,7 +3,7 @@ import { useContext, useState, useEffect, useRef } from "react"
 import VideoJS from './video'
 import { MainContext } from './../../context/main';
 import _Tabbar from './../layout/tabbar'
-import { appWindow, WebviewWindow } from "@tauri-apps/api/window";
+import { appWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 
 export default function Single() {
@@ -12,7 +12,10 @@ export default function Single() {
     const [videoJsOptions, setVideoJsOptions] = useState(null)
     const setVideoOptions = (url, os_type = 'video/mp2t') => {
         //let os_type = 'application/x-mpegURL'
-        //console.log(os_type)
+        if(_mainContext.isWin === 1) {
+            os_type = 'application/x-mpegURL'
+        }
+        console.log(os_type)
         setVideoJsOptions({
             autoplay: true,
             controls: true,
