@@ -6,13 +6,14 @@ import _Tabbar from './../layout/tabbar'
 import { appWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 
-export default function Single() {
+export default function Single(props) {
     const _mainContext = useContext(MainContext);
+    const {nowPlatform} = props
     const [nowTry, setNowTry] = useState(false)
     const [videoJsOptions, setVideoJsOptions] = useState(null)
     const setVideoOptions = (url, os_type = 'video/mp2t') => {
         //let os_type = 'application/x-mpegURL'
-        if(_mainContext.isWin === 1) {
+        if(nowPlatform === 'Windows_NT') {
             os_type = 'application/x-mpegURL'
         }
         console.log(os_type)
