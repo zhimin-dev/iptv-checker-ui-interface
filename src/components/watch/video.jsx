@@ -1,7 +1,7 @@
 import React from 'react';
 import videojs from 'video.js';
 import '@videojs/http-streaming';
-import 'videojs-contrib-quality-levels';
+// import 'videojs-contrib-quality-levels';
 import 'videojs-http-source-selector';
 import 'video.js/dist/video-js.css';
 
