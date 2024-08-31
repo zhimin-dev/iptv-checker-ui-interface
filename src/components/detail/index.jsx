@@ -100,6 +100,7 @@ export default function Detail() {
   }
 
   const watchThisRow = async (val) => {
+    let platform = _mainContext.nowPlatform
     if(_mainContext.nowMod === 1) {
       let label = 'watch'
       let data = WebviewWindow.getByLabel(label);
@@ -111,7 +112,7 @@ export default function Detail() {
         return 
       }
       const webview = new WebviewWindow(label, {
-        url: '/watch/single?url='+val.url,
+        url: '/watch/single?platform='+platform+'&url='+val.url,
         title:val.name,
         width: 1024,
         height: 600,
@@ -129,7 +130,7 @@ export default function Detail() {
         // an error occurred during webview window creation
       })
     }else{
-      window.open('/watch/single?url='+val.url)
+      window.open('/watch/single?platform='+platform+'&url='+val.url)
     }
   }
 

@@ -1,9 +1,9 @@
 [package]
 name = "app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
+version = "4.0.2"
+description = "iptv-checker tool"
+authors = ["zmisgod"]
+license = "MIT"
 repository = ""
 default-run = "app"
 edition = "2021"

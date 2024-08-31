@@ -13,9 +13,10 @@ windows提示：无法加载文件 C:\Program Files\nodejs\npm.ps1，因为在�
 windows提示：ENOENT: no such file or directory, lstat 'C:\Users\pc\AppData\Roaming\npm'， 解决：
 cd 到对应目录（C:\Users\pc\AppData\Roaming\），创建npm文件夹即可
 
-
 ## web变更日志
 
+- v4.0.2
+  - 修复windows无法播放的问题
 - v4.0.1
   - bug修复
     - 检测源输入框无法识别数据问题

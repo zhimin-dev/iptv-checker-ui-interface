@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "iptv-checker-desktop",
-    "version": "4.0.1"
+    "version": "4.0.2"
   },
   "tauri": {
     "allowlist": {
@@ -109,7 +109,6 @@
         "resizable": true,
         "title": "iptv-checker-desktop",
         "width": 1024,
-        "additionalBrowserArgs": "--disable-web-security",
         "label":"main"
       }
     ]

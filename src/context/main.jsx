@@ -3,14 +3,13 @@ import axios from "axios"
 export const MainContext = createContext();
 import ParseM3u from '../utils/utils'
 import { invoke } from '@tauri-apps/api'
-import utils from '../utils/common'
 import i18n from "i18next";
 import { appWindow } from '@tauri-apps/api/window'
 import { overrideGlobalXHR } from 'tauri-xhr'
 import { writeTextFile } from '@tauri-apps/api/fs';
 import { save } from '@tauri-apps/api/dialog';
 import { downloadDir } from '@tauri-apps/api/path';
-import { platform } from '@tauri-apps/api/os';
+import { type } from '@tauri-apps/api/os';
 
 export const MainContextProvider = function ({ children }) {
     const headerHeight = 145
@@ -95,11 +94,14 @@ export const MainContextProvider = function ({ children }) {
             setNowWindow({ width: window.innerWidth, height: window.innerHeight })
         })
         initTitleBar()
-        platform().then(res => {
+        type().then(res => {
+            console.log("now os type", res)
+            if(res === 'Darwin') {
+                overrideGlobalXHR()
+            }
             setNowPlatform(res)
         });
         invoke('now_mod', {}).then((response) => {
-            overrideGlobalXHR()
             setNowMod(response)
             console.log("now mod", response)
         }).catch(e => {
