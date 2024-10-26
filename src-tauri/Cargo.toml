@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "4.0.2"
+version = "4.0.3"
 description = "iptv-checker tool"
 authors = ["zmisgod"]
 license = "MIT"

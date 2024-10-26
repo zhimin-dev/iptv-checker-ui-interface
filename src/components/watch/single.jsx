@@ -12,11 +12,7 @@ export default function Single(props) {
     const [nowTry, setNowTry] = useState(false)
     const [videoJsOptions, setVideoJsOptions] = useState(null)
     const setVideoOptions = (url) => {
-        //let os_type = 'application/x-mpegURL'
-        let os_type = 'application/x-mpegURL'
-        if (_mainContext.nowPlatform === 'darwin' || _mainContext.nowPlatform === 'ios') {
-            os_type = 'video/mp2t'
-        }
+        let os_type = _mainContext.settings["playerSource"]
         console.log(os_type)
         setVideoJsOptions({
             autoplay: true,

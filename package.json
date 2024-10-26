@@ -4,7 +4,7 @@
   "description": "a website for iptv-checker",
   "author": "知敏studio",
   "homepage_url": "https://github.com/zhimin-dev/iptv-checker",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "type": "module",
   "scripts": {
     "tauri": "tauri",
