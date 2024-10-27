@@ -53,7 +53,7 @@ export const MainContextProvider = function ({ children }) {
         concurrent: 1,//并发数
         language: 'en',//语言
         privateHost: '',//私有host
-        playerSource:"video/mp2t",// 视频播放平台
+        playerSource:"application/x-mpegURL",// 视频播放平台
     })
 
     const nowCheckUrlModRef = useRef()//当前操作类型
@@ -102,14 +102,15 @@ export const MainContextProvider = function ({ children }) {
     useEffect(() => {
         setNowWindow({ width: window.innerWidth, height: window.innerHeight })
         window.addEventListener('resize', () => {
+            console.log(window)
             setNowWindow({ width: window.innerWidth, height: window.innerHeight })
         })
         initTitleBar()
         type().then(res => {
             console.log("now os type", res)
-            if(res === 'Darwin') {
+            // if(res === 'Darwin') {
                 overrideGlobalXHR()
-            }
+            // }
             setNowPlatform(res)
         });
         invoke('now_mod', {}).then((response) => {

@@ -20,14 +20,17 @@ export default function Watch() {
     const [videoJsOptions, setVideoJsOptions] = useState(null)
     const setVideoOptions = (url) => {
         let os_type = _mainContext.settings["playerSource"]
+        console.log("os_type", os_type)
         let data = {
             autoplay: true,
             controls: true,
             responsive: true,
             fluid: true,
+            muted: true,
+            playsinline: true,
             html5: {
                 vhs: {
-                    withCredentials: true,
+                    // withCredentials: true,
                     overrideNative: true
                 }
             },
@@ -36,9 +39,11 @@ export default function Watch() {
                 type: os_type
             }]
         }
+        console.log("data",data)
         setVideoJsOptions(data)
     }
     const playerRef = React.useRef(null);
+    const [error, setError] = useState([])
     const [name, setName] = useState('')
     const [logoUrl, setLogoUrl] = useState('')
     const [m3u8Link, setM3u8Link] = useState('')
@@ -107,11 +112,16 @@ export default function Watch() {
 
     const handlePlayerReady = (player) => {
         playerRef.current = player;
+        setError([player.error()])
 
         // You can handle player events here, for example:
         player.on('waiting', () => {
             console.log('player is waiting');
         });
+
+        player.on("error", (e) => {
+            console.log("error",e)
+        })
 
         player.on('dispose', () => {
             console.log('player will dispose');
@@ -189,6 +199,8 @@ export default function Watch() {
                         {name}
                     </h2>
                 </Box>
+                {/* <div>{JSON.stringify(videoJsOptions)}</div> */}
+                {/* <div>{JSON.stringify(error)}</div> */}
                 <FormControl sx={{ margin: '10px' }}>
                     {
                         videoJsOptions === null ? "" : (
