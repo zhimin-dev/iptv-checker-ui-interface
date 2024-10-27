@@ -28,6 +28,16 @@ export const MainContextProvider = function ({ children }) {
     const [nowLanguage, setNowLanguage] = useState('en')
     const [nowWindow, setNowWindow] = useState({ width: 0, height: 0 })
     const [nowPlatform, setNowPlatform] = useState('')
+    const [videoPlayTypes, setVideoPlayTypes] = useState([
+        {
+            "name":"mac",
+            "value":"application/x-mpegURL"
+        }
+        ,{
+            "name":"windows",
+            "value":"video/mp2t"
+        }
+    ])
     const [languageList, setLanguageList] = useState([{
         'code': 'en',
         "name": "English"
@@ -43,6 +53,7 @@ export const MainContextProvider = function ({ children }) {
         concurrent: 1,//并发数
         language: 'en',//语言
         privateHost: '',//私有host
+        playerSource:"application/x-mpegURL",// 视频播放平台
     })
 
     const nowCheckUrlModRef = useRef()//当前操作类型
@@ -91,14 +102,15 @@ export const MainContextProvider = function ({ children }) {
     useEffect(() => {
         setNowWindow({ width: window.innerWidth, height: window.innerHeight })
         window.addEventListener('resize', () => {
+            console.log(window)
             setNowWindow({ width: window.innerWidth, height: window.innerHeight })
         })
         initTitleBar()
         type().then(res => {
             console.log("now os type", res)
-            if(res === 'Darwin') {
+            // if(res === 'Darwin') {
                 overrideGlobalXHR()
-            }
+            // }
             setNowPlatform(res)
         });
         invoke('now_mod', {}).then((response) => {
@@ -107,8 +119,9 @@ export const MainContextProvider = function ({ children }) {
         }).catch(e => {
             console.log(e)
         })
-        let setting = localStorage.getItem('settings')
+        let setting = localStorage.getItem('settings')??''
         if (setting !== '') {
+            console.log("----", setting)
             try {
                 let data = JSON.parse(setting)
                 changeLanguage(data.language)
@@ -865,7 +878,7 @@ export const MainContextProvider = function ({ children }) {
             getM3uBody,
             needFastSource, onChangeNeedFastSource, nowMod, getBodyType,
             nowLanguage, changeLanguage, languageList, nowWindow, clientSaveFile,
-            nowPlatform
+            nowPlatform, videoPlayTypes,
         }}>
             {children}
         </MainContext.Provider>

@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "iptv-checker-desktop",
-    "version": "4.0.2"
+    "version": "4.0.3"
   },
   "tauri": {
     "allowlist": {
@@ -89,14 +89,10 @@
       "shortDescription": "",
       "targets": "all",
       "windows": {
-        "certificateThumbprint": null,
-        "digestAlgorithm": "sha256",
-        "timestampUrl": ""
+        "webviewInstallMode": {
+          "type": "downloadBootstrapper"
+        }
       }
-    },
-    "security": {
-      "csp": "",
-      "devCsp": ""
     },
     "updater": {
       "active": false

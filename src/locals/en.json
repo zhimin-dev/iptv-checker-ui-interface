@@ -105,6 +105,7 @@
       "检测并发数":"Check concurrency",
       "检查超时时间（毫秒）":"Check timeout (milliseconds)",
       "保存":"Save",
+      "播放平台": "Player platform",
       "获取失败":"Get data failed",
       "保存失败":"Save failed",
       "非法参数":"invalid parameters",

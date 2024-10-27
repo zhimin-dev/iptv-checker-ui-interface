@@ -78,6 +78,7 @@ export default function Settings() {
     const [customLink, setCustomLink] = useState([]);
     const [privateHost, setPrivateHost] = useState('')
     const [dialogMsg, setDialogMsg] = useState('');
+    const [playerSource, setPlayerSource] = useState('');
     const [openDialog, setOpenDialog] = useState(false);
     const { t } = useTranslation();
 
@@ -89,6 +90,7 @@ export default function Settings() {
             setConcurrent(config.concurrent??1)
             setLanguage(config.language??'en')
             setPrivateHost(config.privateHost??'')
+            setPlayerSource(config.playerSource??'')
         }
     }, [_mainContext])
 
@@ -106,6 +108,8 @@ export default function Settings() {
             setLanguage(e.target.value)
         } else if (name === 'privateHost') {
             setPrivateHost(e.target.value)
+        }else if (name === 'playerSource') {
+            setPlayerSource(e.target.value)
         }
     }
 
@@ -115,7 +119,8 @@ export default function Settings() {
             customLink: customLink,
             concurrent: concurrent,
             language: language,
-            privateHost: privateHost
+            privateHost: privateHost,
+            playerSource: playerSource,
         })
         _mainContext.changeLanguage(language)
         setOpenDialog(true)
@@ -234,6 +239,21 @@ export default function Settings() {
                             ))
                         }
                     </Box>
+                </FormControl>
+                <FormControl  sx={{ marginBottom: '20px' }}>
+                    <InputLabel id="demo-row-radio-buttons-group-label">{t('播放平台')}</InputLabel>
+                    <Select
+                        name="playerSource"
+                        value={playerSource}
+                        label={t('播放平台')}
+                        onChange={handleChangeConfigSettings}
+                    >
+                        {
+                            _mainContext.videoPlayTypes.map((val,index) => (
+                                <MenuItem key={index} value={val.value}>{val.name}</MenuItem>
+                            ))
+                        }
+                    </Select>
                 </FormControl>
                 <LoadingButton
                     onClick={doSaveConfigSettings}

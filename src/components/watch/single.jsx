@@ -12,30 +12,27 @@ export default function Single(props) {
     const [nowTry, setNowTry] = useState(false)
     const [videoJsOptions, setVideoJsOptions] = useState(null)
     const setVideoOptions = (url) => {
-        //let os_type = 'application/x-mpegURL'
-        let os_type = 'application/x-mpegURL'
-        if (_mainContext.nowPlatform === 'darwin' || _mainContext.nowPlatform === 'ios') {
-            os_type = 'video/mp2t'
-        }
+        let os_type = _mainContext.settings["playerSource"]
         console.log(os_type)
-        setVideoJsOptions({
+        let data = {
             autoplay: true,
             controls: true,
             responsive: true,
             fluid: true,
-            // html5: {
-            //     vhs: {
-            //         withCredentials: true,
-            //         overrideNative: true
-            //     }
-            // },
-            sources: [
-                {
-                    src: url,
-                    type: os_type
+            muted: true,
+            playsinline: true,
+            html5: {
+                vhs: {
+                    // withCredentials: true,
+                    overrideNative: true
                 }
-            ]
-        })
+            },
+            sources: [{
+                src: url,
+                type: os_type
+            }]
+        }
+        setVideoJsOptions(data)
     }
     const playerRef = React.useRef(null);
     const [m3u8Link, setM3u8Link] = useState('')
@@ -46,6 +43,7 @@ export default function Single(props) {
             // event.event 是事件名称 (当你想用一个回调函数处理不同类型的事件时很有用)
             // event.payload 是负载对象
             if (event.event === 'changeWatchUrl') {
+                console.log(event.payload.data.url)
                 setM3u8Link(event.payload.data.url)
                 onloadM3u8Link(event.payload.data.url)
             }
@@ -98,9 +96,9 @@ export default function Single(props) {
         })
 
         player.on('error', (e) => {
-            if(!nowTry) {
-                onloadM3u8LinkTry(m3u8Link, 'application/x-mpegURL')
-            }
+            // if(!nowTry) {
+            //     onloadM3u8LinkTry(m3u8Link, 'application/x-mpegURL')
+            // }
         })
 
         player.ready(function () {
@@ -120,6 +118,7 @@ export default function Single(props) {
             {
                 videoJsOptions === null ? "" : (
                     <div style={{ paddingTop: '30px' }}>
+                        {/* <div>{JSON.stringify(videoJsOptions)}</div> */}
                         <VideoJS options={videoJsOptions} onReady={handlePlayerReady} headers={httpHeaders} />
                     </div>
                 )
