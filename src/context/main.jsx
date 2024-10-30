@@ -2,14 +2,15 @@ import { useState, createContext, useEffect, useRef } from "react"
 import axios from "axios"
 export const MainContext = createContext();
 import ParseM3u from '../utils/utils'
-import { invoke } from '@tauri-apps/api'
+import { invoke } from '@tauri-apps/api/core'
 import i18n from "i18next";
-import { appWindow } from '@tauri-apps/api/window'
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { overrideGlobalXHR } from 'tauri-xhr'
-import { writeTextFile } from '@tauri-apps/api/fs';
-import { save } from '@tauri-apps/api/dialog';
+import { writeTextFile } from '@tauri-apps/plugin-fs';
+import { save } from '@tauri-apps/plugin-dialog';
 import { downloadDir } from '@tauri-apps/api/path';
-import { type } from '@tauri-apps/api/os';
+import { type } from '@tauri-apps/plugin-os';
+const appWindow = getCurrentWebviewWindow()
 
 export const MainContextProvider = function ({ children }) {
     const headerHeight = 145
@@ -74,16 +75,21 @@ export const MainContextProvider = function ({ children }) {
         i18n.changeLanguage(val)
     }
 
-    const initTitleBar = () => {
+    const initControlBar = (appWindow) => {
+        console.log("----control bar")
         document
             .getElementById('titlebar-minimize')
-            .addEventListener('click', () => appWindow.minimize())
+            ?.addEventListener('click', () => appWindow.minimize());
         document
             .getElementById('titlebar-maximize')
-            .addEventListener('click', () => appWindow.toggleMaximize())
+            ?.addEventListener('click', () => appWindow.toggleMaximize());
         document
             .getElementById('titlebar-close')
-            .addEventListener('click', () => appWindow.close())
+            ?.addEventListener('click', () => appWindow.close());
+    }
+
+    const initTitleBar = () => {
+        initControlBar(appWindow)
     }
 
     const clientSaveFile = async (body, fuleSuffix) => {
@@ -106,13 +112,14 @@ export const MainContextProvider = function ({ children }) {
             setNowWindow({ width: window.innerWidth, height: window.innerHeight })
         })
         initTitleBar()
-        type().then(res => {
-            console.log("now os type", res)
+        let os_type = type()
+        if(os_type!=='') {
+            console.log("now os type", os_type)
             // if(res === 'Darwin') {
-                overrideGlobalXHR()
+                // overrideGlobalXHR()
             // }
-            setNowPlatform(res)
-        });
+            setNowPlatform(os_type)
+        }
         invoke('now_mod', {}).then((response) => {
             setNowMod(response)
             console.log("now mod", response)
@@ -878,7 +885,7 @@ export const MainContextProvider = function ({ children }) {
             getM3uBody,
             needFastSource, onChangeNeedFastSource, nowMod, getBodyType,
             nowLanguage, changeLanguage, languageList, nowWindow, clientSaveFile,
-            nowPlatform, videoPlayTypes,
+            nowPlatform, videoPlayTypes, initControlBar,
         }}>
             {children}
         </MainContext.Provider>

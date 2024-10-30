@@ -11,8 +11,9 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import VideoJS from './../watch/video'
 import Dialog from '@mui/material/Dialog';
-import { appWindow,WebviewWindow } from "@tauri-apps/api/window";
 import { useTranslation, initReactI18next } from "react-i18next";
+import { Window } from "@tauri-apps/api/window"
+import { Webview } from "@tauri-apps/api/webview"
 import { emit, listen } from '@tauri-apps/api/event'
 
 export default function Detail() {
@@ -22,32 +23,6 @@ export default function Detail() {
   const [videoJsOptions, setVideoJsOptions] = useState(null)
   const [showWatch, setShowWatch] = useState(false)
   const playerRef = React.useRef(null);
-  const handlePlayerReady = (player) => {
-      playerRef.current = player;
-
-      // You can handle player events here, for example:
-      player.on('waiting', () => {
-          console.log('player is waiting');
-      });
-
-      player.on('dispose', () => {
-          console.log('player will dispose');
-      });
-
-      player.on('fullscreen', (e) => {
-        console.log('full s', e)
-      })
-
-      player.ready(function() {
-        var fullScreenButton = player.controlBar.fullscreenToggle;
-      
-        fullScreenButton.on('click', function() {
-          appWindow.setFullscreen(true).then(res => {
-            console.log("set full screeen")
-          });
-        });
-      });
-  };
 
   const [httpHeaders, setHttpHeaders] = useState([])
   const navigate = useNavigate();
@@ -83,7 +58,7 @@ export default function Detail() {
       let returnValue = t('刷新后将跳转首页')
       e.returnValue = returnValue
     })
-    if(_mainContext.showM3uBody.length === 0) {
+    if (_mainContext.showM3uBody.length === 0) {
       navigate("/check")
     }
   }, [])
@@ -101,25 +76,34 @@ export default function Detail() {
 
   const watchThisRow = async (val) => {
     let platform = _mainContext.nowPlatform
-    if(_mainContext.nowMod === 1) {
+    if (_mainContext.nowMod === 1) {
       let label = 'watch'
-      let data = WebviewWindow.getByLabel(label);
-      if(data !== null) {
-        // 携带负载对象触发 `click` 事件
-        emit('changeWatchUrl', {
-          data: val,
-        })
-        return 
-      }
-      const webview = new WebviewWindow(label, {
-        url: '/watch/single?platform='+platform+'&url='+val.url,
+      const appWindow = new Window(label, {
+        skipTaskbar: true,
+        decorations: false,
         title:val.name,
+      });
+      console.log("appWindow",appWindow)
+      // appWindow.getByLabel(label).then((data)=> {
+      //   console.log(data)
+      // })
+      // if(appWindow !== null) {
+      //   // 携带负载对象触发 `click` 事件
+      //   await webview.emit('changeWatchUrl', {
+      //     data: val,
+      //   })
+      //   return 
+      // }
+      _mainContext.initControlBar(appWindow)
+      const webview = new Webview(appWindow, label, {
+        url: '/watch/single?platform=' + platform + '&url=' + val.url,
+        x: 0,
+        y: 0,
         width: 1024,
         height: 600,
-        skipTaskbar: true,
-        decorations: false
       })
       
+
       // since the webview window is created asynchronously,
       // Tauri emits the `tauri://created` and `tauri://error` to notify you of the creation response
       webview.once('tauri://created', function () {
@@ -127,10 +111,10 @@ export default function Detail() {
       })
       webview.once('tauri://error', function (e) {
         console.log('traui error ', e)
-        // an error occurred during webview window creation
       })
-    }else{
-      window.open('/watch/single?platform='+platform+'&url='+val.url)
+    } else {
+      console.log("-------22222")
+      window.open('/watch/single?platform=' + platform + '&url=' + val.url)
     }
   }
 
@@ -165,9 +149,9 @@ export default function Detail() {
   }
 
   const seeDetail = (val) => {
-    if(showChannelMod !== 0 &&  showDetailObj !== null  && val.index === showDetailObj.index) {
+    if (showChannelMod !== 0 && showDetailObj !== null && val.index === showDetailObj.index) {
       setShowChannelMod(0)
-      return 
+      return
     }
     setShowChannelMod(1)
     setShowDetailObj(val)
@@ -181,18 +165,9 @@ export default function Detail() {
     setShowChannelMod(2)
   }
 
-  const handleWatchClose = () => {
-    setShowWatch(false)
-  }
-
   return (
-    <Box style={{padding: '0 20px'}}>
-      <Setting style={{marginTop: '20px'}} setSelectedArr={setSelectedArr} selectedArr={selectedArr}></Setting>
-      <Dialog scroll="body" fullWidth onClose={handleWatchClose} open={showWatch}>
-        <div>
-          <VideoJS options={videoJsOptions} onReady={handlePlayerReady} headers={httpHeaders} />
-        </div>
-      </Dialog>
+    <Box style={{ padding: '0 20px' }}>
+      <Setting style={{ marginTop: '20px' }} setSelectedArr={setSelectedArr} selectedArr={selectedArr}></Setting>
       <Paper style={{
         height: vTableHeight,
         marginTop: (_mainContext.headerHeight + 10) + "px",
@@ -249,13 +224,13 @@ export default function Detail() {
                   <TextField disabled={showChannelMod === 1} sx={{ fontSize: '11px' }} label={t('频道名称')} name="name" size="small" id="standard-multiline-static" value={showDetailObj.name} onChange={handleChange} />
                 </FormControl>
                 <FormControl sx={{ marginBottom: '25px' }} fullWidth>
-                  <TextField disabled={showChannelMod === 1} sx={{ fontSize: '11px' }} label={t('m3u8地址')} name="url"  size="small" id="standard-multiline-static" value={showDetailObj.url} onChange={handleChange} />
+                  <TextField disabled={showChannelMod === 1} sx={{ fontSize: '11px' }} label={t('m3u8地址')} name="url" size="small" id="standard-multiline-static" value={showDetailObj.url} onChange={handleChange} />
                 </FormControl>
                 <FormControl sx={{ marginBottom: '25px' }} fullWidth>
-                  <TextField disabled={showChannelMod === 1} sx={{ fontSize: '11px' }} label={t('logoUrl')} name="tvgLogo"  size="small" id="standard-multiline-static" value={showDetailObj.tvgLogo} onChange={handleChange} />
+                  <TextField disabled={showChannelMod === 1} sx={{ fontSize: '11px' }} label={t('logoUrl')} name="tvgLogo" size="small" id="standard-multiline-static" value={showDetailObj.tvgLogo} onChange={handleChange} />
                 </FormControl>
                 <FormControl sx={{ marginBottom: '15px' }} fullWidth>
-                  <TextField disabled={showChannelMod === 1} sx={{ fontSize: '11px' }} label={t('分组名称')} name="groupTitle"  size="small" id="standard-multiline-static" value={showDetailObj.groupTitle} onChange={handleChange} />
+                  <TextField disabled={showChannelMod === 1} sx={{ fontSize: '11px' }} label={t('分组名称')} name="groupTitle" size="small" id="standard-multiline-static" value={showDetailObj.groupTitle} onChange={handleChange} />
                 </FormControl>
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                   {

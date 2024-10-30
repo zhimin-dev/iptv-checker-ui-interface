@@ -3,8 +3,9 @@ import { useContext, useState, useEffect, useRef } from "react"
 import VideoJS from './video'
 import { MainContext } from './../../context/main';
 import _Tabbar from './../layout/tabbar'
-import { appWindow } from "@tauri-apps/api/window";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { listen } from "@tauri-apps/api/event";
+const appWindow = getCurrentWebviewWindow()
 
 export default function Single(props) {
     const _mainContext = useContext(MainContext);

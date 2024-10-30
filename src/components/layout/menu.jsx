@@ -18,9 +18,10 @@ import CloudQueueIcon from '@mui/icons-material/CloudQueue';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import _package from './../../../package';
 import { useTranslation, initReactI18next } from "react-i18next";
-import { appWindow } from '@tauri-apps/api/window'
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import Divider from '@mui/material/Divider';
 import _Tabbar from './tabbar'
+const appWindow = getCurrentWebviewWindow()
 
 let menuList = [{
     "name": "检测源",
