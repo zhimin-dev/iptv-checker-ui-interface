@@ -87,7 +87,7 @@ export default function Single(props) {
         // You can handle player events here, for example:
         player.on('waiting', () => {
             console.log('player is waiting');
-            console.log(playerRef.current.wi)
+            console.log(playerRef.current)
         });
 
         player.on('canplay', () => {
@@ -107,32 +107,32 @@ export default function Single(props) {
         })
 
         player.ready(function () {
+            console.log(player.controlBar)
             var fullScreenButton = player.controlBar.fullscreenToggle;
 
             fullScreenButton.on('click', function () {
                 console.log("user click full")
                 appWindow.isFullscreen().then((isFull) => {
-                    console.log("now fullscreen status", isFull)
+                    console.log("now fullscreen status", isFull, window.screen)
                     if(isFull) {
                         appWindow.setFullscreen(false)
                         console.log("---exit full screen")
                         const videoContainer = player.el().parentElement;
-                        // videoContainer.style.position = '';
-                        // videoContainer.style.top = '';
-                        // videoContainer.style.left = '';
-                        // videoContainer.style.transform = '';
                         videoContainer.style.width = '';
                         videoContainer.style.height = '';
+                        videoContainer.style.alignContent = ''
+                        videoContainer.style.backgroundColor = ''
+                        player.el().style.width = ''
+                        player.el().style.height = ''
                     }else{
                         appWindow.setFullscreen(true)
                         const videoContainer = player.el().parentElement;
-                        videoContainer.style.position = 'absolute';
-                        videoContainer.style.bottom = '200';
-                        videoContainer.style.left = '50%';
-                        videoContainer.style.transform = 'translate(-50%, -50%)';
-
                         videoContainer.style.width = window.screen.width+"px";
-                        videoContainer.style.height = (window.screen.height)+"px";
+                        videoContainer.style.height = window.screen.height+"px";
+                        videoContainer.style.alignContent = 'center';
+                        videoContainer.style.backgroundColor = '#000';
+                        player.el().style.width = window.screen.width+"px";
+                        player.el().style.height = window.screen.height+"px";
                     }
                 })
             });

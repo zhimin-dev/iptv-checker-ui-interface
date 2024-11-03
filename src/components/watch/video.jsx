@@ -49,23 +49,6 @@ export const VideoJS = (props) => {
       player.autoplay(options.autoplay);
       player.src(options.sources);
     }
-    // playerRef.current.controls(false);
-
-    // const scrollbar = document.createElement('div');
-    // const controlBar = playerRef.current.controlBar;
-    // scrollbar.classList.add('vjs-control', 'vjs-scrollbar');
-    // controlBar.addChild(scrollbar);
-    // scrollbar.addEventListener('wheel', (event) => {
-    //   // Calculate the scroll amount based on the wheel event
-    //   const scrollAmount = event.deltaY * 0.1; // Adjust the scroll speed as needed
-    
-    //   // Scroll the video player
-    //   playerRef.current.currentTime(playerRef.current.currentTime() + scrollAmount);
-    // });
-    // scrollbar.style.width = '100%';
-    // scrollbar.style.height = '10px';
-    // scrollbar.style.backgroundColor = 'gray';
-    // scrollbar.style.cursor = 'ns-resize';
   }, [options, videoRef]);
 
   // Dispose the Video.js player when the functional component unmounts

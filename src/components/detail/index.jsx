@@ -9,11 +9,7 @@ import { VirtualizedTable } from './vtable'
 import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import VideoJS from './../watch/video'
-import Dialog from '@mui/material/Dialog';
 import { useTranslation, initReactI18next } from "react-i18next";
-import { Window } from "@tauri-apps/api/window"
-import { Webview } from "@tauri-apps/api/webview"
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { emit, listen } from '@tauri-apps/api/event'
 
@@ -21,11 +17,6 @@ export default function Detail() {
   const { t } = useTranslation();
   const _mainContext = useContext(MainContext);
   const [vTableHeight, setVTableHeight] = useState(550)
-  const [videoJsOptions, setVideoJsOptions] = useState(null)
-  const [showWatch, setShowWatch] = useState(false)
-  const playerRef = React.useRef(null);
-
-  const [httpHeaders, setHttpHeaders] = useState([])
   const navigate = useNavigate();
   const [selectedArr, setSelectedArr] = useState([])//已选中的id
   const [showChannelMod, setShowChannelMod] = useState(0)// 0不显示弹框 1展示非编辑 2编辑页面
@@ -95,6 +86,7 @@ export default function Detail() {
         height: 600,
         title:val.name,
         center: true,
+        maximizable: false,
       })
       console.log("webview",webview)
       // _mainContext.initControlBar(webview, label)
