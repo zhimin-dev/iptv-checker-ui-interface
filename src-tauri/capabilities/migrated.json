@@ -3,7 +3,8 @@
   "description": "permissions that were migrated from v1",
   "local": true,
   "windows": [
-    "main"
+    "main",
+    "watch"
   ],
   "permissions": [
     "core:default",
@@ -39,6 +40,14 @@
     "dialog:allow-confirm",
     "core:webview:allow-create-webview",
     "core:webview:allow-create-webview-window",
+    "core:window:default",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-internal-toggle-maximize",
+    "core:window:allow-set-size",
+    "core:window:allow-set-title-bar-style",
+    "core:window:allow-set-title",
+    "core:window:allow-center",
+    "core:window:allow-set-position",
     {
       "identifier": "http:default",
       "allow": [

@@ -6,6 +6,7 @@ import { invoke } from '@tauri-apps/api/core'
 import i18n from "i18next";
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { overrideGlobalXHR } from 'tauri-xhr'
+import { LogicalSize } from '@tauri-apps/api/window';
 import { writeTextFile } from '@tauri-apps/plugin-fs';
 import { save } from '@tauri-apps/plugin-dialog';
 import { downloadDir } from '@tauri-apps/api/path';
@@ -29,6 +30,7 @@ export const MainContextProvider = function ({ children }) {
     const [nowLanguage, setNowLanguage] = useState('en')
     const [nowWindow, setNowWindow] = useState({ width: 0, height: 0 })
     const [nowPlatform, setNowPlatform] = useState('')
+    const [showWindowsTopBar, setShowWindowsTopBar] = useState(true)
     const [videoPlayTypes, setVideoPlayTypes] = useState([
         {
             "name":"mac",
@@ -75,14 +77,25 @@ export const MainContextProvider = function ({ children }) {
         i18n.changeLanguage(val)
     }
 
-    const initControlBar = (appWindow) => {
-        console.log("----control bar")
+    const initControlBar = (appWindow, pageLabel) => {
         document
             .getElementById('titlebar-minimize')
             ?.addEventListener('click', () => appWindow.minimize());
         document
-            .getElementById('titlebar-maximize')
-            ?.addEventListener('click', () => appWindow.toggleMaximize());
+        .getElementById('titlebar-maximize')
+        ?.addEventListener('click', () => {
+            appWindow.isFullscreen().then((isFull) => {
+                console.log("isfull", isFull);
+                if(isFull) {
+                    appWindow.setSize(new LogicalSize(1024, 800)).then(()=> {})
+                }else{
+                    appWindow.setTitleBarStyle('transparent')
+                    appWindow.setFullscreen(true)
+                    appWindow.center()
+                    setShowWindowsTopBar(false)
+                }
+            })
+        });
         document
             .getElementById('titlebar-close')
             ?.addEventListener('click', () => appWindow.close());
@@ -107,8 +120,9 @@ export const MainContextProvider = function ({ children }) {
 
     useEffect(() => {
         setNowWindow({ width: window.innerWidth, height: window.innerHeight })
+        console.log("screen", window.screen)
+        // console.log("width",window.screen.width, window.screen.height, window.screen.availWidth, window.screen.availHeight)
         window.addEventListener('resize', () => {
-            console.log(window)
             setNowWindow({ width: window.innerWidth, height: window.innerHeight })
         })
         initTitleBar()
@@ -885,7 +899,7 @@ export const MainContextProvider = function ({ children }) {
             getM3uBody,
             needFastSource, onChangeNeedFastSource, nowMod, getBodyType,
             nowLanguage, changeLanguage, languageList, nowWindow, clientSaveFile,
-            nowPlatform, videoPlayTypes, initControlBar,
+            nowPlatform, videoPlayTypes, initControlBar,showWindowsTopBar
         }}>
             {children}
         </MainContext.Provider>

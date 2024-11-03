@@ -5,6 +5,7 @@ import { MainContext } from './../../context/main';
 import _Tabbar from './../layout/tabbar'
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { listen } from "@tauri-apps/api/event";
+import { LogicalSize,LogicalPosition } from '@tauri-apps/api/window';
 const appWindow = getCurrentWebviewWindow()
 
 export default function Single(props) {
@@ -44,9 +45,9 @@ export default function Single(props) {
             // event.event 是事件名称 (当你想用一个回调函数处理不同类型的事件时很有用)
             // event.payload 是负载对象
             if (event.event === 'changeWatchUrl') {
-                console.log(event.payload.data.url)
                 setM3u8Link(event.payload.data.url)
                 onloadM3u8Link(event.payload.data.url)
+                appWindow.setTitle(event.payload.data.name)
             }
         })
     }
@@ -86,39 +87,63 @@ export default function Single(props) {
         // You can handle player events here, for example:
         player.on('waiting', () => {
             console.log('player is waiting');
+            console.log(playerRef.current.wi)
+        });
+
+        player.on('canplay', () => {
+            console.log("videojs canplay")
         });
 
         player.on('dispose', () => {
             console.log('player will dispose');
         });
 
-        player.on('fullscreen', (e) => {
+        player.on('fullscreenchange', (e) => {
             console.log('full s', e)
         })
 
         player.on('error', (e) => {
-            // if(!nowTry) {
-            //     onloadM3u8LinkTry(m3u8Link, 'application/x-mpegURL')
-            // }
+            console.log("videojs error", e)
         })
 
         player.ready(function () {
             var fullScreenButton = player.controlBar.fullscreenToggle;
 
             fullScreenButton.on('click', function () {
-                appWindow.setFullscreen(true).then(res => {
-                    console.log("set full screeen")
-                });
+                console.log("user click full")
+                appWindow.isFullscreen().then((isFull) => {
+                    console.log("now fullscreen status", isFull)
+                    if(isFull) {
+                        appWindow.setFullscreen(false)
+                        console.log("---exit full screen")
+                        const videoContainer = player.el().parentElement;
+                        // videoContainer.style.position = '';
+                        // videoContainer.style.top = '';
+                        // videoContainer.style.left = '';
+                        // videoContainer.style.transform = '';
+                        videoContainer.style.width = '';
+                        videoContainer.style.height = '';
+                    }else{
+                        appWindow.setFullscreen(true)
+                        const videoContainer = player.el().parentElement;
+                        videoContainer.style.position = 'absolute';
+                        videoContainer.style.bottom = '200';
+                        videoContainer.style.left = '50%';
+                        videoContainer.style.transform = 'translate(-50%, -50%)';
+
+                        videoContainer.style.width = window.screen.width+"px";
+                        videoContainer.style.height = (window.screen.height)+"px";
+                    }
+                })
             });
         });
     };
 
     return (
         <>
-            <_Tabbar></_Tabbar>
             {
                 videoJsOptions === null ? "" : (
-                    <div style={{ paddingTop: '30px' }}>
+                    <div>
                         {/* <div>{JSON.stringify(videoJsOptions)}</div> */}
                         <VideoJS options={videoJsOptions} onReady={handlePlayerReady} headers={httpHeaders} />
                     </div>

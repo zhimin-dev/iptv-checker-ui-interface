@@ -14,6 +14,7 @@ import Dialog from '@mui/material/Dialog';
 import { useTranslation, initReactI18next } from "react-i18next";
 import { Window } from "@tauri-apps/api/window"
 import { Webview } from "@tauri-apps/api/webview"
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { emit, listen } from '@tauri-apps/api/event'
 
 export default function Detail() {
@@ -78,32 +79,25 @@ export default function Detail() {
     let platform = _mainContext.nowPlatform
     if (_mainContext.nowMod === 1) {
       let label = 'watch'
-      const appWindow = new Window(label, {
-        skipTaskbar: true,
-        decorations: false,
-        title:val.name,
-      });
-      console.log("appWindow",appWindow)
-      // appWindow.getByLabel(label).then((data)=> {
-      //   console.log(data)
-      // })
-      // if(appWindow !== null) {
-      //   // 携带负载对象触发 `click` 事件
-      //   await webview.emit('changeWatchUrl', {
-      //     data: val,
-      //   })
-      //   return 
-      // }
-      _mainContext.initControlBar(appWindow)
-      const webview = new Webview(appWindow, label, {
-        url: '/watch/single?platform=' + platform + '&url=' + val.url,
+      let appWindow = await WebviewWindow.getByLabel(label);
+      if(appWindow !== null) {
+        // 携带负载对象触发 `click` 事件
+        emit('changeWatchUrl', {
+          data: val,
+        })
+        return 
+      }
+      const webview = new WebviewWindow(label, {
+        url: '/watch/single?platform='+platform+'&url='+val.url,
         x: 0,
         y: 0,
         width: 1024,
         height: 600,
+        title:val.name,
+        center: true,
       })
-      
-
+      console.log("webview",webview)
+      // _mainContext.initControlBar(webview, label)
       // since the webview window is created asynchronously,
       // Tauri emits the `tauri://created` and `tauri://error` to notify you of the creation response
       webview.once('tauri://created', function () {
