@@ -3,8 +3,10 @@ import { useContext, useState, useEffect, useRef } from "react"
 import VideoJS from './video'
 import { MainContext } from './../../context/main';
 import _Tabbar from './../layout/tabbar'
-import { appWindow } from "@tauri-apps/api/window";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { listen } from "@tauri-apps/api/event";
+import { LogicalSize,LogicalPosition } from '@tauri-apps/api/window';
+const appWindow = getCurrentWebviewWindow()
 
 export default function Single(props) {
     const _mainContext = useContext(MainContext);
@@ -43,9 +45,9 @@ export default function Single(props) {
             // event.event 是事件名称 (当你想用一个回调函数处理不同类型的事件时很有用)
             // event.payload 是负载对象
             if (event.event === 'changeWatchUrl') {
-                console.log(event.payload.data.url)
                 setM3u8Link(event.payload.data.url)
                 onloadM3u8Link(event.payload.data.url)
+                appWindow.setTitle(event.payload.data.name)
             }
         })
     }
@@ -85,39 +87,63 @@ export default function Single(props) {
         // You can handle player events here, for example:
         player.on('waiting', () => {
             console.log('player is waiting');
+            console.log(playerRef.current)
+        });
+
+        player.on('canplay', () => {
+            console.log("videojs canplay")
         });
 
         player.on('dispose', () => {
             console.log('player will dispose');
         });
 
-        player.on('fullscreen', (e) => {
+        player.on('fullscreenchange', (e) => {
             console.log('full s', e)
         })
 
         player.on('error', (e) => {
-            // if(!nowTry) {
-            //     onloadM3u8LinkTry(m3u8Link, 'application/x-mpegURL')
-            // }
+            console.log("videojs error", e)
         })
 
         player.ready(function () {
+            console.log(player.controlBar)
             var fullScreenButton = player.controlBar.fullscreenToggle;
 
             fullScreenButton.on('click', function () {
-                appWindow.setFullscreen(true).then(res => {
-                    console.log("set full screeen")
-                });
+                console.log("user click full")
+                appWindow.isFullscreen().then((isFull) => {
+                    console.log("now fullscreen status", isFull, window.screen)
+                    if(isFull) {
+                        appWindow.setFullscreen(false)
+                        console.log("---exit full screen")
+                        const videoContainer = player.el().parentElement;
+                        videoContainer.style.width = '';
+                        videoContainer.style.height = '';
+                        videoContainer.style.alignContent = ''
+                        videoContainer.style.backgroundColor = ''
+                        player.el().style.width = ''
+                        player.el().style.height = ''
+                    }else{
+                        appWindow.setFullscreen(true)
+                        const videoContainer = player.el().parentElement;
+                        videoContainer.style.width = window.screen.width+"px";
+                        videoContainer.style.height = window.screen.height+"px";
+                        videoContainer.style.alignContent = 'center';
+                        videoContainer.style.backgroundColor = '#000';
+                        player.el().style.width = window.screen.width+"px";
+                        player.el().style.height = window.screen.height+"px";
+                    }
+                })
             });
         });
     };
 
     return (
         <>
-            <_Tabbar></_Tabbar>
             {
                 videoJsOptions === null ? "" : (
-                    <div style={{ paddingTop: '30px' }}>
+                    <div>
                         {/* <div>{JSON.stringify(videoJsOptions)}</div> */}
                         <VideoJS options={videoJsOptions} onReady={handlePlayerReady} headers={httpHeaders} />
                     </div>

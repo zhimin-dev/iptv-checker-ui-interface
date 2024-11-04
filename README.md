@@ -15,7 +15,10 @@ cd 到对应目录（C:\Users\pc\AppData\Roaming\），创建npm文件夹即可
 
 ## web变更日志
 
-- v4.0.2
+- v4.0.4
+  - 升级tauri 2.0
+  - 在线播放支持全屏并显示正确位置
+- v4.0.2 && v4.0.3
   - 修复windows无法播放的问题
 - v4.0.1
   - bug修复

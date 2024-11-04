@@ -12,7 +12,8 @@ import utils from './../../utils/common'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom';
 import { useTranslation, initReactI18next } from "react-i18next";
-import { appWindow } from '@tauri-apps/api/window'
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
+const appWindow = getCurrentWebviewWindow()
 
 const Alert = React.forwardRef(function Alert(props, ref) {
     return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
