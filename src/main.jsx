@@ -12,7 +12,8 @@ import Watch from './components/watch'
 import Menu from './components/layout/menu'
 import Settings from './components/settings';
 import Task from './components/task';
-import Check from './components/check'
+import Check from './components/check';
+import Fast from './components/fast';
 import Public from './components/public';
 import WatchSingle from './components/watch/single'
 import './utils/i18n';
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <Check />,
+      },
+      {
+        path: "/fast",
+        element: <Fast />,
       },
       {
         path: "/detail",

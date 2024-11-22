@@ -11,6 +11,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import BoltIcon from '@mui/icons-material/Bolt';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AdjustIcon from '@mui/icons-material/Adjust';
 import PublicIcon from '@mui/icons-material/Public';
@@ -26,6 +27,12 @@ let menuList = [{
     "name": "检测源",
     "uri": "/check",
     "icon": "AdjustIcon",
+    'showMod': [0, 1],
+    'showHeader': true
+},{
+    "name": "快速检测",
+    "uri": "/fast",
+    "icon": "BoltIcon",
     'showMod': [0, 1],
     'showHeader': true
 }, {
@@ -121,6 +128,9 @@ export default function Layout() {
                                             }
                                             {
                                                 value.icon === 'RemoveRedEyeIcon' ? <RemoveRedEyeIcon /> : ''
+                                            }
+                                            {
+                                                value.icon === 'BoltIcon' ? <BoltIcon />:''
                                             }
                                         </ListItemIcon>
                                         <ListItemText primary={t(value.name)} />

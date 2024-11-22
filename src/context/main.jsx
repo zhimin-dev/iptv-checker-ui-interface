@@ -32,12 +32,12 @@ export const MainContextProvider = function ({ children }) {
     const [showWindowsTopBar, setShowWindowsTopBar] = useState(true)
     const [videoPlayTypes, setVideoPlayTypes] = useState([
         {
-            "name":"mac",
-            "value":"application/x-mpegURL"
+            "name": "mac",
+            "value": "application/x-mpegURL"
         }
-        ,{
-            "name":"windows",
-            "value":"video/mp2t"
+        , {
+            "name": "windows",
+            "value": "video/mp2t"
         }
     ])
     const [languageList, setLanguageList] = useState([{
@@ -55,7 +55,7 @@ export const MainContextProvider = function ({ children }) {
         concurrent: 1,//并发数
         language: 'en',//语言
         privateHost: '',//私有host
-        playerSource:"application/x-mpegURL",// 视频播放平台
+        playerSource: "application/x-mpegURL",// 视频播放平台
     })
 
     const nowCheckUrlModRef = useRef()//当前操作类型
@@ -81,20 +81,20 @@ export const MainContextProvider = function ({ children }) {
             .getElementById('titlebar-minimize')
             ?.addEventListener('click', () => appWindow.minimize());
         document
-        .getElementById('titlebar-maximize')
-        ?.addEventListener('click', () => {
-            appWindow.isFullscreen().then((isFull) => {
-                console.log("isfull", isFull);
-                if(isFull) {
-                    appWindow.setSize(new LogicalSize(1024, 800)).then(()=> {})
-                }else{
-                    appWindow.setTitleBarStyle('transparent')
-                    appWindow.setFullscreen(true)
-                    appWindow.center()
-                    setShowWindowsTopBar(false)
-                }
-            })
-        });
+            .getElementById('titlebar-maximize')
+            ?.addEventListener('click', () => {
+                appWindow.isFullscreen().then((isFull) => {
+                    console.log("isfull", isFull);
+                    if (isFull) {
+                        appWindow.setSize(new LogicalSize(1024, 800)).then(() => { })
+                    } else {
+                        appWindow.setTitleBarStyle('transparent')
+                        appWindow.setFullscreen(true)
+                        appWindow.center()
+                        setShowWindowsTopBar(false)
+                    }
+                })
+            });
         document
             .getElementById('titlebar-close')
             ?.addEventListener('click', () => appWindow.close());
@@ -120,8 +120,6 @@ export const MainContextProvider = function ({ children }) {
 
     useEffect(() => {
         setNowWindow({ width: window.innerWidth, height: window.innerHeight })
-        console.log("screen", window.screen)
-        // console.log("width",window.screen.width, window.screen.height, window.screen.availWidth, window.screen.availHeight)
         window.addEventListener('resize', () => {
             setNowWindow({ width: window.innerWidth, height: window.innerHeight })
         })
@@ -130,19 +128,15 @@ export const MainContextProvider = function ({ children }) {
             initTitleBar()
             console.log("now mod", response)
             let os_type = type()
-            if(os_type!=='') {
+            if (os_type !== '') {
                 console.log("now os type", os_type)
-                // if(res === 'Darwin') {
-                    // overrideGlobalXHR()
-                // }
                 setNowPlatform(os_type)
             }
         }).catch(e => {
             console.log(e)
         })
-        let setting = localStorage.getItem('settings')??''
+        let setting = localStorage.getItem('settings') ?? ''
         if (setting !== '') {
-            console.log("----", setting)
             try {
                 let data = JSON.parse(setting)
                 changeLanguage(data.language)
@@ -475,6 +469,28 @@ export const MainContextProvider = function ({ children }) {
         )
     }
 
+    const setShowM3uBodyStatusByOri = (data, index, status, videoObj, audioObj, delay) => {
+        console.log("data", data)
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].index === index) {
+                let videoType = ''
+                if (videoObj !== null) {
+                    videoType = ParseM3u.getVideoResolution(videoObj.width, videoObj.height)
+                }
+                let item = {
+                    ...data[i],
+                    status: status,
+                    video: videoObj,
+                    audio: audioObj,
+                    videoType: videoType,
+                    delay: delay,
+                };
+                data[i] = item
+            }
+        }
+        return data
+    }
+
     const setCheckDataStatus = (index, status) => {
         setCheckData(prev =>
             prev.map((item, idx) => idx === index ? { ...item, status: status } : item)
@@ -506,6 +522,12 @@ export const MainContextProvider = function ({ children }) {
         let updatedList = [...showM3uBody]
         const objIndex = updatedList.findIndex(obj => obj.index == index);
         return showM3uBody[objIndex]
+    }
+
+    const findM3uBodyByIndexByOri = (data, index) => {
+        let updatedList = [...data]
+        const objIndex = updatedList.findIndex(obj => obj.index == index);
+        return data[objIndex]
     }
 
     const onSelectedOrNotAll = (mod) => {
@@ -613,7 +635,7 @@ export const MainContextProvider = function ({ children }) {
                     nowData.push(arr[i][j])
                     allRequest.push(axios.get(arr[i][j].url, { timeout: settings.httpRequestTimeout }))
                 }
-                if(allRequest.length == 0) {
+                if (allRequest.length == 0) {
                     continue
                 }
                 const results = await Promise.allSettled(allRequest);
@@ -667,7 +689,7 @@ export const MainContextProvider = function ({ children }) {
                 }
                 let nowData = [];
                 let allRequest = [];
-                
+
                 for (let j = 0; j < arr[i].length; j++) {
                     let nowItem = arr[i][j]
                     let getData = findM3uBodyByIndex(nowItem.index)
@@ -679,7 +701,7 @@ export const MainContextProvider = function ({ children }) {
                     let _url = getCheckUrl(arr[i][j].url, settings.httpRequestTimeout)
                     allRequest.push(axios.get(_url, { timeout: settings.httpRequestTimeout }))
                 }
-                if(allRequest.length == 0) {
+                if (allRequest.length == 0) {
                     continue
                 }
                 const results = await Promise.allSettled(allRequest);
@@ -725,69 +747,135 @@ export const MainContextProvider = function ({ children }) {
                 hasCheckedCountRef.current += settings.concurrent
                 setHasCheckedCount(hasCheckedCountRef.current)
             }
-            // for (let i = 0; i < arr.length; i++) {
-            //     if (nowCheckUrlModRef.current === 2) {
-            //         continue
-            //     }
-            //     let one = data[i]
-            //     let getData = findM3uBodyByIndex(one.index)
-            //     if (getData.status !== 0) {
-            //         log("do check status != 0")
-            //         continue
-            //     }
-            //     try {
-            //         let _url = getCheckUrl(one.url, settings.httpRequestTimeout)
-            //         let res = await axios.get(_url)
-            //         log(res.data.video)
-            //         if (res.status === 200) {
-            //             let videoInfoMap = videoInfoRef.current
-            //             videoInfoMap[one.url] = {
-            //                 "video": res.data.video,
-            //                 "audio": res.data.audio,
-            //                 "videoType": ParseM3u.getVideoResolution(res.data.video.width, res.data.video.height),
-            //                 "status": 1,
-            //                 'delay': res.data.delay,
-            //             }
-            //             let videoFastNameMap = videoFastNameMapRef.current
-            //             if (videoFastNameMap[one.sName] === undefined || videoFastNameMap[one.sName] === null) {
-            //                 videoFastNameMap[one.sName] = {
-            //                     index: one.index,
-            //                     delay: res.data.delay
-            //                 }
-            //             } else {
-            //                 if (videoFastNameMap[one.sName].delay >= res.data.delay) {
-            //                     videoFastNameMap[one.sName] = {
-            //                         index: one.index,
-            //                         delay: res.data.delay
-            //                     }
-            //                 }
-            //             }
-            //             setShowM3uBodyStatus(one.index, 1, res.data.video, res.data.audio, res.data.delay)
-            //             setCheckDataStatus(one.index, 1)
-            //         } else {
-            //             let videoInfoMap = videoInfoRef.current
-            //             videoInfoMap[one.url] = {
-            //                 "status": 2,
-            //             }
-            //             setShowM3uBodyStatus(one.index, 2, null, null, 0)
-            //             setCheckDataStatus(one.index, 2)
-            //         }
-            //         hasCheckedCountRef.current += 1
-            //         setHasCheckedCount(hasCheckedCountRef.current)
-            //     } catch (e) {
-            //         console.log("axios err", e)
-            //         setShowM3uBodyStatus(one.index, 2, null, null, 0)
-            //         let videoInfoMap = videoInfoRef.current
-            //         videoInfoMap[one.url] = {
-            //             "status": 2,
-            //         }
-            //         hasCheckedCountRef.current += 1
-            //         setHasCheckedCount(hasCheckedCountRef.current)
-            //     }
-            //     await sleep(settings.checkSleepTime)
-            // }
         }
         return true
+    }
+
+    const doNewCheck = async (data, settings, func) => {
+        let videoInfoMap = {};
+        let videoFastNameMap = {};
+        let arr = chunkArray(data, settings.concurrent)
+        if (nowMod === 1) {
+            console.log("start check")
+            for (let i = 0; i < arr.length; i++) {
+                let nowData = [];
+                let allRequest = [];
+                for (let j = 0; j < arr[i].length; j++) {
+                    let nowItem = arr[i][j]
+                    let getData = findM3uBodyByIndexByOri(deepCopyJson(data), nowItem.index)
+                    if (getData.status !== 0) {
+                        log("do check status != 0")
+                        continue
+                    }
+                    nowData.push(arr[i][j])
+                    allRequest.push(axios.get(arr[i][j].url, { timeout: settings.httpRequestTimeout }))
+                }
+                if (allRequest.length == 0) {
+                    continue
+                }
+                const results = await Promise.allSettled(allRequest);
+                results.forEach((result, index) => {
+                    let one = nowData[index];
+                    if (result.status === 'fulfilled') {
+                        const response = result.value;
+                        let delay = -1;
+                        videoInfoMap[one.url] = {
+                            "video": null,
+                            "audio": null,
+                            "videoType": null,
+                            "status": 1,
+                            'delay': delay,
+                        }
+                        if (videoFastNameMap[one.sName] === undefined || videoFastNameMap[one.sName] === null) {
+                            videoFastNameMap[one.sName] = {
+                                index: one.index,
+                                delay: delay
+                            }
+                        } else {
+                            if (videoFastNameMap[one.sName].delay >= delay) {
+                                videoFastNameMap[one.sName] = {
+                                    index: one.index,
+                                    delay: delay
+                                }
+                            }
+                        }
+                        data = setShowM3uBodyStatusByOri(data, one.index, 1, null, null, delay)
+                        func(200, one.index)
+                    } else {
+                        videoInfoMap[one.url] = {
+                            "status": 2,
+                        }
+                        data = setShowM3uBodyStatusByOri(data, one.index, 2, null, null, 0)
+                        func(500, one.index)
+                    }
+                    // hasCheckedCountRef.current += settings.concurrent
+                    // setHasCheckedCount(hasCheckedCountRef.current)
+                });
+            }
+            console.log("end check")
+        } else {
+            console.log("start server check")
+            for (let i = 0; i < arr.length; i++) {
+                console.log("----now", arr[i])
+                let nowData = [];
+                let allRequest = [];
+
+                for (let j = 0; j < arr[i].length; j++) {
+                    let nowItem = arr[i][j]
+                    let getData = findM3uBodyByIndexByOri(data, nowItem.index)
+                    if (getData.status !== 0) {
+                        log("do check status != 0")
+                        continue
+                    }
+                    nowData.push(arr[i][j])
+                    let _url = getCheckUrl(arr[i][j].url, settings.httpRequestTimeout)
+                    allRequest.push(axios.get(_url, { timeout: settings.httpRequestTimeout }))
+                }
+                if (allRequest.length == 0) {
+                    continue
+                }
+                const results = await Promise.allSettled(allRequest);
+                results.forEach((result, index) => {
+                    let one = nowData[index];
+                    if (result.status === 'fulfilled') {
+                        const res = result.value;
+                        console.log("resp", res);
+                        let delay = res.data.delay;
+                        videoInfoMap[one.url] = {
+                            "video": res.data.video,
+                            "audio": res.data.audio,
+                            "videoType": ParseM3u.getVideoResolution(res.data.video.width, res.data.video.height),
+                            "status": 1,
+                            'delay': res.data.delay,
+                        }
+                        if (videoFastNameMap[one.sName] === undefined || videoFastNameMap[one.sName] === null) {
+                            videoFastNameMap[one.sName] = {
+                                index: one.index,
+                                delay: delay
+                            }
+                        } else {
+                            if (videoFastNameMap[one.sName].delay >= delay) {
+                                videoFastNameMap[one.sName] = {
+                                    index: one.index,
+                                    delay: delay
+                                }
+                            }
+                        }
+                        data = setShowM3uBodyStatusByOri(data, one.index, 1, res.data.video, res.data.audio, res.data.delay)
+                        func(200, one.index)
+                    } else {
+                        videoInfoMap[one.url] = {
+                            "status": 2,
+                        }
+                        data = setShowM3uBodyStatusByOri(data, one.index, 2, null, null, 0)
+                        func(500, one.index)
+                    }
+                });
+                // hasCheckedCountRef.current += settings.concurrent
+                // setHasCheckedCount(hasCheckedCountRef.current)
+            }
+        }
+        return data
     }
 
     const setCheckDataIsFinished = () => {
@@ -811,6 +899,13 @@ export const MainContextProvider = function ({ children }) {
         let data = prepareCheckData()
         let _ = await doCheck(data)
         setCheckDataIsFinished()
+    }
+
+    const doFastCheck = async (data, settings, totalFunc, func) => {
+        let copyData = deepCopyJson(data)
+        let m3uData = ParseM3u.parseOriginalBodyToList(copyData)
+        totalFunc(m3uData.length)
+        return await doNewCheck(m3uData, settings, func)
     }
 
     const onChangeExportData = (value) => {
@@ -899,7 +994,8 @@ export const MainContextProvider = function ({ children }) {
             getM3uBody,
             needFastSource, onChangeNeedFastSource, nowMod, getBodyType,
             nowLanguage, changeLanguage, languageList, nowWindow, clientSaveFile,
-            nowPlatform, videoPlayTypes, initControlBar,showWindowsTopBar
+            nowPlatform, videoPlayTypes, initControlBar, showWindowsTopBar,
+            doFastCheck
         }}>
             {children}
         </MainContext.Provider>
