@@ -11,7 +11,6 @@ import { writeTextFile } from '@tauri-apps/plugin-fs';
 import { save } from '@tauri-apps/plugin-dialog';
 import { downloadDir } from '@tauri-apps/api/path';
 import { type } from '@tauri-apps/plugin-os';
-const appWindow = getCurrentWebviewWindow()
 
 export const MainContextProvider = function ({ children }) {
     const headerHeight = 145
@@ -102,6 +101,7 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const initTitleBar = () => {
+        const appWindow = getCurrentWebviewWindow()
         initControlBar(appWindow)
     }
 
@@ -125,18 +125,18 @@ export const MainContextProvider = function ({ children }) {
         window.addEventListener('resize', () => {
             setNowWindow({ width: window.innerWidth, height: window.innerHeight })
         })
-        initTitleBar()
-        let os_type = type()
-        if(os_type!=='') {
-            console.log("now os type", os_type)
-            // if(res === 'Darwin') {
-                // overrideGlobalXHR()
-            // }
-            setNowPlatform(os_type)
-        }
         invoke('now_mod', {}).then((response) => {
             setNowMod(response)
+            initTitleBar()
             console.log("now mod", response)
+            let os_type = type()
+            if(os_type!=='') {
+                console.log("now os type", os_type)
+                // if(res === 'Darwin') {
+                    // overrideGlobalXHR()
+                // }
+                setNowPlatform(os_type)
+            }
         }).catch(e => {
             console.log(e)
         })

@@ -21,7 +21,6 @@ import { useTranslation, initReactI18next } from "react-i18next";
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import Divider from '@mui/material/Divider';
 import _Tabbar from './tabbar'
-const appWindow = getCurrentWebviewWindow()
 
 let menuList = [{
     "name": "检测源",
