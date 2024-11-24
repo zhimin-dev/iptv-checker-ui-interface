@@ -50,9 +50,9 @@ export default function Detail() {
       let returnValue = t('刷新后将跳转首页')
       e.returnValue = returnValue
     })
-    if (_mainContext.showM3uBody.length === 0) {
-      navigate("/check")
-    }
+    // if (_mainContext.showM3uBody.length === 0) {
+    //   navigate("/check")
+    // }
   }, [])
 
   const deleteThisRow = (index, tableIndex) => {

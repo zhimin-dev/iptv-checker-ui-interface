@@ -22,17 +22,21 @@ import { useTranslation, initReactI18next } from "react-i18next";
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import Divider from '@mui/material/Divider';
 import _Tabbar from './tabbar'
+import Collapse from '@mui/material/Collapse';
+import StarBorder from '@mui/icons-material/StarBorder';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
 
 let menuList = [{
-    "name": "检测源",
-    "uri": "/check",
-    "icon": "AdjustIcon",
-    'showMod': [0, 1],
-    'showHeader': true
-},{
     "name": "快速检测",
     "uri": "/fast",
     "icon": "BoltIcon",
+    'showMod': [0, 1],
+    'showHeader': true
+}, {
+    "name": "已检测源",
+    "uri": "/detail",
+    "icon": "AdjustIcon",
     'showMod': [0, 1],
     'showHeader': true
 }, {
@@ -61,22 +65,19 @@ let menuList = [{
     'showHeader': true
 }]
 
+const detailUri = '/detail'
+
 export default function Layout() {
     const { t } = useTranslation();
     let location = useLocation();
     const _mainContext = useContext(MainContext);
     const navigate = useNavigate();
-    const [nowSelectedMenu, setNowSelectedMenu] = useState({
-        "name": "检测源",
-        "ename": "menu source check",
-        "uri": "/check",
-        "icon": "AdjustIcon",
-        'showMod': [0, 1],
-        'showHeader': true
-    })
+    const [nowSelectedMenu, setNowSelectedMenu] = useState(menuList[0])
+    const [openSubCheckedMenu, setOpenSubCheckedMenu] = useState(false)
+    const [nowSelectedCheckedMenu, setNowSelectedCheckedMenu] = useState(null)
 
     useEffect(() => {
-        if (location.pathname == '/detail') {
+        if (location.pathname == detailUri) {
             setNowSelectedMenu({ 'showHeader': false })
         } else {
             for (let i = 0; i < menuList.length; i++) {
@@ -90,8 +91,17 @@ export default function Layout() {
     const nowVersion = _package.version;
 
     const changePath = (e) => {
-        setNowSelectedMenu(e)
-        navigate(e.uri)
+        if(e.uri === detailUri) {
+            setOpenSubCheckedMenu(!openSubCheckedMenu)
+        }else{
+            setNowSelectedMenu(e)
+            navigate(e.uri)
+        }
+    }
+
+    const changeCheckedPath = (e) => {
+        setNowSelectedCheckedMenu(e)
+        navigate(detailUri+"?md5="+e.md5)
     }
 
     const goToGithub = () => {
@@ -111,31 +121,51 @@ export default function Layout() {
                     {
                         menuList.map((value, index) => (
                             value.showMod.includes(_mainContext.nowMod) ? (
-                                <ListItem key={index} disablePadding onClick={() => changePath(value)}>
-                                    <ListItemButton>
-                                        <ListItemIcon>
+                                <div key={index}>
+                                    <ListItem key={index} disablePadding onClick={() => changePath(value)}>
+                                        <ListItemButton>
+                                            <ListItemIcon>
+                                                {
+                                                    value.icon === 'SettingsIcon' ? <SettingsIcon /> : ''
+                                                }
+                                                {
+                                                    value.icon === 'AdjustIcon' ? <AdjustIcon /> : ''
+                                                }
+                                                {
+                                                    value.icon === 'PublicIcon' ? <PublicIcon /> : ''
+                                                }
+                                                {
+                                                    value.icon === 'CloudQueueIcon' ? <CloudQueueIcon /> : ''
+                                                }
+                                                {
+                                                    value.icon === 'RemoveRedEyeIcon' ? <RemoveRedEyeIcon /> : ''
+                                                }
+                                                {
+                                                    value.icon === 'BoltIcon' ? <BoltIcon /> : ''
+                                                }
+                                            </ListItemIcon>
+                                            <ListItemText primary={t(value.name)} />
                                             {
-                                                value.icon === 'SettingsIcon' ? <SettingsIcon /> : ''
+                                                value.uri === detailUri ? (
+                                                    openSubCheckedMenu ? <ExpandLess /> : <ExpandMore />
+                                                ) : ''
                                             }
-                                            {
-                                                value.icon === 'AdjustIcon' ? <AdjustIcon /> : ''
-                                            }
-                                            {
-                                                value.icon === 'PublicIcon' ? <PublicIcon /> : ''
-                                            }
-                                            {
-                                                value.icon === 'CloudQueueIcon' ? <CloudQueueIcon /> : ''
-                                            }
-                                            {
-                                                value.icon === 'RemoveRedEyeIcon' ? <RemoveRedEyeIcon /> : ''
-                                            }
-                                            {
-                                                value.icon === 'BoltIcon' ? <BoltIcon />:''
-                                            }
-                                        </ListItemIcon>
-                                        <ListItemText primary={t(value.name)} />
-                                    </ListItemButton>
-                                </ListItem>
+                                        </ListItemButton>
+                                    </ListItem>
+                                    {
+                                        value.uri === detailUri && openSubCheckedMenu ? (
+                                            <List component="div" disablePadding key={detailUri+"0000"}>
+                                                {
+                                                    _mainContext.subCheckMenuList.map((value, index) => (
+                                                        <ListItemButton sx={{ pl: 4 }} key={detailUri+index} onClick={() => changeCheckedPath(value)}>
+                                                            <ListItemText primary={value.md5} />
+                                                        </ListItemButton>
+                                                    ))
+                                                }
+                                            </List>
+                                        ) : ''
+                                    }
+                                </div>
                             ) : ''
                         ))}
                 </List>

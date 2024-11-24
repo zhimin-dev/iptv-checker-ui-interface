@@ -229,7 +229,7 @@ export default function Setting(props) {
                                 ) : ''
                             }
                         </FormControl>
-                        {
+                        {/* {
                             _mainContext.handleMod === 0 ? (
                                 <FormControl sx={{
                                     marginRight: "5px",
@@ -256,8 +256,8 @@ export default function Setting(props) {
                                     {t('暂停检查')}
                                 </LoadingButton>
                             ) : ''
-                        }
-                        {
+                        } */}
+                        {/* {
                             _mainContext.checkUrlMod === 2 ? (
                                 <LoadingButton
                                     size="small"
@@ -268,7 +268,7 @@ export default function Setting(props) {
                                     {t('恢复检查')}
                                 </LoadingButton>
                             ) : ''
-                        }
+                        } */}
                         {
                             _mainContext.handleMod === 2 ? (
                                 <FormControl sx={{

@@ -30,6 +30,16 @@ export const MainContextProvider = function ({ children }) {
     const [nowWindow, setNowWindow] = useState({ width: 0, height: 0 })
     const [nowPlatform, setNowPlatform] = useState('')
     const [showWindowsTopBar, setShowWindowsTopBar] = useState(true)
+    const [subCheckMenuList, setSubCheckMenuList] = useState([
+        {
+            "md5":"xxxxx11",
+            "data":[],
+            "original":[]
+        },{
+            "md5":"xxxxx222",
+            "data":[],
+            "original":[]
+        }])
     const [videoPlayTypes, setVideoPlayTypes] = useState([
         {
             "name": "mac",
@@ -995,7 +1005,8 @@ export const MainContextProvider = function ({ children }) {
             needFastSource, onChangeNeedFastSource, nowMod, getBodyType,
             nowLanguage, changeLanguage, languageList, nowWindow, clientSaveFile,
             nowPlatform, videoPlayTypes, initControlBar, showWindowsTopBar,
-            doFastCheck
+            doFastCheck,
+            subCheckMenuList
         }}>
             {children}
         </MainContext.Provider>
