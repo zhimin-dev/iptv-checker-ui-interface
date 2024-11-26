@@ -30,6 +30,10 @@ export const MainContextProvider = function ({ children }) {
     const [nowWindow, setNowWindow] = useState({ width: 0, height: 0 })
     const [nowPlatform, setNowPlatform] = useState('')
     const [showWindowsTopBar, setShowWindowsTopBar] = useState(true)
+    const [checkHistory, setCheckHistory] = useState([{"urls":[
+        "https://example.com/path/to/file/document.pdf",
+        "https://example.com/path/to/file/233.m3u",
+        "https://example.com/path/to/file/document.txt"]}])// 检测历史
     const [subCheckMenuList, setSubCheckMenuList] = useState([
         {
             "md5":"xxxxx11",
@@ -39,7 +43,7 @@ export const MainContextProvider = function ({ children }) {
             "md5":"xxxxx222",
             "data":[],
             "original":[]
-        }])
+        }])//子菜单
     const [videoPlayTypes, setVideoPlayTypes] = useState([
         {
             "name": "mac",
@@ -1006,7 +1010,7 @@ export const MainContextProvider = function ({ children }) {
             nowLanguage, changeLanguage, languageList, nowWindow, clientSaveFile,
             nowPlatform, videoPlayTypes, initControlBar, showWindowsTopBar,
             doFastCheck,
-            subCheckMenuList
+            subCheckMenuList,checkHistory
         }}>
             {children}
         </MainContext.Provider>

@@ -39,13 +39,7 @@ let menuList = [{
     "icon": "AdjustIcon",
     'showMod': [0, 1],
     'showHeader': true
-}, {
-    "name": "公共订阅源",
-    "uri": "/public",
-    "icon": "PublicIcon",
-    'showMod': [0, 1],
-    'showHeader': true
-}, {
+},  {
     "name": "在线观看",
     "uri": "/watch",
     "icon": "RemoveRedEyeIcon",

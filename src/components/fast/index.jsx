@@ -20,6 +20,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import CountryJson from './../../assets/api/country.json'
 
 export default function Fast() {
 
@@ -51,9 +56,7 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News.m3u8
 https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News.m3u8
 #EXTINF:-1 tvg-id="CCTV2" tvg-name="CCTV2" tvg-logo="https://live.fanmingming.com/tv/CCTV2.png" group-title="央视",CCTV-2
 https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News.m3u8`)
-        let resultData = await _mainContext.doFastCheck(data, {
-            'concurrent': concurrent,
-        }, function (total) {
+        let resultData = await _mainContext.doFastCheck(data, _mainContext.settings, function (total) {
             setTotal(total);
         }, function (code, index) {
             i++
@@ -81,29 +84,69 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News.m3u8`)
     }
 
     const handleSelectedType = (e) => {
-        console.log("handleSelectedType---", e.target.value)
         setSelectedType(parseInt(e.target.value, 10));
     }
 
     const handleClickUriDelete = (i) => {
-        console.log('----111', urls, i)
         let kw = [...urls]
         kw.splice(i, 1)
-        console.log("kw---",kw)
         setUrls(kw);
+    }
+
+    const handleClickFilesDelete = (i)=> {
+        let kw = [...selectFileNames]
+        kw.splice(i, 1)
+        setSelectFileNames(kw);
+    }
+
+    const handleChangeSortValue = (e) => {
+        setSort(e.target.value)
+    }
+
+    const handleChangeNeedCheck = (e) => {
+        setNeedCheck(e.target.value)
     }
 
     const handleClickUriAdd = (e) => {
         const newUrls = [...urls]; // 创建urls数组的副本
         newUrls.push(oneUri); // 在指定索引处设置新的值
         setUrls(newUrls)
-        console.log("---", oneUri, newUrls)
         setOneUri("")
     }
 
     const changeOneUri = (e) => {
-        console.log("---changeOneUri", e.target.value)
         setOneUri(e.target.value)
+    }
+
+    const getFileNameAndExtension = (url) => {
+        try{
+            // 创建一个 URL 对象
+            const urlObj = new URL(url);
+                    
+            // 获取路径名
+            const pathname = urlObj.pathname;
+
+            // 获取文件名（带后缀）
+            const fileNameWithExtension = pathname.substring(pathname.lastIndexOf('/') + 1);
+
+            // 获取文件名（不带后缀）
+            const fileName = fileNameWithExtension.substring(0, fileNameWithExtension.lastIndexOf('.'));
+
+            // 获取文件后缀
+            const fileExtension = fileNameWithExtension.substring(fileNameWithExtension.lastIndexOf('.') + 1);
+
+            return fileName+"."+fileExtension
+        }catch(e) {
+            return ""
+        }
+    }
+
+    const fillThisData = (e) => {
+        setUrls(e.urls)
+        setNeedCheck(e.needCheck??true)
+        setSelectedType(1)
+        setNowStatus(0)
+        setSort(e.needSort??false)
     }
 
     return (
@@ -134,18 +177,34 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News.m3u8`)
                 </FormControl>
                 {
                     selectedType === 0 ? (
-                        <FormControl>
-                            <Button variant="outlined" component="label" startIcon={<UploadIcon />}>
-                                {t('请选择检测文件')}
-                                <input hidden accept=".m3u,.txt" multiple type="file" onChange={handleFileUpload} />
-                            </Button>
-                            <span>(仅支持<b>.m3u</b>以及<b>.txt</b>文件格式)</span>
+                        <>
+                            <FormControl fullWidth style={{ width: '400px' }}>
+                                <Button variant="outlined" component="label" startIcon={<UploadIcon />}>
+                                    {t('请选择检测文件')}
+                                    <input hidden accept=".m3u,.txt" multiple type="file" onChange={handleFileUpload} />
+                                </Button>
+                                <span>(仅支持<b>.m3u</b>以及<b>.txt</b>文件格式)</span>
+                            </FormControl>
                             {
                                 selectFileNames.map((value, index) => (
-                                    <div key={index}>{value.name}</div>
+                                    <FormControl fullWidth style={{ width: '400px' }} key={"files"+index}>
+                                        <Input
+                                            disabled
+                                            value={value.name}
+                                            endAdornment={
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        onClick={() => handleClickFilesDelete(index)}
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            }
+                                        />
+                                    </FormControl>
                                 ))
                             }
-                        </FormControl>
+                        </>
                     ) : (
                         <>
                             <FormControl fullWidth style={{ width: '400px' }}>
@@ -154,6 +213,7 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News.m3u8`)
                                     key={10000000000}
                                     id="standard-adornment-input"
                                     onChange={changeOneUri}
+                                    placeholder='请输入链接,仅支持.m3u以及.txt后缀链接'
                                     endAdornment={
                                         <InputAdornment position="end">
                                             <IconButton
@@ -198,7 +258,7 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News.m3u8`)
                                 aria-labelledby="demo-row-radio-buttons-group-label"
                                 name="row-radio-buttons-group"
                                 value={needCheck}
-                            // onChange={handleChangeSortValue}
+                                onChange={handleChangeNeedCheck}
                             >
                                 <FormControlLabel value="false" control={<Radio />} label={t('否')} />
                                 <FormControlLabel value="true" control={<Radio />} label={t('是')} />
@@ -215,18 +275,11 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News.m3u8`)
                         aria-labelledby="demo-row-radio-buttons-group-label"
                         name="row-radio-buttons-group"
                         value={sort}
-                    // onChange={handleChangeSortValue}
+                        onChange={handleChangeSortValue}
                     >
                         <FormControlLabel value="false" control={<Radio />} label={t('否')} />
                         <FormControlLabel value="true" control={<Radio />} label={t('是')} />
                     </RadioGroup>
-                </FormControl>
-                <FormControl fullWidth style={{
-                    margin: "20px 0 20px",
-                    maxWidth: '150px'
-                }}>
-                    <FormLabel id="demo-row-radio-buttons-group-label">{t('调整并发数')}</FormLabel>
-                    <TextField type="number" id="standard-basic" value={concurrent} variant="standard" />
                 </FormControl>
                 <Box sx={{
                     display: 'flex',
@@ -253,6 +306,48 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News.m3u8`)
                         >
                             {t('去编辑')}
                         </LoadingButton>) : ''
+                    }
+                </Box>
+            </Box>
+            <Box style={{margin:'100px 0 20px 0'}}>
+                检测历史：
+                <Box style={{display: 'flex'}}>
+                {
+                    _mainContext.checkHistory.map((value,index) => (
+                        <Card sx={{ width: 200, marginRight: 2 }} key={index}>
+                        <CardContent>
+                            {
+                                 value.urls.map((uv, ui) => (
+                                     <Typography key={ui}>{getFileNameAndExtension(uv)}</Typography>
+                                 ))
+                            }
+                        </CardContent>
+                        <CardActions>
+                          <Button size="small" onClick={() => fillThisData(value)}>再次检测</Button>
+                        </CardActions>
+                      </Card>
+                    ))
+                }
+                </Box>
+            </Box>
+            <Box style={{margin:'10px 0 20px 0'}}>
+                公共源+自定义网络源：
+                <Box style={{display: 'flex'}}>
+                    {
+                        CountryJson.map((value,index) => (
+                            <Card sx={{ width: 200, marginRight: 2 }} key={index}>
+                            <CardContent>
+                                {
+                                    value.url.map((uv, ui) => (
+                                        <Typography key={ui}>{getFileNameAndExtension(uv)}</Typography>
+                                    ))
+                                }
+                            </CardContent>
+                            <CardActions>
+                            <Button size="small" onClick={() => fillThisData({"urls":value.url})}>检测</Button>
+                            </CardActions>
+                        </Card>
+                        ))
                     }
                 </Box>
             </Box>
