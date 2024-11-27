@@ -309,7 +309,7 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News.m3u8`)
                     }
                 </Box>
             </Box>
-            <Box style={{margin:'100px 0 20px 0'}}>
+            <Box style={{margin:'30px 0 20px 0'}}>
                 检测历史：
                 <Box style={{display: 'flex'}}>
                 {

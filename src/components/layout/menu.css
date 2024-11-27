@@ -4,9 +4,7 @@
   bottom: 0;
 }
 .side-bar {
-  width: 250px;
-  position: fixed;
-  float: left;
+  width: 240px;
   z-index: 99;
   background-color: antiquewhite;
   height: 100vh;
@@ -31,6 +29,4 @@
   cursor: pointer;
 }
 .container-inner {
-  width: calc(100% - 270px);
-  float: right;
 }

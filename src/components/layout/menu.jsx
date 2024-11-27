@@ -26,6 +26,10 @@ import Collapse from '@mui/material/Collapse';
 import StarBorder from '@mui/icons-material/StarBorder';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
+import Drawer from '@mui/material/Drawer';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DehazeIcon from '@mui/icons-material/Dehaze';
 
 let menuList = [{
     "name": "快速检测",
@@ -39,7 +43,7 @@ let menuList = [{
     "icon": "AdjustIcon",
     'showMod': [0, 1],
     'showHeader': true
-},  {
+}, {
     "name": "在线观看",
     "uri": "/watch",
     "icon": "RemoveRedEyeIcon",
@@ -61,6 +65,9 @@ let menuList = [{
 
 const detailUri = '/detail'
 
+
+const drawerWidth = 240;
+
 export default function Layout() {
     const { t } = useTranslation();
     let location = useLocation();
@@ -69,6 +76,7 @@ export default function Layout() {
     const [nowSelectedMenu, setNowSelectedMenu] = useState(menuList[0])
     const [openSubCheckedMenu, setOpenSubCheckedMenu] = useState(false)
     const [nowSelectedCheckedMenu, setNowSelectedCheckedMenu] = useState(null)
+    const [openDrawer, setOpenDrawer] = useState(true);
 
     useEffect(() => {
         if (location.pathname == detailUri) {
@@ -85,9 +93,9 @@ export default function Layout() {
     const nowVersion = _package.version;
 
     const changePath = (e) => {
-        if(e.uri === detailUri) {
+        if (e.uri === detailUri) {
             setOpenSubCheckedMenu(!openSubCheckedMenu)
-        }else{
+        } else {
             setNowSelectedMenu(e)
             navigate(e.uri)
         }
@@ -95,89 +103,134 @@ export default function Layout() {
 
     const changeCheckedPath = (e) => {
         setNowSelectedCheckedMenu(e)
-        navigate(detailUri+"?md5="+e.md5)
+        navigate(detailUri + "?md5=" + e.md5)
     }
 
     const goToGithub = () => {
         window.open(_package.homepage_url)
     }
 
+    const toggleDrawer = (newOpen) => () => {
+        setOpenDrawer(newOpen);
+    };
+
+    const DrawerList = (
+        <Box className="side-bar" sx={{ width: drawerWidth }} role="presentation">
+            <List>
+                <div className="side-bar-logo" onClick={() => goToGithub} title='帮忙点个star!!!'>
+                    <div className='side-bar-logo-item'>
+                        <img src={icon} height="60"></img>
+                        <p className='go-github'>iptv-checker@{nowVersion}</p>
+                    </div>
+                </div>
+                {
+                    menuList.map((value, index) => (
+                        value.showMod.includes(_mainContext.nowMod) ? (
+                            <div key={index}>
+                                <ListItem key={index} disablePadding onClick={() => changePath(value)}>
+                                    <ListItemButton>
+                                        <ListItemIcon>
+                                            {
+                                                value.icon === 'SettingsIcon' ? <SettingsIcon /> : ''
+                                            }
+                                            {
+                                                value.icon === 'AdjustIcon' ? <AdjustIcon /> : ''
+                                            }
+                                            {
+                                                value.icon === 'PublicIcon' ? <PublicIcon /> : ''
+                                            }
+                                            {
+                                                value.icon === 'CloudQueueIcon' ? <CloudQueueIcon /> : ''
+                                            }
+                                            {
+                                                value.icon === 'RemoveRedEyeIcon' ? <RemoveRedEyeIcon /> : ''
+                                            }
+                                            {
+                                                value.icon === 'BoltIcon' ? <BoltIcon /> : ''
+                                            }
+                                        </ListItemIcon>
+                                        <ListItemText primary={t(value.name)} />
+                                        {
+                                            value.uri === detailUri ? (
+                                                openSubCheckedMenu ? <ExpandLess /> : <ExpandMore />
+                                            ) : ''
+                                        }
+                                    </ListItemButton>
+                                </ListItem>
+                                {
+                                    value.uri === detailUri && openSubCheckedMenu ? (
+                                        <List component="div" disablePadding key={detailUri + "0000"}>
+                                            {
+                                                _mainContext.subCheckMenuList.map((value, index) => (
+                                                    <ListItemButton sx={{ pl: 4 }} key={detailUri + index} onClick={() => changeCheckedPath(value)}>
+                                                        <ListItemText primary={value.md5} />
+                                                    </ListItemButton>
+                                                ))
+                                            }
+                                        </List>
+                                    ) : ''
+                                }
+                            </div>
+                        ) : ''
+                    ))}
+            </List>
+        </Box>
+    );
+
     return (
         <div className="layout">
-            <Box className="side-bar" role="presentation">
-                <List>
-                    <div className="side-bar-logo" onClick={() => goToGithub} title='帮忙点个star!!!'>
-                        <div className='side-bar-logo-item'>
-                            <img src={icon} height="60"></img>
-                            <p className='go-github'>iptv-checker@{nowVersion}</p>
-                        </div>
-                    </div>
-                    {
-                        menuList.map((value, index) => (
-                            value.showMod.includes(_mainContext.nowMod) ? (
-                                <div key={index}>
-                                    <ListItem key={index} disablePadding onClick={() => changePath(value)}>
-                                        <ListItemButton>
-                                            <ListItemIcon>
-                                                {
-                                                    value.icon === 'SettingsIcon' ? <SettingsIcon /> : ''
-                                                }
-                                                {
-                                                    value.icon === 'AdjustIcon' ? <AdjustIcon /> : ''
-                                                }
-                                                {
-                                                    value.icon === 'PublicIcon' ? <PublicIcon /> : ''
-                                                }
-                                                {
-                                                    value.icon === 'CloudQueueIcon' ? <CloudQueueIcon /> : ''
-                                                }
-                                                {
-                                                    value.icon === 'RemoveRedEyeIcon' ? <RemoveRedEyeIcon /> : ''
-                                                }
-                                                {
-                                                    value.icon === 'BoltIcon' ? <BoltIcon /> : ''
-                                                }
-                                            </ListItemIcon>
-                                            <ListItemText primary={t(value.name)} />
-                                            {
-                                                value.uri === detailUri ? (
-                                                    openSubCheckedMenu ? <ExpandLess /> : <ExpandMore />
-                                                ) : ''
-                                            }
-                                        </ListItemButton>
-                                    </ListItem>
-                                    {
-                                        value.uri === detailUri && openSubCheckedMenu ? (
-                                            <List component="div" disablePadding key={detailUri+"0000"}>
-                                                {
-                                                    _mainContext.subCheckMenuList.map((value, index) => (
-                                                        <ListItemButton sx={{ pl: 4 }} key={detailUri+index} onClick={() => changeCheckedPath(value)}>
-                                                            <ListItemText primary={value.md5} />
-                                                        </ListItemButton>
-                                                    ))
-                                                }
-                                            </List>
-                                        ) : ''
-                                    }
-                                </div>
-                            ) : ''
-                        ))}
-                </List>
-            </Box>
-            <Box className="container-inner">
-                <_Tabbar></_Tabbar>
+            <Drawer open={openDrawer} anchor="left" variant={openDrawer ? "permanent" : 'temporary'}>
+                {DrawerList}
+            </Drawer>
+            <Box className="container-inner" style={{
+                marginLeft: openDrawer ? drawerWidth + "px" : '',
+            }}>
+                <div data-tauri-drag-region style={{ width: '100%', height: '20px' }}></div>
                 {
-                    nowSelectedMenu.showHeader ? (
-                        <>
-                            <div style={{
-                                fontSize: '40px',
-                                padding: '50px 10px',
-                                fontWeight: '600'
-                            }}>{t(nowSelectedMenu.name)}</div>
-                            <Divider style={{ marginBottom: '25px' }} />
-                        </>
-                    ) : ''
+                    <div style={{
+                        padding: '0 20px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        height:'60px',
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            height:'60px',
+                            width:'100%'
+                        }}>
+                            <Box style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            }}>
+                                <Box>
+                                    <IconButton aria-label="delete" size="small" onClick={toggleDrawer(!openDrawer)}>
+                                        <DehazeIcon />
+                                    </IconButton>
+                                </Box>
+                                <Box>{t(nowSelectedMenu.name)}</Box>
+                            </Box>
+                            <div data-tauri-drag-region style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            }}>
+                                <div className="titlebar-button" id="titlebar-minimize">
+                                    <img
+                                        src="https://api.iconify.design/mdi:window-minimize.svg"
+                                        alt="minimize"
+                                    />
+                                </div>
+                                <div className="titlebar-button" id="titlebar-close">
+                                    <img src="https://api.iconify.design/mdi:close.svg" alt="close" />
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
                 }
+                <div style={{ width: '100%', height: '20px' }}></div>
+                <Divider style={{ marginBottom: '25px' }} />
                 <Outlet />
             </Box>
         </div>
