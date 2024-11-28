@@ -209,10 +209,10 @@ export default function Layout() {
                                         <DehazeIcon />
                                     </IconButton>
                                 </Box>
-                                <Box>{t(nowSelectedMenu.name)}</Box>
+                                <Box style={{fontWeight:'bold', fontSize:'20px'}}>{t(nowSelectedMenu.name)}</Box>
                             </Box>
                             <div data-tauri-drag-region style={{
-                                display: 'flex',
+                                display: _mainContext.nowMod === 1 ? 'flex' :'none',
                                 justifyContent: 'center',
                                 alignItems: 'center',
                             }}>
