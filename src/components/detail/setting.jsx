@@ -199,14 +199,9 @@ export default function Setting(props) {
 
     return (
         <Box sx={{
-            position: 'fixed',
-            width: 'calc(100% - 290px)',
-            borderBottom: '1px solid #eee',
-            top: _mainContext.nowMod === 1 ? '30px':0,
-            left: 290,
-            zIndex: 999,
+            border: '1px solid #eee',
             padding: '8px',
-            boxShadow:"1px 1px 4px pink"
+            borderRadius: '5px'
         }}>
             <SimpleDialog
                 open={open}

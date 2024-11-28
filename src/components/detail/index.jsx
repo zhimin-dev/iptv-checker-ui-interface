@@ -153,10 +153,10 @@ export default function Detail() {
 
   return (
     <Box style={{ padding: '0 20px' }}>
-      <Setting style={{ marginTop: '20px' }} setSelectedArr={setSelectedArr} selectedArr={selectedArr}></Setting>
+      <Setting setSelectedArr={setSelectedArr} selectedArr={selectedArr}></Setting>
       <Paper style={{
         height: vTableHeight,
-        marginTop: (_mainContext.headerHeight + 10) + "px",
+        marginTop: "10px",
       }}>
         <VirtualizedTable
           rowCount={_mainContext.showM3uBody.length}
@@ -195,14 +195,8 @@ export default function Detail() {
       {
         showChannelMod !== 0 ? (
           <Box sx={{
-            position: 'fixed',
-            'bottom': 100,
-            'width': 600,
-            'right': 0,
             'backgroundColor': '#fff',
-            border: '3px solid #eee',
             borderRadius: '10px',
-            padding: '10px'
           }}>
             <Box>
               <Box sx={{ display: "flex", flexDirection: "column" }}>

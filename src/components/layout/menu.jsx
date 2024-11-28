@@ -21,14 +21,12 @@ import _package from './../../../package';
 import { useTranslation, initReactI18next } from "react-i18next";
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import Divider from '@mui/material/Divider';
-import _Tabbar from './tabbar'
 import Collapse from '@mui/material/Collapse';
 import StarBorder from '@mui/icons-material/StarBorder';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
 import DehazeIcon from '@mui/icons-material/Dehaze';
 
 let menuList = [{
@@ -177,6 +175,14 @@ export default function Layout() {
         </Box>
     );
 
+    const  getQueryParam = (location, key) => {        
+        // 使用 URLSearchParams 获取查询参数
+        const params = new URLSearchParams(location.search);
+        
+        // 获取对应的值
+        return params.get(key);
+    }
+
     return (
         <div className="layout">
             <Drawer open={openDrawer} anchor="left" variant={openDrawer ? "permanent" : 'temporary'}>
@@ -209,7 +215,10 @@ export default function Layout() {
                                         <DehazeIcon />
                                     </IconButton>
                                 </Box>
-                                <Box style={{fontWeight:'bold', fontSize:'20px'}}>{t(nowSelectedMenu.name)}</Box>
+                                <Box style={{fontWeight:'bold', fontSize:'20px'}}>{
+                                    nowSelectedMenu.name !== null && nowSelectedMenu.name !== undefined  ? 
+                                    t(nowSelectedMenu.name) : getQueryParam(location, "md5")
+                                }</Box>
                             </Box>
                             <div data-tauri-drag-region style={{
                                 display: _mainContext.nowMod === 1 ? 'flex' :'none',
@@ -230,7 +239,7 @@ export default function Layout() {
                     </div> 
                 }
                 <div style={{ width: '100%', height: '20px' }}></div>
-                <Divider style={{ marginBottom: '25px' }} />
+                <Divider style={{ marginBottom: '10px' }} />
                 <Outlet />
             </Box>
         </div>
