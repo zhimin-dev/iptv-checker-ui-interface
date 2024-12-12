@@ -80,7 +80,7 @@ class MuiVirtualizedTable extends React.PureComponent {
     }
 
     cellRenderer = ({ cellData, columnIndex }) => {
-        const { t, rowHeight, onRowClick, selectRow, delRow, watchRow, originalData, showOriginalUrl, columns, seeDetail, handleMod, nowMod } = this.props;
+        const { t, rowHeight, onRowClick, selectRow, watchRow, originalData, columns, seeDetail, nowMod } = this.props;
         return (
             <TableCell
                 component="div"
@@ -164,7 +164,7 @@ class MuiVirtualizedTable extends React.PureComponent {
     };
 
     headerRenderer = ({ label, columnIndex }) => {
-        const { headerHeight, selectedArr, originalData, selectAll, columns, handleMod } = this.props;
+        const { selectedArr, originalData, selectAll, columns } = this.props;
         return (
             <TableCell
                 component="div"

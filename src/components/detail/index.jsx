@@ -172,7 +172,6 @@ export default function Detail() {
           // showOriginalUrl={_mainContext.settings.showFullUrl}
           selectedArr={selectedArr}
           selectAll={handleSelectCheckedAll}
-          handleMod={_mainContext.handleMod}
           columns={[
             {
               width: 80,

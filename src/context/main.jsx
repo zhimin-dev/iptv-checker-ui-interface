@@ -16,18 +16,13 @@ export const MainContextProvider = function ({ children }) {
     const headerHeight = 145
     const [originalM3uBody, setOriginalM3uBody] = useState('');//原始的m3u信息
     const [showM3uBody, setShowM3uBody] = useState([])//m3u信息转换成list 数组
-    const [hasCheckedCount, setHasCheckedCount] = useState(0)//当前检查进度
     const [uGroups, setUGroups] = useState([])//当前分组
     const [exportData, setExportData] = useState([])//待导出数据json
     const [exportDataStr, setExportDataStr] = useState('')//导出数据的str
-    const [checkUrlMod, setCheckUrlMod] = useState(0)//检查当前链接是否有效模式 0未在检查中 1正在检查 2暂停检查
-    const [handleMod, setHandleMod] = useState(0);//当前的操作模式 0无操作 1操作处理检查 2检查完成
     const [checkData, setCheckData] = useState([])//待检查数据列表
     const [videoResolution, setVideoResolution] = useState([])//视频分辨率筛选
     const [needFastSource, setNeedFastSource] = useState(false)// 是否选择最快的源, false否， true是
     const [nowMod, setNowMod] = useState(0);// 当前运行模式 0服务端模式 1客户端模式
-    const [nowLanguage, setNowLanguage] = useState('en')
-    const [nowWindow, setNowWindow] = useState({ width: 0, height: 0 })
     const [nowPlatform, setNowPlatform] = useState('')
     const [showWindowsTopBar, setShowWindowsTopBar] = useState(true)
     const [checkHistory, setCheckHistory] = useState([{"urls":[
@@ -73,7 +68,7 @@ export const MainContextProvider = function ({ children }) {
     })
 
     const nowCheckUrlModRef = useRef()//当前操作类型
-    const hasCheckedCountRef = useRef()//同handleMod
+    const hasCheckedCountRef = useRef()// 当前的操作模式 0无操作 1操作处理检查 2检查完成
     const videoInfoRef = useRef({})//视频宽高、延迟数据
     const videoFastNameMapRef = useRef({})//存储名字对应的最低延迟数据
 
@@ -86,8 +81,17 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const changeLanguage = (val) => {
-        setNowLanguage(val)
         i18n.changeLanguage(val)
+    }
+
+    const checkFFmpeg = () => {
+        invoke("check_ffmpeg").then((result) => {
+            if (result) {
+                console.log("FFmpeg is installed");
+            } else {
+                console.log("FFmpeg is not installed");
+            }
+        });
     }
 
     const initControlBar = (appWindow, pageLabel) => {
@@ -119,24 +123,21 @@ export const MainContextProvider = function ({ children }) {
         initControlBar(appWindow)
     }
 
-    const clientSaveFile = async (body, fuleSuffix) => {
+    const clientSaveFile = async (body, fullSuffix) => {
         const downloadDirPath = await downloadDir();
-        let download_name = downloadDirPath + 'iptv-checker-file-' + new Date().getTime() + "." + fuleSuffix
+        let download_name = downloadDirPath + 'iptv-checker-file-' + new Date().getTime() + "." + fullSuffix
         const filePath = await save({
             defaultPath: download_name,
             filters: [{
                 name: download_name,
-                extensions: [fuleSuffix]
+                extensions: [fullSuffix]
             }]
         });
         filePath && await writeTextFile(download_name, body)
     }
 
     useEffect(() => {
-        setNowWindow({ width: window.innerWidth, height: window.innerHeight })
-        window.addEventListener('resize', () => {
-            setNowWindow({ width: window.innerWidth, height: window.innerHeight })
-        })
+        checkFFmpeg()
         invoke('now_mod', {}).then((response) => {
             setNowMod(response)
             initTitleBar()
@@ -181,7 +182,7 @@ export const MainContextProvider = function ({ children }) {
                 result.push(data)
             }
         }
-        if (result.length == 0) {
+        if (result.length === 0) {
             return []
         }
         return combine_m3u_list(result)
@@ -283,11 +284,8 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const clearDetailData = () => {
-        setHasCheckedCount(0)
         hasCheckedCountRef.current = 0
         setExportDataStr('')
-        setHandleMod(0)
-        setCheckUrlMod(0)
         setShowM3uBody([])
         setOriginalM3uBody('')
         nowCheckUrlModRef.current = 0
@@ -296,13 +294,13 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const contains = (str, substr) => {
-        return str.indexOf(substr) != -1;
+        return str.indexOf(substr) !== -1;
     }
 
-    const parseUrlHost = (str) => {
-        const url = new URL(str)
-        return url.hostname
-    }
+    // const parseUrlHost = (str) => {
+    //     const url = new URL(str)
+    //     return url.hostname
+    // }
 
     const deleteShowM3uRow = (index) => {
         setShowM3uBody(prev => prev.filter((v, i) => v.index !== index))
@@ -350,7 +348,7 @@ export const MainContextProvider = function ({ children }) {
         for (let i = 0; i < temp.length; i++) {
             // 检查当前视频清晰度是否命中
             let hitVideoRes = true
-            if (videoResArr.length > 0 && temp[i].videoType != "") {
+            if (videoResArr.length > 0 && temp[i].videoType !== "") {
                 hitVideoRes = false
                 for (let v = 0; v < videoResArr.length; v++) {
                     if (temp[i].videoType === videoResArr[v]) {
@@ -460,28 +458,28 @@ export const MainContextProvider = function ({ children }) {
         return JSON.parse(JSON.stringify(obj))
     }
 
-    const setShowM3uBodyStatus = (index, status, videoObj, audioObj, delay) => {
-        setShowM3uBody(list =>
-            list.map((item, idx) => {
-                if (item.index === index) {
-                    let videoType = ''
-                    if (videoObj !== null) {
-                        videoType = ParseM3u.getVideoResolution(videoObj.width, videoObj.height)
-                    }
-                    let data = {
-                        ...item,
-                        status: status,
-                        video: videoObj,
-                        audio: audioObj,
-                        videoType: videoType,
-                        delay: delay,
-                    };
-                    return data
-                }
-                return item;
-            })
-        )
-    }
+    // const setShowM3uBodyStatus = (index, status, videoObj, audioObj, delay) => {
+    //     setShowM3uBody(list =>
+    //         list.map((item, idx) => {
+    //             if (item.index === index) {
+    //                 let videoType = ''
+    //                 if (videoObj !== null) {
+    //                     videoType = ParseM3u.getVideoResolution(videoObj.width, videoObj.height)
+    //                 }
+    //                 let data = {
+    //                     ...item,
+    //                     status: status,
+    //                     video: videoObj,
+    //                     audio: audioObj,
+    //                     videoType: videoType,
+    //                     delay: delay,
+    //                 };
+    //                 return data
+    //             }
+    //             return item;
+    //         })
+    //     )
+    // }
 
     const setShowM3uBodyStatusByOri = (data, index, status, videoObj, audioObj, delay) => {
         console.log("data", data)
@@ -505,11 +503,11 @@ export const MainContextProvider = function ({ children }) {
         return data
     }
 
-    const setCheckDataStatus = (index, status) => {
-        setCheckData(prev =>
-            prev.map((item, idx) => idx === index ? { ...item, status: status } : item)
-        )
-    }
+    // const setCheckDataStatus = (index, status) => {
+    //     setCheckData(prev =>
+    //         prev.map((item, idx) => idx === index ? { ...item, status: status } : item)
+    //     )
+    // }
 
     const onExportValidM3uData = () => {
         let _export = []
@@ -527,20 +525,20 @@ export const MainContextProvider = function ({ children }) {
 
     const onSelectedRow = (index) => {
         let updatedList = [...showM3uBody]
-        const objIndex = updatedList.findIndex(obj => obj.index == index);
+        const objIndex = updatedList.findIndex(obj => obj.index === index);
         updatedList[objIndex].checked = !updatedList[objIndex].checked;
         setShowM3uBody(updatedList)
     }
 
-    const findM3uBodyByIndex = (index) => {
-        let updatedList = [...showM3uBody]
-        const objIndex = updatedList.findIndex(obj => obj.index == index);
-        return showM3uBody[objIndex]
-    }
+    // const findM3uBodyByIndex = (index) => {
+    //     let updatedList = [...showM3uBody]
+    //     const objIndex = updatedList.findIndex(obj => obj.index == index);
+    //     return showM3uBody[objIndex]
+    // }
 
     const findM3uBodyByIndexByOri = (data, index) => {
         let updatedList = [...data]
-        const objIndex = updatedList.findIndex(obj => obj.index == index);
+        const objIndex = updatedList.findIndex(obj => obj.index === index);
         return data[objIndex]
     }
 
@@ -548,11 +546,11 @@ export const MainContextProvider = function ({ children }) {
         //mod = 1选择 0取消选择
         if (mod === 1) {
             setShowM3uBody(prev => prev.map((item, _) =>
-                true ? { ...item, checked: true } : ''
+                ({...item, checked: true})
             ))
         } else {
             setShowM3uBody(prev => prev.map((item, _) =>
-                true ? { ...item, checked: false } : ''
+                ({...item, checked: false})
             ))
         }
     }
@@ -607,19 +605,19 @@ export const MainContextProvider = function ({ children }) {
         return '/fetch/m3u-body?url=' + url + "&timeout=" + (isNaN(_timeout) ? '-1' : _timeout)
     }
 
-    const prepareCheckData = () => {
-        let _temp = deepCopyJson(showM3uBody)
-        setCheckData(_temp)
-        return _temp
-    }
+    // const prepareCheckData = () => {
+    //     let _temp = deepCopyJson(showM3uBody)
+    //     setCheckData(_temp)
+    //     return _temp
+    // }
 
-    const sleep = (time) => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve();
-            }, time);
-        });
-    }
+    // const sleep = (time) => {
+    //     return new Promise((resolve) => {
+    //         setTimeout(() => {
+    //             resolve();
+    //         }, time);
+    //     });
+    // }
 
     const chunkArray = (arr, chunkSize) => {
         const chunkedArray = [];
@@ -629,141 +627,139 @@ export const MainContextProvider = function ({ children }) {
         return chunkedArray;
     }
 
-    const doCheck = async (data) => {
-        let arr = chunkArray(data, settings.concurrent)
-        if (nowMod === 1) {
-            console.log("start check")
-            for (let i = 0; i < arr.length; i++) {
-                if (nowCheckUrlModRef.current === 2) {
-                    continue
-                }
-                let nowData = [];
-                let allRequest = [];
-                for (let j = 0; j < arr[i].length; j++) {
-                    let nowItem = arr[i][j]
-                    let getData = findM3uBodyByIndex(nowItem.index)
-                    if (getData.status !== 0) {
-                        log("do check status != 0")
-                        continue
-                    }
-                    nowData.push(arr[i][j])
-                    allRequest.push(axios.get(arr[i][j].url, { timeout: settings.httpRequestTimeout }))
-                }
-                if (allRequest.length == 0) {
-                    continue
-                }
-                const results = await Promise.allSettled(allRequest);
-                results.forEach((result, index) => {
-                    let videoInfoMap = videoInfoRef.current
-                    let one = nowData[index];
-                    if (result.status === 'fulfilled') {
-                        const response = result.value;
-                        let delay = -1;
-                        videoInfoMap[one.url] = {
-                            "video": null,
-                            "audio": null,
-                            "videoType": null,
-                            "status": 1,
-                            'delay': delay,
-                        }
-                        let videoFastNameMap = videoFastNameMapRef.current
-                        if (videoFastNameMap[one.sName] === undefined || videoFastNameMap[one.sName] === null) {
-                            videoFastNameMap[one.sName] = {
-                                index: one.index,
-                                delay: delay
-                            }
-                        } else {
-                            if (videoFastNameMap[one.sName].delay >= delay) {
-                                videoFastNameMap[one.sName] = {
-                                    index: one.index,
-                                    delay: delay
-                                }
-                            }
-                        }
-                        setShowM3uBodyStatus(one.index, 1, null, null, delay)
-                        setCheckDataStatus(one.index, 1)
-                    } else {
-                        videoInfoMap[one.url] = {
-                            "status": 2,
-                        }
-                        setShowM3uBodyStatus(one.index, 2, null, null, 0)
-                        setCheckDataStatus(one.index, 2)
-                    }
-                });
-                hasCheckedCountRef.current += settings.concurrent
-                setHasCheckedCount(hasCheckedCountRef.current)
-            }
-            console.log("end check")
-        } else {
-            console.log("start server check")
-            for (let i = 0; i < arr.length; i++) {
-                console.log("----now", arr[i])
-                if (nowCheckUrlModRef.current === 2) {
-                    continue
-                }
-                let nowData = [];
-                let allRequest = [];
+    // const doCheck = async (data) => {
+    //     let arr = chunkArray(data, settings.concurrent)
+    //     if (nowMod === 1) {
+    //         console.log("start check")
+    //         for (let i = 0; i < arr.length; i++) {
+    //             if (nowCheckUrlModRef.current === 2) {
+    //                 continue
+    //             }
+    //             let nowData = [];
+    //             let allRequest = [];
+    //             for (let j = 0; j < arr[i].length; j++) {
+    //                 let nowItem = arr[i][j]
+    //                 let getData = findM3uBodyByIndex(nowItem.index)
+    //                 if (getData.status !== 0) {
+    //                     log("do check status != 0")
+    //                     continue
+    //                 }
+    //                 nowData.push(arr[i][j])
+    //                 allRequest.push(axios.get(arr[i][j].url, { timeout: settings.httpRequestTimeout }))
+    //             }
+    //             if (allRequest.length == 0) {
+    //                 continue
+    //             }
+    //             const results = await Promise.allSettled(allRequest);
+    //             results.forEach((result, index) => {
+    //                 let videoInfoMap = videoInfoRef.current
+    //                 let one = nowData[index];
+    //                 if (result.status === 'fulfilled') {
+    //                     const response = result.value;
+    //                     let delay = -1;
+    //                     videoInfoMap[one.url] = {
+    //                         "video": null,
+    //                         "audio": null,
+    //                         "videoType": null,
+    //                         "status": 1,
+    //                         'delay': delay,
+    //                     }
+    //                     let videoFastNameMap = videoFastNameMapRef.current
+    //                     if (videoFastNameMap[one.sName] === undefined || videoFastNameMap[one.sName] === null) {
+    //                         videoFastNameMap[one.sName] = {
+    //                             index: one.index,
+    //                             delay: delay
+    //                         }
+    //                     } else {
+    //                         if (videoFastNameMap[one.sName].delay >= delay) {
+    //                             videoFastNameMap[one.sName] = {
+    //                                 index: one.index,
+    //                                 delay: delay
+    //                             }
+    //                         }
+    //                     }
+    //                     setShowM3uBodyStatus(one.index, 1, null, null, delay)
+    //                     setCheckDataStatus(one.index, 1)
+    //                 } else {
+    //                     videoInfoMap[one.url] = {
+    //                         "status": 2,
+    //                     }
+    //                     setShowM3uBodyStatus(one.index, 2, null, null, 0)
+    //                     setCheckDataStatus(one.index, 2)
+    //                 }
+    //             });
+    //             hasCheckedCountRef.current += settings.concurrent
+    //         }
+    //         console.log("end check")
+    //     } else {
+    //         console.log("start server check")
+    //         for (let i = 0; i < arr.length; i++) {
+    //             console.log("----now", arr[i])
+    //             if (nowCheckUrlModRef.current === 2) {
+    //                 continue
+    //             }
+    //             let nowData = [];
+    //             let allRequest = [];
 
-                for (let j = 0; j < arr[i].length; j++) {
-                    let nowItem = arr[i][j]
-                    let getData = findM3uBodyByIndex(nowItem.index)
-                    if (getData.status !== 0) {
-                        log("do check status != 0")
-                        continue
-                    }
-                    nowData.push(arr[i][j])
-                    let _url = getCheckUrl(arr[i][j].url, settings.httpRequestTimeout)
-                    allRequest.push(axios.get(_url, { timeout: settings.httpRequestTimeout }))
-                }
-                if (allRequest.length == 0) {
-                    continue
-                }
-                const results = await Promise.allSettled(allRequest);
-                results.forEach((result, index) => {
-                    let videoInfoMap = videoInfoRef.current
-                    let one = nowData[index];
-                    if (result.status === 'fulfilled') {
-                        const res = result.value;
-                        console.log("resp", res);
-                        let delay = res.data.delay;
-                        let videoInfoMap = videoInfoRef.current
-                        videoInfoMap[one.url] = {
-                            "video": res.data.video,
-                            "audio": res.data.audio,
-                            "videoType": ParseM3u.getVideoResolution(res.data.video.width, res.data.video.height),
-                            "status": 1,
-                            'delay': res.data.delay,
-                        }
-                        let videoFastNameMap = videoFastNameMapRef.current
-                        if (videoFastNameMap[one.sName] === undefined || videoFastNameMap[one.sName] === null) {
-                            videoFastNameMap[one.sName] = {
-                                index: one.index,
-                                delay: delay
-                            }
-                        } else {
-                            if (videoFastNameMap[one.sName].delay >= delay) {
-                                videoFastNameMap[one.sName] = {
-                                    index: one.index,
-                                    delay: delay
-                                }
-                            }
-                        }
-                        setShowM3uBodyStatus(one.index, 1, res.data.video, res.data.audio, res.data.delay)
-                        setCheckDataStatus(one.index, 1)
-                    } else {
-                        videoInfoMap[one.url] = {
-                            "status": 2,
-                        }
-                        setShowM3uBodyStatus(one.index, 2, null, null, 0)
-                        setCheckDataStatus(one.index, 2)
-                    }
-                });
-                hasCheckedCountRef.current += settings.concurrent
-                setHasCheckedCount(hasCheckedCountRef.current)
-            }
-        }
-        return true
-    }
+    //             for (let j = 0; j < arr[i].length; j++) {
+    //                 let nowItem = arr[i][j]
+    //                 let getData = findM3uBodyByIndex(nowItem.index)
+    //                 if (getData.status !== 0) {
+    //                     log("do check status != 0")
+    //                     continue
+    //                 }
+    //                 nowData.push(arr[i][j])
+    //                 let _url = getCheckUrl(arr[i][j].url, settings.httpRequestTimeout)
+    //                 allRequest.push(axios.get(_url, { timeout: settings.httpRequestTimeout }))
+    //             }
+    //             if (allRequest.length == 0) {
+    //                 continue
+    //             }
+    //             const results = await Promise.allSettled(allRequest);
+    //             results.forEach((result, index) => {
+    //                 let videoInfoMap = videoInfoRef.current
+    //                 let one = nowData[index];
+    //                 if (result.status === 'fulfilled') {
+    //                     const res = result.value;
+    //                     console.log("resp", res);
+    //                     let delay = res.data.delay;
+    //                     let videoInfoMap = videoInfoRef.current
+    //                     videoInfoMap[one.url] = {
+    //                         "video": res.data.video,
+    //                         "audio": res.data.audio,
+    //                         "videoType": ParseM3u.getVideoResolution(res.data.video.width, res.data.video.height),
+    //                         "status": 1,
+    //                         'delay': res.data.delay,
+    //                     }
+    //                     let videoFastNameMap = videoFastNameMapRef.current
+    //                     if (videoFastNameMap[one.sName] === undefined || videoFastNameMap[one.sName] === null) {
+    //                         videoFastNameMap[one.sName] = {
+    //                             index: one.index,
+    //                             delay: delay
+    //                         }
+    //                     } else {
+    //                         if (videoFastNameMap[one.sName].delay >= delay) {
+    //                             videoFastNameMap[one.sName] = {
+    //                                 index: one.index,
+    //                                 delay: delay
+    //                             }
+    //                         }
+    //                     }
+    //                     setShowM3uBodyStatus(one.index, 1, res.data.video, res.data.audio, res.data.delay)
+    //                     setCheckDataStatus(one.index, 1)
+    //                 } else {
+    //                     videoInfoMap[one.url] = {
+    //                         "status": 2,
+    //                     }
+    //                     setShowM3uBodyStatus(one.index, 2, null, null, 0)
+    //                     setCheckDataStatus(one.index, 2)
+    //                 }
+    //             });
+    //             hasCheckedCountRef.current += settings.concurrent
+    //         }
+    //     }
+    //     return true
+    // }
 
     const doNewCheck = async (data, settings, func) => {
         let videoInfoMap = {};
@@ -784,7 +780,7 @@ export const MainContextProvider = function ({ children }) {
                     nowData.push(arr[i][j])
                     allRequest.push(axios.get(arr[i][j].url, { timeout: settings.httpRequestTimeout }))
                 }
-                if (allRequest.length == 0) {
+                if (allRequest.length === 0) {
                     continue
                 }
                 const results = await Promise.allSettled(allRequest);
@@ -822,8 +818,6 @@ export const MainContextProvider = function ({ children }) {
                         data = setShowM3uBodyStatusByOri(data, one.index, 2, null, null, 0)
                         func(500, one.index)
                     }
-                    // hasCheckedCountRef.current += settings.concurrent
-                    // setHasCheckedCount(hasCheckedCountRef.current)
                 });
             }
             console.log("end check")
@@ -845,7 +839,7 @@ export const MainContextProvider = function ({ children }) {
                     let _url = getCheckUrl(arr[i][j].url, settings.httpRequestTimeout)
                     allRequest.push(axios.get(_url, { timeout: settings.httpRequestTimeout }))
                 }
-                if (allRequest.length == 0) {
+                if (allRequest.length === 0) {
                     continue
                 }
                 const results = await Promise.allSettled(allRequest);
@@ -885,35 +879,26 @@ export const MainContextProvider = function ({ children }) {
                         func(500, one.index)
                     }
                 });
-                // hasCheckedCountRef.current += settings.concurrent
-                // setHasCheckedCount(hasCheckedCountRef.current)
             }
         }
         return data
     }
 
-    const setCheckDataIsFinished = () => {
-        log("check finished.....")
-        log("showM3uBody", showM3uBody)
-        log("videoInfoRef.current", videoInfoRef.current)
-        if (nowCheckUrlModRef.current === 1) {
-            setHandleMod(2)
-            setCheckUrlMod(0)
-            nowCheckUrlModRef.current = 0
-        }
-    }
+    // const setCheckDataIsFinished = () => {
+    //     log("check finished.....")
+    //     log("showM3uBody", showM3uBody)
+    //     log("videoInfoRef.current", videoInfoRef.current)
+    //     if (nowCheckUrlModRef.current === 1) {
+    //         nowCheckUrlModRef.current = 0
+    //     }
+    // }
 
-    const onCheckTheseLinkIsAvailable = async () => {
-        if (handleMod === 1) {
-            return
-        }
-        setCheckUrlMod(1)
-        nowCheckUrlModRef.current = 1
-        setHandleMod(1)
-        let data = prepareCheckData()
-        let _ = await doCheck(data)
-        setCheckDataIsFinished()
-    }
+    // const onCheckTheseLinkIsAvailable = async () => {
+    //     nowCheckUrlModRef.current = 1
+    //     let data = prepareCheckData()
+    //     let _ = await doCheck(data)
+    //     setCheckDataIsFinished()
+    // }
 
     const doFastCheck = async (data, settings, totalFunc, func) => {
         let copyData = deepCopyJson(data)
@@ -977,16 +962,14 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const pauseCheckUrlData = () => {
-        setCheckUrlMod(2)
         nowCheckUrlModRef.current = 2
     }
 
-    const resumeCheckUrlData = async () => {
-        setCheckUrlMod(1)
-        nowCheckUrlModRef.current = 1
-        await doCheck(checkData)
-        setCheckDataIsFinished()
-    }
+    // const resumeCheckUrlData = async () => {
+    //     nowCheckUrlModRef.current = 1
+    //     await doCheck(checkData)
+    //     setCheckDataIsFinished()
+    // }
 
     return (
         <MainContext.Provider value={{
@@ -996,18 +979,18 @@ export const MainContextProvider = function ({ children }) {
             uGroups, setUGroups,
             videoResolution, changeVideoResolution,
             settings, onChangeSettings,
-            showM3uBody, handleMod, hasCheckedCount,
-            headerHeight, checkUrlMod,
-            onCheckTheseLinkIsAvailable, filterM3u,
+            showM3uBody,
+            headerHeight,
+            filterM3u,
             deleteShowM3uRow, onExportValidM3uData,
             onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
             changeDialogBodyData,
             changeOriginalM3uBodies, updateDataByIndex,
             onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl,
-            pauseCheckUrlData, resumeCheckUrlData, strToCsv, clearDetailData,
+            pauseCheckUrlData, strToCsv, clearDetailData,
             getM3uBody,
             needFastSource, onChangeNeedFastSource, nowMod, getBodyType,
-            nowLanguage, changeLanguage, languageList, nowWindow, clientSaveFile,
+            changeLanguage, languageList, clientSaveFile,
             nowPlatform, videoPlayTypes, initControlBar, showWindowsTopBar,
             doFastCheck,
             subCheckMenuList,checkHistory

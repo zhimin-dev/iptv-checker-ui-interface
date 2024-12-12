@@ -97,14 +97,6 @@ export default function Setting(props) {
         setSearchTitle(e.target.value)
     }
 
-    const doPauseCheck = async () => {
-        _mainContext.pauseCheckUrlData()
-    }
-
-    const doRemuseCheck = async () => {
-        _mainContext.resumeCheckUrlData()
-    }
-
     const addNewSearchFilter = () => {
         if (searchTitle === '') {
             return
@@ -125,10 +117,6 @@ export default function Setting(props) {
         _mainContext.filterM3u(chipData)
     }
 
-    const doCheckUrlIsValid = () => {
-        _mainContext.onCheckTheseLinkIsAvailable()
-    }
-
     const exportValidM3uData = () => {
         _mainContext.onExportValidM3uData()
         setDialogMod(4)
@@ -141,24 +129,9 @@ export default function Setting(props) {
         setOpen(true);
     }
 
-    const showSetting = () => {
-        setDialogMod(3)
-        setOpen(true);
-    }
-
     const handleClose = (value) => {
         setOpen(false);
     };
-
-    const autoSelectedAvailablesUrl = () => {
-        let ids = _mainContext.getAvailableOrNotAvailableIndex(1)
-        setSelectedArr(ids)
-    }
-
-    const autoSelectedInAvailablesUrl = () => {
-        let ids = _mainContext.getAvailableOrNotAvailableIndex(2)
-        setSelectedArr(ids)
-    }
 
     const clearSelectedArr = () => {
         setSelectedArr([])
@@ -217,93 +190,18 @@ export default function Setting(props) {
                         <FormControl sx={{ marginRight: '5px' }}>
                             <Button startIcon={<FindInPageIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">{t('原始数据')}</Button>
                         </FormControl>
-                        <FormControl sx={{ marginRight: '5px' }}>
+                        <FormControl sx={{
+                            marginRight: "5px",
+                        }}>
                             {
-                                _mainContext.handleMod === 1 ? (
-                                    <Box>{t('检查进度')}：{_mainContext.hasCheckedCount}/{_mainContext.showM3uBody.length}</Box>
-                                ) : ''
+                                _mainContext.nowMod === 0 ? (
+                                    <FormControlLabel 
+                                    size="small"
+                                    control={<Checkbox size="small" checked={_mainContext.needFastSource} onChange={handleNeedFastSource} />} 
+                                    label={t('选择延迟最低的源')} />
+                                ):''
                             }
                         </FormControl>
-                        {/* {
-                            _mainContext.handleMod === 0 ? (
-                                <FormControl sx={{
-                                    marginRight: "5px",
-                                }}>
-                                    <LoadingButton
-                                        size="small"
-                                        onClick={doCheckUrlIsValid}
-                                        variant="outlined"
-                                        startIcon={<HelpOutlineIcon />}
-                                    >
-                                        {t('开始检查')}
-                                    </LoadingButton>
-                                </FormControl>
-                            ) : ''
-                        }
-                        {
-                            _mainContext.checkUrlMod === 1 ? (
-                                <LoadingButton
-                                    size="small"
-                                    onClick={doPauseCheck}
-                                    variant="outlined"
-                                    startIcon={<PauseIcon />}
-                                >
-                                    {t('暂停检查')}
-                                </LoadingButton>
-                            ) : ''
-                        } */}
-                        {/* {
-                            _mainContext.checkUrlMod === 2 ? (
-                                <LoadingButton
-                                    size="small"
-                                    onClick={doRemuseCheck}
-                                    variant="outlined"
-                                    startIcon={<PlayArrowIcon />}
-                                >
-                                    {t('恢复检查')}
-                                </LoadingButton>
-                            ) : ''
-                        } */}
-                        {
-                            _mainContext.handleMod === 2 ? (
-                                <FormControl sx={{
-                                    marginRight: "5px",
-                                }}>
-                                    <LoadingButton
-                                        size="small"
-                                        onClick={autoSelectedAvailablesUrl}
-                                        variant="contained"
-                                        startIcon={<CheckCircleOutlineIcon />}
-                                    >
-                                        {t('有效链接')}
-                                    </LoadingButton>
-                                    {
-                                        _mainContext.nowMod === 0 ? (
-                                            <FormControlLabel 
-                                            size="small"
-                                            control={<Checkbox size="small" checked={_mainContext.needFastSource} onChange={handleNeedFastSource} />} 
-                                            label={t('选择延迟最低的源')} />
-                                        ):''
-                                    }
-                                </FormControl>
-                            ) : ''
-                        }
-                        {
-                            _mainContext.handleMod === 2 ? (
-                                <FormControl sx={{
-                                    marginRight: "5px",
-                                }}>
-                                    <LoadingButton
-                                        size="small"
-                                        onClick={autoSelectedInAvailablesUrl}
-                                        variant="outlined"
-                                        startIcon={<ErrorOutlineIcon />}
-                                    >
-                                        {t('无效链接')}
-                                    </LoadingButton>
-                                </FormControl>
-                            ) : ''
-                        }
                         {
                             selectedArr.length > 0 ? (
                                 <FormControl sx={{
@@ -338,7 +236,7 @@ export default function Setting(props) {
                             ) : ''
                         }
                         {
-                            _mainContext.handleMod === 2 || selectedArr.length > 0 ? (
+                            selectedArr.length > 0 ? (
                                 <FormControl sx={{
                                     marginRight: "5px",
                                 }}>
@@ -361,13 +259,14 @@ export default function Setting(props) {
                                 display: 'flex',
                                 alignItems: 'flex-end'
                             }}>
-                            <FormControl sx={{ marginRight: '5px', width: '120px' }}>
+                            <FormControl sx={{ marginRight: '5px', width: 200 }}>
                                 <TextField
                                     id="outlined-name"
+                                    variant="outlined"
+                                    size="small"
                                     value={searchTitle}
                                     onChange={handleChangeSearchTitle}
                                     label={t('多关键词搜索')}
-                                    variant="standard"
                                 />
                             </FormControl>
                             <FormControl sx={{ marginRight: '5px' }}>
@@ -377,7 +276,7 @@ export default function Setting(props) {
                                     variant="outlined"
                                     startIcon={<AddCircleOutlineIcon />}
                                 >
-                                    {t('关键词')}
+                                    {t('添加关键词')}
                                 </LoadingButton>
                             </FormControl>
                             <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
@@ -401,32 +300,28 @@ export default function Setting(props) {
                                     ))}
                                 </Select>
                             </FormControl>
-                            {
-                                _mainContext.handleMod === 2 ? (
-                                    <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
-                                        <InputLabel id="demo-select-small" size="small">{t('过滤视频清晰度')}</InputLabel>
-                                        <Select
-                                            labelId="demo-select-small"
-                                            id="demo-select-small"
-                                            size="small"
-                                            multiple
-                                            value={selectedVideoTypes}
-                                            onChange={handleChangeVideoTypes}
-                                            input={<OutlinedInput size="small" label={t('过滤视频清晰度')} />}
-                                            renderValue={(selectedVideoTypes) => selectedVideoTypes.join(', ')}
-                                            MenuProps={MenuProps}
-                                        >
-                                            {_mainContext.videoResolution.map((value, index) => (
-                                                <MenuItem key={index} value={value.value}>
-                                                    <Checkbox checked={value.checked} />
-                                                    <ListItemText primary={value.name} />
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                ) : ''
-                            }
-                            <FormControl sx={{ marginRight: '5px' }}>
+                            <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
+                                <InputLabel id="demo-select-small" size="small">{t('过滤视频清晰度')}</InputLabel>
+                                <Select
+                                    labelId="demo-select-small"
+                                    id="demo-select-small"
+                                    size="small"
+                                    multiple
+                                    value={selectedVideoTypes}
+                                    onChange={handleChangeVideoTypes}
+                                    input={<OutlinedInput size="small" label={t('过滤视频清晰度')} />}
+                                    renderValue={(selectedVideoTypes) => selectedVideoTypes.join(', ')}
+                                    MenuProps={MenuProps}
+                                >
+                                    {_mainContext.videoResolution.map((value, index) => (
+                                        <MenuItem key={index} value={value.value}>
+                                            <Checkbox checked={value.checked} />
+                                            <ListItemText primary={value.name} />
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            {/* <FormControl sx={{ marginRight: '5px' }}>
                                 <LoadingButton
                                     size="small"
                                     onClick={doFilter}
@@ -436,7 +331,7 @@ export default function Setting(props) {
                                 >
                                     {t('搜索')}
                                 </LoadingButton>
-                            </FormControl>
+                            </FormControl> */}
                         </Box>
                     </Box>
                     <Box sx={{ paddingRight: "20px", fontSize: '12px' }}>
@@ -462,9 +357,6 @@ export default function Setting(props) {
                         }
                         {
                             selectedGroups.length > 0 ? t('只显示分组为')+'[' + selectedGroups.join(',') + ']'+t('的数据') : ''
-                        }
-                        {
-                            chipData.length > 0 || selectedGroups.length ? ','+t('需要点击【搜索】按钮进行筛选') : ''
                         }
                     </Box>
                 </Box>
