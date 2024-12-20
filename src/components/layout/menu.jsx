@@ -133,7 +133,7 @@ export default function Layout() {
     );
 
     const DrawerList = (
-        <Box className="side-bar" style={{ backgroundColor: theme.palette.sideBarBgColor[prefersDarkMode?'dark' : 'light'] }} sx={{ width: drawerWidth }} role="presentation">
+        <Box className="side-bar" style={{ backgroundColor: theme.palette.sideBarBgColor[prefersDarkMode ? 'dark' : 'light'] }} sx={{ width: drawerWidth }} role="presentation">
             <List>
                 <div className="side-bar-logo" onClick={() => goToGithub} title='帮忙点个star!!!'>
                     <div className='side-bar-logo-item'>
@@ -145,36 +145,41 @@ export default function Layout() {
                     menuList.map((value, index) => (
                         value.showMod.includes(_mainContext.nowMod) ? (
                             <div key={index}>
-                                <ListItem key={index} disablePadding onClick={() => changePath(value)}>
-                                    <ListItemButton>
-                                        <ListItemIcon>
-                                            {
-                                                value.icon === 'SettingsIcon' ? <SettingsIcon /> : ''
-                                            }
-                                            {
-                                                value.icon === 'AdjustIcon' ? <AdjustIcon /> : ''
-                                            }
-                                            {
-                                                value.icon === 'PublicIcon' ? <PublicIcon /> : ''
-                                            }
-                                            {
-                                                value.icon === 'CloudQueueIcon' ? <CloudQueueIcon /> : ''
-                                            }
-                                            {
-                                                value.icon === 'RemoveRedEyeIcon' ? <RemoveRedEyeIcon /> : ''
-                                            }
-                                            {
-                                                value.icon === 'BoltIcon' ? <BoltIcon /> : ''
-                                            }
-                                        </ListItemIcon>
-                                        <ListItemText primary={t(value.name)} />
-                                        {
-                                            value.uri === detailUri ? (
-                                                openSubCheckedMenu ? <ExpandLess /> : <ExpandMore />
-                                            ) : ''
-                                        }
-                                    </ListItemButton>
-                                </ListItem>
+                                {
+                                    value.uri !== detailUri || (value.uri === detailUri && _mainContext.subCheckMenuList.length > 0) ? (
+                                        <ListItem key={index} disablePadding onClick={() => changePath(value)}>
+                                            <ListItemButton>
+                                                <ListItemIcon>
+                                                    {
+                                                        value.icon === 'SettingsIcon' ? <SettingsIcon /> : ''
+                                                    }
+                                                    {
+                                                        value.icon === 'AdjustIcon' ? <AdjustIcon /> : ''
+                                                    }
+                                                    {
+                                                        value.icon === 'PublicIcon' ? <PublicIcon /> : ''
+                                                    }
+                                                    {
+                                                        value.icon === 'CloudQueueIcon' ? <CloudQueueIcon /> : ''
+                                                    }
+                                                    {
+                                                        value.icon === 'RemoveRedEyeIcon' ? <RemoveRedEyeIcon /> : ''
+                                                    }
+                                                    {
+                                                        value.icon === 'BoltIcon' ? <BoltIcon /> : ''
+                                                    }
+                                                </ListItemIcon>
+                                                <ListItemText primary={t(value.name)} />
+                                                {
+                                                    value.uri === detailUri ? (
+                                                        openSubCheckedMenu ? <ExpandLess /> : <ExpandMore />
+                                                    ) : ''
+                                                }
+                                            </ListItemButton>
+                                        </ListItem>
+                                    ) : ''
+                                }
+
                                 {
                                     value.uri === detailUri && openSubCheckedMenu ? (
                                         <List component="div" disablePadding key={detailUri + "0000"}>

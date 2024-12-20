@@ -8,11 +8,8 @@ import SimpleDialog from './dialog';
 import { styled } from '@mui/material/styles';
 import LoadingButton from '@mui/lab/LoadingButton';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import SearchIcon from '@mui/icons-material/Search';
 import Button from '@mui/material/Button';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import Chip from '@mui/material/Chip';
 import Checkbox from '@mui/material/Checkbox';
 import InputLabel from '@mui/material/InputLabel';
@@ -21,10 +18,7 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemText from '@mui/material/ListItemText';
 import ChangeCircleIcon from '@mui/icons-material/ChangeCircle';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import FindInPageIcon from '@mui/icons-material/FindInPage';
-import PauseIcon from '@mui/icons-material/Pause';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import ParseM3u from '../../utils/utils';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -172,7 +166,7 @@ export default function Setting(props) {
 
     return (
         <Box sx={{
-            border: '1px solid #eee',
+            border: '1px solid #868686',
             padding: '8px',
             borderRadius: '5px'
         }}>

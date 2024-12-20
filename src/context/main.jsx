@@ -11,6 +11,7 @@ import { writeTextFile } from '@tauri-apps/plugin-fs';
 import { save } from '@tauri-apps/plugin-dialog';
 import { downloadDir } from '@tauri-apps/api/path';
 import { type } from '@tauri-apps/plugin-os';
+import CryptoJS from 'crypto-js'
 
 export const MainContextProvider = function ({ children }) {
     const headerHeight = 145
@@ -19,24 +20,93 @@ export const MainContextProvider = function ({ children }) {
     const [uGroups, setUGroups] = useState([])//当前分组
     const [exportData, setExportData] = useState([])//待导出数据json
     const [exportDataStr, setExportDataStr] = useState('')//导出数据的str
-    const [checkData, setCheckData] = useState([])//待检查数据列表
     const [videoResolution, setVideoResolution] = useState([])//视频分辨率筛选
     const [needFastSource, setNeedFastSource] = useState(false)// 是否选择最快的源, false否， true是
-    const [nowMod, setNowMod] = useState(0);// 当前运行模式 0服务端模式 1客户端模式
+    const [nowMod, setNowMod] = useState(1);// 当前运行模式 0服务端模式 1客户端模式
     const [nowPlatform, setNowPlatform] = useState('')
     const [showWindowsTopBar, setShowWindowsTopBar] = useState(true)
     const [checkHistory, setCheckHistory] = useState([])// 检测历史
     const [subCheckMenuList, setSubCheckMenuList] = useState([
         {
             "md5": "xxxxx11",
-            "data": [],
-            "original": []
-        }, {
-            "md5": "xxxxx222",
-            "data": [],
-            "original": []
+            "data": [
+                {
+                    "index": 1,
+                    "url": "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
+                    "groupTitle": "央视",
+                    "tvgLogo": "https://live.fanmingming.com/tv/CCTV1.png",
+                    "tvgLanguage": ["CN"],
+                    "tvgCountry": "China",
+                    "tvgId": "CCTV1",
+                    "name": "CCTV-1",
+                    "sName": "cctv-1",
+                    "originalData": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
+                    "raw": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
+                    "status": 2,
+                    "checked": false,
+                    "video": null,
+                    "audio": null,
+                    "videoType": "",
+                    "delay": 0
+                },
+                {
+                    "index": 2,
+                    "url": "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News2.m3u8",
+                    "groupTitle": "央视",
+                    "tvgLogo": "https://live.fanmingming.com/tv/CCTV21.png",
+                    "tvgLanguage": [],
+                    "tvgCountry": "",
+                    "tvgId": "CCTV21",
+                    "name": "CCTV-21",
+                    "sName": "cctv-21",
+                    "originalData": "#EXTINF:-1 tvg-id=\"CCTV21\" tvg-name=\"CCTV21\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV21.png\" group-title=\"央视\",CCTV-21\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News2.m3u8",
+                    "raw": "#EXTINF:-1 tvg-id=\"CCTV21\" tvg-name=\"CCTV21\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV21.png\" group-title=\"央视\",CCTV-21\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News2.m3u8",
+                    "status": 2,
+                    "checked": false,
+                    "video": null,
+                    "audio": null,
+                    "videoType": "",
+                    "delay": 0
+                },
+                {
+                    "index": 3,
+                    "url": "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8",
+                    "groupTitle": "央视",
+                    "tvgLogo": "https://live.fanmingming.com/tv/CCTV2.png",
+                    "tvgLanguage": [],
+                    "tvgCountry": "",
+                    "tvgId": "CCTV2",
+                    "name": "CCTV-2",
+                    "sName": "cctv-2",
+                    "originalData": "#EXTINF:-1 tvg-id=\"CCTV2\" tvg-name=\"CCTV2\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV2.png\" group-title=\"央视\",CCTV-2\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8",
+                    "raw": "#EXTINF:-1 tvg-id=\"CCTV2\" tvg-name=\"CCTV2\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV2.png\" group-title=\"央视\",CCTV-2\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8",
+                    "status": 2,
+                    "checked": false,
+                    "video": null,
+                    "audio": null,
+                    "videoType": "",
+                    "delay": 0
+                }
+            ],
+            "original": {
+                "urls": [
+                    "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8"
+                ],
+                "ffmpeg": 0,//是否使用ffmpeg
+                "sort": 0,//是否需要排序
+                "check": 0,//是否需要检查
+            },
+            "menu": {
+                "groups": ["央视"]
+            },
+            "query": {
+                "needFast": false,//是否需要选择最快的源
+                "searchName": ["cctv"],//搜索名称
+                "group": "央视",// 分组
+            }
         }])//子菜单
-    const [videoPlayTypes, setVideoPlayTypes] = useState([
+
+    const videoPlayTypes = [
         {
             "name": "mac",
             "value": "application/x-mpegURL"
@@ -45,14 +115,15 @@ export const MainContextProvider = function ({ children }) {
             "name": "windows",
             "value": "video/mp2t"
         }
-    ])
-    const [languageList, setLanguageList] = useState([{
+    ]
+
+    const languageList = [{
         'code': 'en',
         "name": "English"
     }, {
         'code': 'zh',
         "name": "中文"
-    }])
+    }]
 
     const [settings, setSettings] = useState({
         checkSleepTime: 300,// 检查下一次请求间隔(毫秒)
@@ -133,8 +204,14 @@ export const MainContextProvider = function ({ children }) {
         filePath && await writeTextFile(download_name, body)
     }
 
+    const toMd5 = (data) => {
+        return CryptoJS.MD5(data).toString().toUpperCase()
+    }
+
     useEffect(() => {
         checkFFmpeg()
+        initCheckHistory()//初始化检查历史
+        initSubCheckMenuList() //初始化子菜单
         invoke('now_mod', {}).then((response) => {
             setNowMod(response)
             initTitleBar()
@@ -293,11 +370,6 @@ export const MainContextProvider = function ({ children }) {
     const contains = (str, substr) => {
         return str.indexOf(substr) !== -1;
     }
-
-    // const parseUrlHost = (str) => {
-    //     const url = new URL(str)
-    //     return url.hostname
-    // }
 
     const deleteShowM3uRow = (index) => {
         setShowM3uBody(prev => prev.filter((v, i) => v.index !== index))
@@ -552,38 +624,38 @@ export const MainContextProvider = function ({ children }) {
         }
     }
 
-    const getAvailableOrNotAvailableIndex = (mod) => {
-        //mod == 1 有效 2无效
-        let ids = []
-        let updatedList = [...showM3uBody]
-        for (let i = 0; i < updatedList.length; i++) {
-            let isChecked = false
-            // 需要最快延迟的数据
-            if (needFastSource) {
-                if (showM3uBody[i].status === mod) {
-                    if (videoFastNameMapRef.current[showM3uBody[i].sName] === undefined) {
-                        isChecked = true
-                    } else {
-                        if (videoFastNameMapRef.current[showM3uBody[i].sName].index === updatedList[i].index) {
-                            isChecked = true
-                        }
-                    }
-                }
-            } else {
-                if (showM3uBody[i].status === mod) {
-                    isChecked = true
-                }
-            }
-            if (isChecked) {
-                updatedList[i].checked = true
-                ids.push(showM3uBody[i].index)
-            } else {
-                updatedList[i].checked = false
-            }
-        }
-        setShowM3uBody(updatedList)
-        return ids
-    }
+    // const getAvailableOrNotAvailableIndex = (mod) => {
+    //     //mod == 1 有效 2无效
+    //     let ids = []
+    //     let updatedList = [...showM3uBody]
+    //     for (let i = 0; i < updatedList.length; i++) {
+    //         let isChecked = false
+    //         // 需要最快延迟的数据
+    //         if (needFastSource) {
+    //             if (showM3uBody[i].status === mod) {
+    //                 if (videoFastNameMapRef.current[showM3uBody[i].sName] === undefined) {
+    //                     isChecked = true
+    //                 } else {
+    //                     if (videoFastNameMapRef.current[showM3uBody[i].sName].index === updatedList[i].index) {
+    //                         isChecked = true
+    //                     }
+    //                 }
+    //             }
+    //         } else {
+    //             if (showM3uBody[i].status === mod) {
+    //                 isChecked = true
+    //             }
+    //         }
+    //         if (isChecked) {
+    //             updatedList[i].checked = true
+    //             ids.push(showM3uBody[i].index)
+    //         } else {
+    //             updatedList[i].checked = false
+    //         }
+    //     }
+    //     setShowM3uBody(updatedList)
+    //     return ids
+    // }
 
     const getCheckUrl = (url, timeout) => {
         if (nowMod === 1) {
@@ -977,7 +1049,90 @@ export const MainContextProvider = function ({ children }) {
         } else {
             data.push(needSaveData);
         }
+        saveCheckHistory(data)
+    }
+
+    const local_key_check_history = "checkHistory"
+    const local_key_sub_check_menu_list = "subCheckMenuList"
+
+    const initCheckHistory = () => {
+        let data = localStorage.getItem(local_key_check_history);
+        try {
+            let list = JSON.parse(data) ?? []
+            setCheckHistory(list)
+        } catch (e) {
+            console.log('read checkHistory from local error')
+        }
+    }
+
+    const saveCheckHistory = (data) => {
         setCheckHistory(data);
+        localStorage.setItem(local_key_check_history, JSON.stringify(data))
+    }
+
+    const addDetail = (data, urls, isLocal, check, sort) => {
+        let dataList = deepCopyJson(subCheckMenuList);
+        console.log(data)
+        let md5Str = toMd5(data)
+        let exists = false
+        for (let i = 0; i < dataList.length; i++) {
+            if (dataList[i].md5 === md5Str) {
+                exists = true
+            }
+        }
+        if (exists) {
+            return md5Str
+        }
+        dataList.push({
+            "md5": md5Str,
+            "data": data,
+            "original": {
+                "urls": urls,
+                "local": isLocal,//是否本地
+                "ffmpeg": 0,//是否使用ffmpeg
+                "sort": sort,//是否需要排序
+                "check": check,//是否需要检查
+            },
+            "menu": {
+                "groups": get_groups(data)
+            },
+            "query": {
+                "needFast": false,//是否需要选择最快的源
+                "searchName": [],//搜索名称
+                "group": "",// 分组
+            }
+        })
+        saveSubCheckMenuList(dataList)
+        return md5Str
+    }
+
+    const initSubCheckMenuList = () => {
+        let data = localStorage.getItem(local_key_sub_check_menu_list);
+        try {
+            let list = JSON.parse(data) ?? []
+            setSubCheckMenuList(list)
+        } catch (e) {
+            console.log('read checkHistory from local error')
+        }
+    }
+
+    const saveSubCheckMenuList = (data) => {
+        setSubCheckMenuList(data);
+        localStorage.setItem(local_key_sub_check_menu_list, JSON.stringify(data))
+    }
+
+    const get_groups = (data) => {
+        let groupMap = {}
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].groupTitle !== "") {
+                groupMap[data[i].groupTitle] = ""
+            }
+        }
+        let saveList = []
+        for (let i in groupMap) {
+            saveList.push(groupMap[i])
+        }
+        return saveList
     }
 
     return (
@@ -992,7 +1147,7 @@ export const MainContextProvider = function ({ children }) {
             headerHeight,
             filterM3u,
             deleteShowM3uRow, onExportValidM3uData,
-            onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
+            onSelectedRow, onSelectedOrNotAll,
             changeDialogBodyData,
             changeOriginalM3uBodies, updateDataByIndex,
             onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl,
@@ -1002,7 +1157,8 @@ export const MainContextProvider = function ({ children }) {
             changeLanguage, languageList, clientSaveFile,
             nowPlatform, videoPlayTypes, initControlBar, showWindowsTopBar,
             doFastCheck,
-            subCheckMenuList, checkHistory, saveDataToHistory
+            subCheckMenuList, checkHistory, saveDataToHistory,
+            addDetail
         }}>
             {children}
         </MainContext.Provider>
