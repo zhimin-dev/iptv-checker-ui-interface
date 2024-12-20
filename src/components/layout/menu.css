@@ -2,11 +2,11 @@
   position: relative;
   top: 0;
   bottom: 0;
+  min-height: 100vh;
 }
 .side-bar {
   width: 240px;
   z-index: 99;
-  background-color: antiquewhite;
   height: 100vh;
 }
 .side-bar-logo {

@@ -28,6 +28,9 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import DehazeIcon from '@mui/icons-material/Dehaze';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import CssBaseline from '@mui/material/CssBaseline';
 
 let menuList = [{
     "name": "快速检测",
@@ -112,8 +115,25 @@ export default function Layout() {
         setOpenDrawer(newOpen);
     };
 
+    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+
+
+    const theme = React.useMemo(
+        () =>
+            createTheme({
+                palette: {
+                    mode: prefersDarkMode ? 'dark' : 'light',
+                    sideBarBgColor: {
+                        dark: '#021d2a',
+                        light: 'antiquewhite'
+                    }
+                },
+            }),
+        [prefersDarkMode],
+    );
+
     const DrawerList = (
-        <Box className="side-bar" sx={{ width: drawerWidth }} role="presentation">
+        <Box className="side-bar" style={{ backgroundColor: theme.palette.sideBarBgColor[prefersDarkMode?'dark' : 'light'] }} sx={{ width: drawerWidth }} role="presentation">
             <List>
                 <div className="side-bar-logo" onClick={() => goToGithub} title='帮忙点个star!!!'>
                     <div className='side-bar-logo-item'>
@@ -175,73 +195,76 @@ export default function Layout() {
         </Box>
     );
 
-    const  getQueryParam = (location, key) => {        
+    const getQueryParam = (location, key) => {
         // 使用 URLSearchParams 获取查询参数
         const params = new URLSearchParams(location.search);
-        
+
         // 获取对应的值
         return params.get(key);
     }
 
     return (
-        <div className="layout">
-            <Drawer open={openDrawer} anchor="left" variant={openDrawer ? "permanent" : 'temporary'}>
-                {DrawerList}
-            </Drawer>
-            <Box className="container-inner" style={{
-                marginLeft: openDrawer ? drawerWidth + "px" : '',
-            }}>
-                <div data-tauri-drag-region style={{ width: '100%', height: '20px' }}></div>
-                {
-                    <div style={{
-                        padding: '0 20px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        height:'60px',
-                    }}>
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <div className="layout">
+                <Drawer open={openDrawer} anchor="left" variant={openDrawer ? "permanent" : 'temporary'}>
+                    {DrawerList}
+                </Drawer>
+                <Box className="container-inner" style={{
+                    marginLeft: openDrawer ? drawerWidth + "px" : '',
+                }}>
+                    <div data-tauri-drag-region style={{ width: '100%', height: '20px' }}></div>
+                    {
                         <div style={{
+                            padding: '0 20px',
                             display: 'flex',
                             justifyContent: 'space-between',
-                            height:'60px',
-                            width:'100%'
+                            height: '60px',
                         }}>
-                            <Box style={{
+                            <div style={{
                                 display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                height: '60px',
+                                width: '100%'
                             }}>
-                                <Box>
-                                    <IconButton aria-label="delete" size="small" onClick={toggleDrawer(!openDrawer)}>
-                                        <DehazeIcon />
-                                    </IconButton>
+                                <Box style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}>
+                                    <Box>
+                                        <IconButton aria-label="delete" size="small" onClick={toggleDrawer(!openDrawer)}>
+                                            <DehazeIcon />
+                                        </IconButton>
+                                    </Box>
+                                    <Box style={{ fontWeight: 'bold', fontSize: '20px' }}>{
+                                        nowSelectedMenu.name !== null && nowSelectedMenu.name !== undefined ?
+                                            t(nowSelectedMenu.name) : getQueryParam(location, "md5")
+                                    }</Box>
                                 </Box>
-                                <Box style={{fontWeight:'bold', fontSize:'20px'}}>{
-                                    nowSelectedMenu.name !== null && nowSelectedMenu.name !== undefined  ? 
-                                    t(nowSelectedMenu.name) : getQueryParam(location, "md5")
-                                }</Box>
-                            </Box>
-                            <div data-tauri-drag-region style={{
-                                display: _mainContext.nowMod === 1 ? 'flex' :'none',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                            }}>
-                                <div className="titlebar-button" id="titlebar-minimize">
-                                    <img
-                                        src="https://api.iconify.design/mdi:window-minimize.svg"
-                                        alt="minimize"
-                                    />
-                                </div>
-                                <div className="titlebar-button" id="titlebar-close">
-                                    <img src="https://api.iconify.design/mdi:close.svg" alt="close" />
+                                <div data-tauri-drag-region style={{
+                                    display: _mainContext.nowMod === 1 ? 'flex' : 'none',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}>
+                                    <div className="titlebar-button" id="titlebar-minimize">
+                                        <img
+                                            src="https://api.iconify.design/mdi:window-minimize.svg"
+                                            alt="minimize"
+                                        />
+                                    </div>
+                                    <div className="titlebar-button" id="titlebar-close">
+                                        <img src="https://api.iconify.design/mdi:close.svg" alt="close" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div> 
-                }
-                <div style={{ width: '100%', height: '20px' }}></div>
-                <Divider style={{ marginBottom: '10px' }} />
-                <Outlet />
-            </Box>
-        </div>
+                    }
+                    <div style={{ width: '100%', height: '20px' }}></div>
+                    <Divider style={{ marginBottom: '10px' }} />
+                    <Outlet />
+                </Box>
+            </div>
+        </ThemeProvider>
     )
 }

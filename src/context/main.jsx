@@ -25,19 +25,16 @@ export const MainContextProvider = function ({ children }) {
     const [nowMod, setNowMod] = useState(0);// 当前运行模式 0服务端模式 1客户端模式
     const [nowPlatform, setNowPlatform] = useState('')
     const [showWindowsTopBar, setShowWindowsTopBar] = useState(true)
-    const [checkHistory, setCheckHistory] = useState([{"urls":[
-        "https://example.com/path/to/file/document.pdf",
-        "https://example.com/path/to/file/233.m3u",
-        "https://example.com/path/to/file/document.txt"]}])// 检测历史
+    const [checkHistory, setCheckHistory] = useState([])// 检测历史
     const [subCheckMenuList, setSubCheckMenuList] = useState([
         {
-            "md5":"xxxxx11",
-            "data":[],
-            "original":[]
-        },{
-            "md5":"xxxxx222",
-            "data":[],
-            "original":[]
+            "md5": "xxxxx11",
+            "data": [],
+            "original": []
+        }, {
+            "md5": "xxxxx222",
+            "data": [],
+            "original": []
         }])//子菜单
     const [videoPlayTypes, setVideoPlayTypes] = useState([
         {
@@ -546,11 +543,11 @@ export const MainContextProvider = function ({ children }) {
         //mod = 1选择 0取消选择
         if (mod === 1) {
             setShowM3uBody(prev => prev.map((item, _) =>
-                ({...item, checked: true})
+                ({ ...item, checked: true })
             ))
         } else {
             setShowM3uBody(prev => prev.map((item, _) =>
-                ({...item, checked: false})
+                ({ ...item, checked: false })
             ))
         }
     }
@@ -971,6 +968,18 @@ export const MainContextProvider = function ({ children }) {
     //     setCheckDataIsFinished()
     // }
 
+    const saveDataToHistory = (urls) => {
+        let needSaveData = { "urls": urls }
+        let data = deepCopyJson(checkHistory);
+        if (data.length >= 5) {
+            data.splice(0, 1)
+            data.push(needSaveData)
+        } else {
+            data.push(needSaveData);
+        }
+        setCheckHistory(data);
+    }
+
     return (
         <MainContext.Provider value={{
             originalM3uBody, changeOriginalM3uBody,
@@ -993,7 +1002,7 @@ export const MainContextProvider = function ({ children }) {
             changeLanguage, languageList, clientSaveFile,
             nowPlatform, videoPlayTypes, initControlBar, showWindowsTopBar,
             doFastCheck,
-            subCheckMenuList,checkHistory
+            subCheckMenuList, checkHistory, saveDataToHistory
         }}>
             {children}
         </MainContext.Provider>
