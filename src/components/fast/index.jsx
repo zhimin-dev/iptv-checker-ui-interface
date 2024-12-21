@@ -28,11 +28,9 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import CountryJson from './../../assets/api/country.json'
 import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-
+import DownloadIcon from '@mui/icons-material/Download';
 
 export default function Fast() {
 
@@ -44,37 +42,32 @@ export default function Fast() {
     const _mainContext = useContext(MainContext);
     const [loading, setLoading] = useState(false);
     const [selectFileNames, setSelectFileNames] = useState([]);//上传的文件
-    const [sort, setSort] = useState(true);//是否需要排序
-    const [nowStatus, setNowStatus] = useState(0)// 0未检查 1检查中 2已结束
+    const [needSort, setNeedSort] = useState('true');//是否需要排序
+    const [nowStatus, setNowStatus] = useState(0)// 0未检查 1待校验 2可检查 3检查中 4已结束
     const [total, setTotal] = useState(0)
     const [checkCount, setCheckCount] = useState(0)
     const [successCount, setSuccessCount] = useState(0)
     const [failedCount, setFailedCount] = useState(0)
-    const [urls, setUrls] = useState([{
-        "url": "http://localhost", "status": 200, "body": `#EXTM3U
-#EXTINF:-1 tvg-id="CCTV1" tvg-name="CCTV1" tvg-logo="https://live.fanmingming.com/tv/CCTV1.png" group-title="央视",CCTV-1
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8
-#EXTINF:-1 tvg-id="CCTV21" tvg-name="CCTV21" tvg-logo="https://live.fanmingming.com/tv/CCTV21.png" group-title="央视",CCTV-21
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News2.m3u8
-#EXTINF:-1 tvg-id="CCTV2" tvg-name="CCTV2" tvg-logo="https://live.fanmingming.com/tv/CCTV2.png" group-title="央视",CCTV-2
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8
-#EXTINF:-1 tvg-id="CCTV1" tvg-name="CCTV1" tvg-logo="https://live.fanmingming.com/tv/CCTV1.png" group-title="央视",CCTV-1
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8
-#EXTINF:-1 tvg-id="CCTV21" tvg-name="CCTV21" tvg-logo="https://live.fanmingming.com/tv/CCTV21.png" group-title="央视",CCTV-21
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News2.m3u8
-#EXTINF:-1 tvg-id="CCTV2" tvg-name="CCTV2" tvg-logo="https://live.fanmingming.com/tv/CCTV2.png" group-title="央视",CCTV-2
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8
-#EXTINF:-1 tvg-id="CCTV1" tvg-name="CCTV1" tvg-logo="https://live.fanmingming.com/tv/CCTV1.png" group-title="央视",CCTV-1
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8
-#EXTINF:-1 tvg-id="CCTV21" tvg-name="CCTV21" tvg-logo="https://live.fanmingming.com/tv/CCTV21.png" group-title="央视",CCTV-21
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News2.m3u8
-#EXTINF:-1 tvg-id="CCTV2" tvg-name="CCTV2" tvg-logo="https://live.fanmingming.com/tv/CCTV2.png" group-title="央视",CCTV-2
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8` }, { "url": "http://localhost", "status": 500, "body": `<html>code:500</html>` }])
-    const [needCheck, setNeedCheck] = useState(true)
+    const [urls, setUrls] = useState([])
+    const [needCheck, setNeedCheck] = useState('true')
     const [oneUri, setOneUri] = useState('')
     const [selectedType, setSelectedType] = useState(0)// 选择类型 0本地 1网络
     const [checkData, setCheckData] = useState([])
     const [showBody, setShowBody] = useState('')
+
+    const urlsRef = useRef([])//当前操作类型
+
+    const handlePrepare = async () => {
+        if (selectedType === 1) {
+            if(urls.length === 0) {
+                return
+            }
+            let fetch_body_data = await _mainContext.get_m3u_body(urls)
+            setUrls(fetch_body_data)
+            urlsRef.current = fetch_body_data
+        }
+        setNowStatus(2)
+    }
 
     const handleConfirm = async () => {
         let checkOriData = [];
@@ -83,55 +76,59 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8` }, { "url": 
         } else {
             checkOriData = urls
         }
-        if (checkOriData.length === 0) {
+        let get_valid_m3u8_data = []
+        for (let i = 0; i < checkOriData.length; i++) {
+            if (checkOriData[i].status === 200) {
+                get_valid_m3u8_data.push(checkOriData[i])
+            }
+        }
+        if (get_valid_m3u8_data.length === 0) {
             return
         }
         if (selectedType === 1) {
-            _mainContext.saveDataToHistory(urls)
+            let historyUrls = []
+            for (let i = 0; i < get_valid_m3u8_data.length; i++) {
+                historyUrls.push(get_valid_m3u8_data[i].url)
+            }
+            _mainContext.saveDataToHistory(historyUrls)
         }
-        setNowStatus(1)
+        setNowStatus(3)
         let i = 0
         let s = 0
         let f = 0
         let totalData = 0
-        let data = await _mainContext.getBodyType(`#EXTM3U
-#EXTINF:-1 tvg-id="CCTV1" tvg-name="CCTV1" tvg-logo="https://live.fanmingming.com/tv/CCTV1.png" group-title="央视",CCTV-1
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8
-#EXTINF:-1 tvg-id="CCTV21" tvg-name="CCTV21" tvg-logo="https://live.fanmingming.com/tv/CCTV21.png" group-title="央视",CCTV-21
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News2.m3u8
-#EXTINF:-1 tvg-id="CCTV2" tvg-name="CCTV2" tvg-logo="https://live.fanmingming.com/tv/CCTV2.png" group-title="央视",CCTV-2
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8
-#EXTINF:-1 tvg-id="CCTV1" tvg-name="CCTV1" tvg-logo="https://live.fanmingming.com/tv/CCTV1.png" group-title="央视",CCTV-1
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8
-#EXTINF:-1 tvg-id="CCTV21" tvg-name="CCTV21" tvg-logo="https://live.fanmingming.com/tv/CCTV21.png" group-title="央视",CCTV-21
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News2.m3u8
-#EXTINF:-1 tvg-id="CCTV2" tvg-name="CCTV2" tvg-logo="https://live.fanmingming.com/tv/CCTV2.png" group-title="央视",CCTV-2
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8
-#EXTINF:-1 tvg-id="CCTV1" tvg-name="CCTV1" tvg-logo="https://live.fanmingming.com/tv/CCTV1.png" group-title="央视",CCTV-1
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8
-#EXTINF:-1 tvg-id="CCTV21" tvg-name="CCTV21" tvg-logo="https://live.fanmingming.com/tv/CCTV21.png" group-title="央视",CCTV-21
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News2.m3u8
-#EXTINF:-1 tvg-id="CCTV2" tvg-name="CCTV2" tvg-logo="https://live.fanmingming.com/tv/CCTV2.png" group-title="央视",CCTV-2
-https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8`)
-        let resultData = await _mainContext.doFastCheck(data, _mainContext.settings, function (total) {
-            setTotal(total);
-            totalData = total;
-        }, function (code, index) {
-            console.log(total)
-            i++
-            if (code === 200) {
-                s++
-            } else {
-                f++
+        let data = [];
+        for (let i = 0; i < get_valid_m3u8_data.length; i++) {
+            let list = _mainContext.get_m3u8_info_by_m3u_ori_data(get_valid_m3u8_data[i].body)
+            for (let j = 0; j < list.length; j++) {
+                data.push(list[j])
             }
-            setCheckCount(i)
-            setFailedCount(f)
-            setSuccessCount(s)
-            if (i === totalData) {
-                setNowStatus(2)
-            }
-        })
-        setCheckData(resultData)
+        }
+        if(needCheck === 'true') {
+            let resultData = await _mainContext.doFastCheck(data, _mainContext.settings, function (total) {
+                setTotal(total);
+                totalData = total;
+            }, function (code, index) {
+                console.log(total)
+                i++
+                if (code === 200) {
+                    s++
+                } else {
+                    f++
+                }
+                setCheckCount(i)
+                setFailedCount(f)
+                setSuccessCount(s)
+                if (i === totalData) {
+                    setNowStatus(4)
+                }
+            })
+            setCheckData(resultData)
+        }else{
+            setTotal(data.length);
+            setNowStatus(4)
+            setCheckData(data)
+        }
     }
 
     const handleDetail = () => {
@@ -141,7 +138,7 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8`)
         } else {
             data = urls
         }
-        let md5Str = _mainContext.addDetail(checkData, data, selectedType === 0, needCheck ? 1 : 0, sort ? 1 : 0)
+        let md5Str = _mainContext.addDetail(checkData, data, selectedType === 0, needCheck ==='true' ? 1 : 0, needSort ==='true'? 1 : 0)
         navigate("/detail?md5=" + md5Str)
     }
 
@@ -179,13 +176,19 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8`)
     }
 
     const handleSelectedType = (e) => {
-        setSelectedType(parseInt(e.target.value, 10));
+        let selectType = parseInt(e.target.value, 10);
+        setSelectedType(selectType);
     }
 
     const handleClickUriDelete = (i) => {
         let kw = [...urls]
-        kw.splice(i, 1)
+        kw.splice({
+            "body": "",
+            "url": i,
+            "status": 0,
+        }, 1)
         setUrls(kw);
+        urlsRef.current = kw
     }
 
     const handleClickFilesDelete = (i) => {
@@ -195,7 +198,7 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8`)
     }
 
     const handleChangeSortValue = (e) => {
-        setSort(e.target.value)
+        setNeedSort(e.target.value)
     }
 
     const handleChangeNeedCheck = (e) => {
@@ -204,8 +207,13 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8`)
 
     const handleClickUriAdd = (e) => {
         const newUrls = [...urls]; // 创建urls数组的副本
-        newUrls.push(oneUri); // 在指定索引处设置新的值
+        newUrls.push({
+            "body": "",
+            "url": oneUri,
+            "status": 0,
+        }); // 在指定索引处设置新的值
         setUrls(newUrls)
+        urlsRef.current = newUrls
         setOneUri("")
     }
 
@@ -232,11 +240,20 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8`)
     }
 
     const fillThisData = (e) => {
-        setUrls(e.urls)
-        setNeedCheck(e.needCheck ?? true)
+        let data = [];
+        for (let i = 0; i < e.urls.length; i++) {
+            data.push({
+                "url": e.urls[i],
+                "status": 0,
+                "body": ''
+            })
+        }
+        setUrls(data)
+        urlsRef.current = data
+        setNeedCheck(e.needCheck ?? 'true')
         setSelectedType(1)
         setNowStatus(0)
-        setSort(e.needSort ?? false)
+        setNeedSort(e.needSort ?? 'true')
     }
 
     const handleClickOpen = (body) => () => {
@@ -259,6 +276,22 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8`)
             }
         }
     }, [open]);
+
+    useEffect(() => {
+        if (selectedType === 0) {
+            setNowStatus(2)
+        } else {
+            setNowStatus(0)
+        }
+    }, [selectedType]);
+
+    const handleDownload = (extention) => {
+        if (_mainContext.nowMod === 1) {
+            _mainContext.clientSaveFile(checkData, extention === 'txt' ? 'txt' : 'm3u')
+        } else {
+            _mainContext.webSaveFile(checkData, extention === 'txt' ? 'txt' : 'm3u')
+        }
+    }
 
     return (
         <>
@@ -291,15 +324,19 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8`)
             }}>
                 <Box style={{ width: '700px' }}>
                     {
-                        nowStatus >= 1 ? (
+                        nowStatus >= 3 ? (
                             <Box>
-                                <div>总：{total}</div>
-                                <div>正在检查: 成功{successCount}/ 失败{failedCount}</div>
+                                <div>总：{total}条记录</div>
+                                {
+                                    needCheck === 'true'?(
+                                        <div>正在检查: 成功{successCount}条记录 / 失败{failedCount}条记录</div>
+                                    ):''
+                                }
                             </Box>
                         ) : ''
                     }
                     {
-                        nowStatus === 0 ? (
+                        nowStatus === 0 || nowStatus === 1 || nowStatus === 2 ? (
                             <>
                                 <FormControl fullWidth>
                                     <FormLabel id="demo-controlled-radio-buttons-group">检测类型</FormLabel>
@@ -378,7 +415,7 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8`)
                                             </FormControl>
                                             <div style={{ marginTop: '20px' }}>
                                                 {
-                                                    urls.map((value, index) => (
+                                                    urlsRef.current.map((value, index) => (
                                                         <FormControl fullWidth key={"urls" + index}>
                                                             <div style={{ display: 'flex', width: '600px' }}>
                                                                 <Input
@@ -444,7 +481,7 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8`)
                                         row
                                         aria-labelledby="demo-row-radio-buttons-group-label"
                                         name="row-radio-buttons-group"
-                                        value={sort}
+                                        value={needSort}
                                         onChange={handleChangeSortValue}
                                     >
                                         <FormControlLabel value="false" control={<Radio />} label={t('否')} />
@@ -459,26 +496,67 @@ https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8`)
                         marginTop: '5px'
                     }}>
                         {
-                            nowStatus === 0 ? (<LoadingButton
-                                size="small"
-                                onClick={handleConfirm}
-                                loading={loading}
-                                variant="contained"
-                                startIcon={<NavigateNextIcon />}
-                            >
-                                {t('开始检测')}
-                            </LoadingButton>) : ''
+                            nowStatus === 0 ? (
+                                <>
+                                    <LoadingButton
+                                        size="small"
+                                        onClick={handlePrepare}
+                                        loading={loading}
+                                        variant="contained"
+                                        startIcon={<NavigateNextIcon />}
+                                    >
+                                        {t('数据准备')}
+                                    </LoadingButton>
+                                </>
+                            ) : ''
                         }
                         {
-                            nowStatus === 2 ? (<LoadingButton
-                                size="small"
-                                onClick={handleDetail}
-                                loading={loading}
-                                variant="contained"
-                                startIcon={<NavigateNextIcon />}
-                            >
-                                {t('去编辑')}
-                            </LoadingButton>) : ''
+                            nowStatus === 2 ? (
+                                <>
+                                    <LoadingButton
+                                        size="small"
+                                        onClick={handleConfirm}
+                                        loading={loading}
+                                        variant="contained"
+                                        startIcon={<NavigateNextIcon />}
+                                    >
+                                        {t('开始检测')}
+                                    </LoadingButton>
+                                </>
+                            ) : ''
+                        }
+                        {
+                            nowStatus === 4 ? (
+                                <>
+                                    <LoadingButton
+                                        size="small"
+                                        onClick={handleDetail}
+                                        loading={loading}
+                                        variant="contained"
+                                        startIcon={<NavigateNextIcon />}
+                                    >
+                                        {t('去编辑')}
+                                    </LoadingButton>
+                                    <LoadingButton
+                                        size="small"
+                                        onClick={() => handleDownload('m3u')}
+                                        loading={loading}
+                                        variant="contained"
+                                        startIcon={<DownloadIcon />}
+                                    >
+                                        {t('下载结果.m3u格式')}
+                                    </LoadingButton>
+                                    <LoadingButton
+                                        size="small"
+                                        onClick={() => handleDownload('txt')}
+                                        loading={loading}
+                                        variant="contained"
+                                        startIcon={<DownloadIcon />}
+                                    >
+                                        {t('下载结果.txt格式')}
+                                    </LoadingButton>
+                                </>
+                            ) : ''
                         }
                     </Box>
                 </Box>

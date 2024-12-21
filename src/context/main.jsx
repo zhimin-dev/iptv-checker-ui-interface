@@ -191,9 +191,15 @@ export const MainContextProvider = function ({ children }) {
         initControlBar(appWindow)
     }
 
-    const clientSaveFile = async (body, fullSuffix) => {
+    const clientSaveFile = async (data, fullSuffix) => {
         const downloadDirPath = await downloadDir();
         let download_name = downloadDirPath + 'iptv-checker-file-' + new Date().getTime() + "." + fullSuffix
+        let body = ''
+        if(fullSuffix === 'txt') {
+            body = m3uObjectToTxtBody(data)
+        }else{
+            body = m3uObjectToM3uBody(data)
+        }
         const filePath = await save({
             defaultPath: download_name,
             filters: [{
@@ -204,8 +210,34 @@ export const MainContextProvider = function ({ children }) {
         filePath && await writeTextFile(download_name, body)
     }
 
+    const webSaveFile = async (data, fullSuffix) => {
+        if(fullSuffix === 'txt') {
+            saveTxtFile(data)
+        }else{
+            saveM3uFile(data)
+        }
+    }
+
+    const saveM3uFile = (data) => {
+        var a = document.createElement('a')
+        var blob = new Blob([m3uObjectToM3uBody(data)])
+        var url = window.URL.createObjectURL(blob)
+        a.href = url
+        a.download = 'iptv-checker-' + (new Date()).getTime() + ".m3u"
+        a.click()
+    }
+
+    const saveTxtFile = (data) => {
+        var a = document.createElement('a')
+        var blob = new Blob([m3uObjectToTxtBody(data)])
+        var url = window.URL.createObjectURL(blob)
+        a.href = url
+        a.download = 'iptv-checker-' + (new Date()).getTime() + ".txt"
+        a.click()
+    }
+
     const toMd5 = (data) => {
-        return CryptoJS.MD5(data).toString().toUpperCase()
+        return CryptoJS.MD5(data).toString()
     }
 
     useEffect(() => {
@@ -318,6 +350,14 @@ export const MainContextProvider = function ({ children }) {
         try {
             let result = ParseM3u.parseQuoteFormat(body)
             return combine_m3u_list(result)
+        } catch (e) {
+            return []
+        }
+    }
+
+    const get_m3u8_info_by_m3u_ori_data = (body) => {
+        try {
+            return ParseM3u.parseOriginalBodyToList(body)
         } catch (e) {
             return []
         }
@@ -971,9 +1011,8 @@ export const MainContextProvider = function ({ children }) {
 
     const doFastCheck = async (data, settings, totalFunc, func) => {
         let copyData = deepCopyJson(data)
-        let m3uData = ParseM3u.parseOriginalBodyToList(copyData)
-        totalFunc(m3uData.length)
-        return await doNewCheck(m3uData, settings, func)
+        totalFunc(copyData.length)
+        return await doNewCheck(copyData, settings, func)
     }
 
     const onChangeExportData = (value) => {
@@ -982,6 +1021,18 @@ export const MainContextProvider = function ({ children }) {
 
     const onChangeExportStr = () => {
         setExportDataStr(_toOriginalStr(exportData))
+    }
+
+    const m3uObjectToM3uBody = (data) => {
+        return _toOriginalStr(data)
+    }
+
+    const m3uObjectToTxtBody = (data) => {
+        let list = [];
+        for(let i =0;i<data.length;i++) {
+            list.push(data[i].name+","+data[i].url)
+        }
+        return list.join("\n")
     }
 
     const batchChangeGroupName = (selectArr, groupName) => {
@@ -1041,8 +1092,19 @@ export const MainContextProvider = function ({ children }) {
     // }
 
     const saveDataToHistory = (urls) => {
-        let needSaveData = { "urls": urls }
+        let md5Str = toMd5(JSON.stringify(urls))
+        let needSaveData = { "urls": urls,"md5": md5Str }
         let data = deepCopyJson(checkHistory);
+        // 检查md5是否已经存在
+        let isExits = false
+        for(let i= 0;i<data.length;i++) {
+            if(data[i].md5 === md5Str) {
+                isExits = true
+            }
+        }
+        if(isExits) {
+            return 
+        }
         if (data.length >= 5) {
             data.splice(0, 1)
             data.push(needSaveData)
@@ -1072,8 +1134,7 @@ export const MainContextProvider = function ({ children }) {
 
     const addDetail = (data, urls, isLocal, check, sort) => {
         let dataList = deepCopyJson(subCheckMenuList);
-        console.log(data)
-        let md5Str = toMd5(data)
+        let md5Str = toMd5(JSON.stringify(urls))
         let exists = false
         for (let i = 0; i < dataList.length; i++) {
             if (dataList[i].md5 === md5Str) {
@@ -1125,7 +1186,7 @@ export const MainContextProvider = function ({ children }) {
         let groupMap = {}
         for (let i = 0; i < data.length; i++) {
             if (data[i].groupTitle !== "") {
-                groupMap[data[i].groupTitle] = ""
+                groupMap[data[i].groupTitle] = data[i].groupTitle
             }
         }
         let saveList = []
@@ -1133,6 +1194,43 @@ export const MainContextProvider = function ({ children }) {
             saveList.push(groupMap[i])
         }
         return saveList
+    }
+
+    const get_m3u_body = async (data) => {
+        let allRequest = [];
+        for (let i = 0; i < data.length; i++) {
+            let _url = getM3uBody(data[i].url)
+            allRequest.push(axios.get(_url, { timeout: settings.httpRequestTimeout }))
+        }
+        const results = await Promise.allSettled(allRequest);
+        results.forEach((result, index) => {
+            let isError = true
+            let body = ""
+            if (result.status === 'fulfilled') {
+                const response = result.value.data;
+                if (valid_m3u_file(response)) {
+                    isError = false
+                    body = response
+                } else {
+                    isError = true
+                    body = response
+                }
+            } else {
+                isError = true
+                body = result.reason.message
+            }
+            if (isError) {
+                data[index].status = 500
+            } else {
+                data[index].status = 200
+            }
+            data[index].body = body
+        })
+        return data
+    }
+
+    const valid_m3u_file = (content) => {
+        return content.substr(0, 7) === "#EXTM3U"
     }
 
     return (
@@ -1158,7 +1256,8 @@ export const MainContextProvider = function ({ children }) {
             nowPlatform, videoPlayTypes, initControlBar, showWindowsTopBar,
             doFastCheck,
             subCheckMenuList, checkHistory, saveDataToHistory,
-            addDetail
+            addDetail, get_m3u_body, get_m3u8_info_by_m3u_ori_data,
+            m3uObjectToM3uBody,m3uObjectToTxtBody,webSaveFile
         }}>
             {children}
         </MainContext.Provider>

@@ -270,7 +270,7 @@ export default function Setting(props) {
                                     variant="outlined"
                                     startIcon={<AddCircleOutlineIcon />}
                                 >
-                                    {t('添加关键词')}
+                                    {t('关键词')}
                                 </LoadingButton>
                             </FormControl>
                             <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
