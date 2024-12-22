@@ -1058,10 +1058,12 @@ export const MainContextProvider = function ({ children }) {
         console.log("---", detailMd5Str)
         setDetailMd5(detailMd5Str)
         let data = get_detail_from_ori(detailMd5Str)
-        setDetailList(data.data)
-        setDetailQuery(data.query)
-        setDetailMenu(data.menu)
-        setDetailOriginal(data)
+        if(data) {
+            setDetailList(data.data)
+            setDetailQuery(data.query)
+            setDetailMenu(data.menu)
+            setDetailOriginal(data)
+        }
     }
 
     return (

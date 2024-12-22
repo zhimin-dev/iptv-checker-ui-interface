@@ -460,25 +460,21 @@ export default function Fast() {
                                         </>
                                     )
                                 }
-                                {
-                                    selectedType === 1 ? (
-                                        <FormControl fullWidth style={{
-                                            margin: "10px 0 10px",
-                                        }}>
-                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要检查')}</FormLabel>
-                                            <RadioGroup
-                                                row
-                                                aria-labelledby="demo-row-radio-buttons-group-label"
-                                                name="row-radio-buttons-group"
-                                                value={needCheck}
-                                                onChange={handleChangeNeedCheck}
-                                            >
-                                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                                            </RadioGroup>
-                                        </FormControl>
-                                    ) : ''
-                                }
+                                <FormControl fullWidth style={{
+                                    margin: "10px 0 10px",
+                                }}>
+                                    <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要检查')}</FormLabel>
+                                    <RadioGroup
+                                        row
+                                        aria-labelledby="demo-row-radio-buttons-group-label"
+                                        name="row-radio-buttons-group"
+                                        value={needCheck}
+                                        onChange={handleChangeNeedCheck}
+                                    >
+                                        <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                        <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                    </RadioGroup>
+                                </FormControl>
                                 {/* {
                                     _mainContext.nowMod === 0 ? (
                                         <FormControl fullWidth style={{

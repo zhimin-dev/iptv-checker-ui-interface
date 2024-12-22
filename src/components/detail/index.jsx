@@ -42,7 +42,6 @@ export default function Detail() {
   useEffect(() => {
     let md5 = getQueryParam(location, "md5")
     if (location.pathname === '/detail') {
-      console.log('------md5', md5);
       _mainContext.updateDetailMd5(md5)
     }
     console.log("-----",location)
