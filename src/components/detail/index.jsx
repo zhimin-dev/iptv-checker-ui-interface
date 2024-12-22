@@ -3,7 +3,7 @@ import * as React from 'react';
 import { MainContext } from './../../context/main';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Setting from './setting';
 import { VirtualizedTable } from './vtable'
 import FormControl from '@mui/material/FormControl';
@@ -15,6 +15,7 @@ import { emit, listen } from '@tauri-apps/api/event'
 
 export default function Detail() {
   const { t } = useTranslation();
+  const location = useLocation();
   const _mainContext = useContext(MainContext);
   const [vTableHeight, setVTableHeight] = useState(550)
   const navigate = useNavigate();
@@ -29,6 +30,23 @@ export default function Detail() {
       [name]: value
     }));
   };
+
+  const getQueryParam = (location, key) => {
+    // 使用 URLSearchParams 获取查询参数
+    const params = new URLSearchParams(location.search);
+
+    // 获取对应的值
+    return params.get(key);
+  }
+
+  useEffect(() => {
+    let md5 = getQueryParam(location, "md5")
+    if (location.pathname === '/detail') {
+      console.log('------md5', md5);
+      _mainContext.updateDetailMd5(md5)
+    }
+    console.log("-----",location)
+  }, [location])
 
   const saveEditData = () => {
     _mainContext.updateDataByIndex([showDetailObj.index], {
@@ -55,40 +73,40 @@ export default function Detail() {
     // }
   }, [])
 
-  const deleteThisRow = (index, tableIndex) => {
-    let row = []
-    for (let i = 0; i < selectedArr.length; i++) {
-      if (selectedArr[i] !== index) {
-        row.push(selectedArr[i]);
-      }
-    }
-    setSelectedArr(row)
-    _mainContext.deleteShowM3uRow(index)
-  }
+  // const deleteThisRow = (index, tableIndex) => {
+  //   let row = []
+  //   for (let i = 0; i < selectedArr.length; i++) {
+  //     if (selectedArr[i] !== index) {
+  //       row.push(selectedArr[i]);
+  //     }
+  //   }
+  //   setSelectedArr(row)
+  //   _mainContext.deleteShowM3uRow(index)
+  // }
 
   const watchThisRow = async (val) => {
     let platform = _mainContext.nowPlatform
     if (_mainContext.nowMod === 1) {
       let label = 'watch'
       let appWindow = await WebviewWindow.getByLabel(label);
-      if(appWindow !== null) {
+      if (appWindow !== null) {
         // 携带负载对象触发 `click` 事件
         emit('changeWatchUrl', {
           data: val,
         })
-        return 
+        return
       }
       const webview = new WebviewWindow(label, {
-        url: '/watch/single?platform='+platform+'&url='+val.url,
+        url: '/watch/single?platform=' + platform + '&url=' + val.url,
         x: 0,
         y: 0,
         width: 1024,
         height: 600,
-        title:val.name,
+        title: val.name,
         center: true,
         maximizable: false,
       })
-      console.log("webview",webview)
+      console.log("webview", webview)
       // _mainContext.initControlBar(webview, label)
       // since the webview window is created asynchronously,
       // Tauri emits the `tauri://created` and `tauri://error` to notify you of the creation response
@@ -162,7 +180,7 @@ export default function Detail() {
           rowCount={_mainContext.detailList.length}
           rowGetter={({ index }) => _mainContext.detailList[index]}
           originalData={_mainContext.detailList}
-          delRow={deleteThisRow}
+          // delRow={deleteThisRow}
           selectAllRow={handleSelectCheckedAll}
           selectRow={onSelectedThisRow}
           seeDetail={seeDetail}

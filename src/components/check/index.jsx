@@ -8,8 +8,6 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import CheckIcon from '@mui/icons-material/Check';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
-import utils from './../../utils/common'
-import axios from 'axios'
 import { useNavigate } from 'react-router-dom';
 import { useTranslation, initReactI18next } from "react-i18next";
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'

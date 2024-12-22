@@ -34,7 +34,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 
 let menuList = [{
     "name": "快速检测",
-    "uri": "/fast",
+    "uri": "/",
     "icon": "BoltIcon",
     'showMod': [0, 1],
     'showHeader': true

@@ -50,6 +50,7 @@ export default function Fast() {
     const [failedCount, setFailedCount] = useState(0)
     const [urls, setUrls] = useState([])
     const [needCheck, setNeedCheck] = useState('true')
+    const [needFastestOne, setNeedFastestOne] = useState('false')
     const [oneUri, setOneUri] = useState('')
     const [selectedType, setSelectedType] = useState(0)// 选择类型 0本地 1网络
     const [checkData, setCheckData] = useState([])
@@ -59,7 +60,7 @@ export default function Fast() {
 
     const handlePrepare = async () => {
         if (selectedType === 1) {
-            if(urls.length === 0) {
+            if (urls.length === 0) {
                 return
             }
             let fetch_body_data = await _mainContext.get_m3u_body(urls)
@@ -104,7 +105,7 @@ export default function Fast() {
                 data.push(list[j])
             }
         }
-        if(needCheck === 'true') {
+        if (needCheck === 'true') {
             let resultData = await _mainContext.doFastCheck(data, _mainContext.settings, function (total) {
                 setTotal(total);
                 totalData = total;
@@ -124,7 +125,7 @@ export default function Fast() {
                 }
             })
             setCheckData(resultData)
-        }else{
+        } else {
             setTotal(data.length);
             setNowStatus(4)
             setCheckData(data)
@@ -138,7 +139,7 @@ export default function Fast() {
         } else {
             data = urls
         }
-        let md5Str = _mainContext.addDetail(checkData, data, selectedType === 0, needCheck ==='true' ? 1 : 0, needSort ==='true'? 1 : 0)
+        let md5Str = _mainContext.addDetail(checkData, data, selectedType === 0, needCheck === 'true' ? 1 : 0, needSort === 'true' ? 1 : 0)
         navigate("/detail?md5=" + md5Str)
     }
 
@@ -205,6 +206,10 @@ export default function Fast() {
         setNeedCheck(e.target.value)
     }
 
+    const handleChangeNeedFastestOne = (e) => {
+        setNeedFastestOne(e.target.value)
+    }
+
     const handleClickUriAdd = (e) => {
         const newUrls = [...urls]; // 创建urls数组的副本
         newUrls.push({
@@ -251,6 +256,7 @@ export default function Fast() {
         setUrls(data)
         urlsRef.current = data
         setNeedCheck(e.needCheck ?? 'true')
+        setNeedFastestOne(e.needFastestOne ?? 'false')
         setSelectedType(1)
         setNowStatus(0)
         setNeedSort(e.needSort ?? 'true')
@@ -328,9 +334,9 @@ export default function Fast() {
                             <Box>
                                 <div>总：{total}条记录</div>
                                 {
-                                    needCheck === 'true'?(
+                                    needCheck === 'true' ? (
                                         <div>正在检查: 成功{successCount}条记录 / 失败{failedCount}条记录</div>
-                                    ):''
+                                    ) : ''
                                 }
                             </Box>
                         ) : ''
@@ -473,6 +479,25 @@ export default function Fast() {
                                         </FormControl>
                                     ) : ''
                                 }
+                                {/* {
+                                    _mainContext.nowMod === 0 ? (
+                                        <FormControl fullWidth style={{
+                                            margin: "10px 0 10px",
+                                        }}>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('自动匹配最快的源')}</FormLabel>
+                                            <RadioGroup
+                                                row
+                                                aria-labelledby="demo-row-radio-buttons-group-label"
+                                                name="row-radio-buttons-group"
+                                                value={needFastestOne}
+                                                onChange={handleChangeNeedFastestOne}
+                                            >
+                                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                            </RadioGroup>
+                                        </FormControl>
+                                    ) : ''
+                                } */}
                                 <FormControl fullWidth style={{
                                     margin: "10px 0 10px",
                                 }}>

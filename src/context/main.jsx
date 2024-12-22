@@ -27,11 +27,11 @@ export const MainContextProvider = function ({ children }) {
     const [showWindowsTopBar, setShowWindowsTopBar] = useState(true)
     const [checkHistory, setCheckHistory] = useState([])// 检测历史
 
-
+    const [detailMd5, setDetailMd5] = useState('')
     const [detailQuery, setDetailQuery] = useState(null)
     const [detailMenu, setDetailMenu] = useState({
         "groups": ["央视"],
-        "videoRevolution":[]
+        "videoRevolution": []
     })
     const [detailOriginal, setDetailOriginal] = useState(null)
     const [detailList, setDetailList] = useState([
@@ -48,11 +48,12 @@ export const MainContextProvider = function ({ children }) {
             "originalData": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
             "raw": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
             "status": 2,
-            "checked": false,
             "video": null,
             "audio": null,
             "videoType": "",
-            "delay": 0
+            "delay": 0,
+
+            "checked": false,
         }
     ])//列表展示的数据
     const [subCheckMenuList, setSubCheckMenuList] = useState([
@@ -163,11 +164,6 @@ export const MainContextProvider = function ({ children }) {
         privateHost: '',//私有host
         playerSource: "application/x-mpegURL",// 视频播放平台
     })
-
-    const nowCheckUrlModRef = useRef()//当前操作类型
-    const hasCheckedCountRef = useRef()// 当前的操作模式 0无操作 1操作处理检查 2检查完成
-    const videoInfoRef = useRef({})//视频宽高、延迟数据
-    const videoFastNameMapRef = useRef({})//存储名字对应的最低延迟数据
 
     let debugMode = true
 
@@ -284,7 +280,6 @@ export const MainContextProvider = function ({ children }) {
                 console.log(e)
             }
         }
-        hasCheckedCountRef.current = 0
     }, [])
 
     const onChangeNeedFastSource = (val) => {
@@ -416,32 +411,76 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const clearDetailData = () => {
-        hasCheckedCountRef.current = 0
         setExportDataStr('')
         setShowM3uBody([])
         setOriginalM3uBody('')
-        nowCheckUrlModRef.current = 0
-        videoInfoRef.current = {}
-        videoFastNameMapRef.current = {}
     }
 
     const contains = (str, substr) => {
         return str.indexOf(substr) !== -1;
     }
 
-    const deleteShowM3uRow = (index) => {
-        setShowM3uBody(prev => prev.filter((v, i) => v.index !== index))
-    }
-
-    const getSelectedGroupTitle = () => {
-        let row = []
-        for (let i = 0; i < uGroups.length; i++) {
-            if (uGroups[i].checked) {
-                row.push(uGroups[i].key)
+    const deleteShowM3uRow = (indexArr) => {
+        let result = []
+        for(let i =0;i<detailList.length;i++) {
+            let isSave = true
+            for (let j = 0; j < indexArr.length; j++) {
+                if (indexArr[j] === detailList[i].index) {
+                    isSave= false
+                }
+            }
+            if(isSave) {
+                result.push(detailList[i])
             }
         }
-        return row
+        setDetailList(prev => prev.filter(function (v, i) {
+            for (let j = 0; j < indexArr.length; j++) {
+                if (indexArr[j] === v.index) {
+                    return false
+                }
+            }
+            return true
+        }))
+
+        console.log("detailList---",result)
+        let data = get_detail_from_ori(detailMd5)
+        if(data !== null) {
+            data.data = result
+            console.log("data---",data)
+            updateOriginalData(data)
+        }
     }
+
+    const get_detail_from_ori = (md5Str) => {
+        for(let i =0;i<subCheckMenuList.length;i++) {
+            if(subCheckMenuList[i].md5 === md5Str) {
+                return subCheckMenuList[i]
+            }
+        }
+        return null
+    }
+
+    const updateOriginalData = (data) => {
+        let list = []
+        for (let i = 0; i < subCheckMenuList.length; i++) {
+            let save = subCheckMenuList[i]
+            if(subCheckMenuList[i].md5 === detailMd5) {
+                save = data
+            }
+            list.push(save)
+        }
+        saveSubCheckMenuList(list)
+    }
+
+    // const getSelectedGroupTitle = () => {
+    //     let row = []
+    //     for (let i = 0; i < uGroups.length; i++) {
+    //         if (uGroups[i].checked) {
+    //             row.push(uGroups[i].key)
+    //         }
+    //     }
+    //     return row
+    // }
 
     const inArray = (arr, val) => {
         for (let i = 0; i < arr.length; i++) {
@@ -452,24 +491,23 @@ export const MainContextProvider = function ({ children }) {
         return false
     }
 
-    const videoResolutionGetChecked = () => {
-        let save = []
-        for (let i = 0; i < videoResolution.length; i++) {
-            if (videoResolution[i].checked) {
-                save.push(videoResolution[i].value)
-            }
-        }
-        return save
-    }
+    // const videoResolutionGetChecked = () => {
+    //     let save = []
+    //     for (let i = 0; i < videoResolution.length; i++) {
+    //         if (videoResolution[i].checked) {
+    //             save.push(videoResolution[i].value)
+    //         }
+    //     }
+    //     return save
+    // }
 
-    const filterM3u = (filterNames) => {
-        let selectedGroupTitles = getSelectedGroupTitle()
-        let videoResArr = videoResolutionGetChecked()
+    const filterM3u = (filterNames, selectedGroupTitles, videoResArr) => {
+        // let selectedGroupTitles = getSelectedGroupTitle()
+        // let videoResArr = videoResolutionGetChecked()
         if (filterNames.length === 0 && selectedGroupTitles.length === 0 && videoResArr.length === 0) {
-            setShowM3uBody(ParseM3u.parseOriginalBodyToList(originalM3uBody, videoInfoRef.current))
             return
         }
-        let temp = ParseM3u.parseOriginalBodyToList(originalM3uBody, videoInfoRef.current)
+        let temp = detailList
         let rows = [];
         let _index = 1
         for (let i = 0; i < temp.length; i++) {
@@ -509,7 +547,7 @@ export const MainContextProvider = function ({ children }) {
             }
         }
         log("setShowM3uBody---", rows)
-        setShowM3uBody(rows)
+        setDetailList(rows)
     }
 
     const strToCsv = (body) => {
@@ -618,14 +656,20 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const changeDialogBodyData = () => {
-        setExportDataStr(originalM3uBody)
+        let data = null
+        for (let i = 0; i < subCheckMenuList.length; i++) {
+            if (subCheckMenuList[i].md5 === detailMd5) {
+                data = subCheckMenuList[i].data
+            }
+        }
+        setExportDataStr(m3uObjectToM3uBody(data))
     }
 
     const onSelectedRow = (index) => {
-        let updatedList = [...showM3uBody]
+        let updatedList = [...detailList]
         const objIndex = updatedList.findIndex(obj => obj.index === index);
         updatedList[objIndex].checked = !updatedList[objIndex].checked;
-        setShowM3uBody(updatedList)
+        setDetailList(updatedList)
     }
 
     const findM3uBodyByIndexByOri = (data, index) => {
@@ -867,10 +911,6 @@ export const MainContextProvider = function ({ children }) {
         return body
     }
 
-    const pauseCheckUrlData = () => {
-        nowCheckUrlModRef.current = 2
-    }
-
     const saveDataToHistory = (urls) => {
         let md5Str = toMd5(JSON.stringify(urls))
         let needSaveData = { "urls": urls, "md5": md5Str }
@@ -914,6 +954,7 @@ export const MainContextProvider = function ({ children }) {
 
     const addDetail = (data, urls, isLocal, check, sort) => {
         let dataList = deepCopyJson(subCheckMenuList);
+        console.log("dataList--",dataList)
         let md5Str = toMd5(JSON.stringify(urls))
         let exists = false
         for (let i = 0; i < dataList.length; i++) {
@@ -1013,6 +1054,16 @@ export const MainContextProvider = function ({ children }) {
         return content.substr(0, 7) === "#EXTM3U"
     }
 
+    const updateDetailMd5 = (detailMd5Str) => {
+        console.log("---", detailMd5Str)
+        setDetailMd5(detailMd5Str)
+        let data = get_detail_from_ori(detailMd5Str)
+        setDetailList(data.data)
+        setDetailQuery(data.query)
+        setDetailMenu(data.menu)
+        setDetailOriginal(data)
+    }
+
     return (
         <MainContext.Provider value={{
             originalM3uBody, changeOriginalM3uBody,
@@ -1029,7 +1080,7 @@ export const MainContextProvider = function ({ children }) {
             changeDialogBodyData,
             changeOriginalM3uBodies, updateDataByIndex,
             onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl,
-            pauseCheckUrlData, strToCsv, clearDetailData,
+            strToCsv, clearDetailData,
             getM3uBody,
             needFastSource, onChangeNeedFastSource, nowMod, getBodyType,
             changeLanguage, languageList, clientSaveFile,
@@ -1038,7 +1089,7 @@ export const MainContextProvider = function ({ children }) {
             subCheckMenuList, checkHistory, saveDataToHistory,
             addDetail, get_m3u_body, get_m3u8_info_by_m3u_ori_data,
             m3uObjectToM3uBody, m3uObjectToTxtBody, webSaveFile,
-            detailList,detailQuery,detailMenu,detailOriginal
+            detailList, detailQuery, detailMenu, detailOriginal,updateDetailMd5
         }}>
             {children}
         </MainContext.Provider>

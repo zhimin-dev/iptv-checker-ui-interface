@@ -159,9 +159,8 @@ export default function Setting(props) {
     }
 
     const doDelSelected = () => {
-        for (let i = 0; i < selectedArr.length; i++) {
-            _mainContext.deleteShowM3uRow(selectedArr[i])
-        }
+        console.log("selectedArr---",selectedArr)
+        _mainContext.deleteShowM3uRow(selectedArr)
         setSelectedArr([])
     }
 
@@ -185,7 +184,7 @@ export default function Setting(props) {
                         <FormControl sx={{ marginRight: '5px' }}>
                             <Button startIcon={<FindInPageIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">{t('原始数据')}</Button>
                         </FormControl>
-                        <FormControl sx={{
+                        {/* <FormControl sx={{
                             marginRight: "5px",
                         }}>
                             {
@@ -196,7 +195,7 @@ export default function Setting(props) {
                                         label={t('选择延迟最低的源')} />
                                 ) : ''
                             }
-                        </FormControl>
+                        </FormControl> */}
                         {
                             selectedArr.length > 0 ? (
                                 <FormControl sx={{
@@ -231,7 +230,7 @@ export default function Setting(props) {
                             ) : ''
                         }
                         {
-                            selectedArr.length > 0 ? (
+                            selectedArr.length === 0 ? (
                                 <FormControl sx={{
                                     marginRight: "5px",
                                 }}>
@@ -298,7 +297,7 @@ export default function Setting(props) {
                             </FormControl>
 
                             {
-                                _mainContext.detailMenu["videoRevolution"].length > 0 ? (
+                                _mainContext.detailMenu["videoRevolution"]&&_mainContext.detailMenu["videoRevolution"].length > 0 ? (
                                     <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
                                         <InputLabel id="demo-select-small" size="small">{t('过滤视频清晰度')}</InputLabel>
                                         <Select
