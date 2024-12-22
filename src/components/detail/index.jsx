@@ -128,8 +128,8 @@ export default function Detail() {
     }
     let temp = []
     if (mod === 1) {
-      for (let i = 0; i < _mainContext.showM3uBody.length; i++) {
-        temp.push(_mainContext.showM3uBody[i].index)
+      for (let i = 0; i < _mainContext.detailList.length; i++) {
+        temp.push(_mainContext.detailList[i].index)
       }
     }
     _mainContext.onSelectedOrNotAll(mod)

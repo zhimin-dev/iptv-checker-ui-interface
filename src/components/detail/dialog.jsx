@@ -53,11 +53,11 @@ export default function SimpleDialog(props) {
   const [groupTab, setGroupTab] = useState(0)
   const [customGroupName, setCustomGroupName] = useState('')
 
-  const [configSettings, setConfigSettings] = useState({
-    checkSleepTime: 300,// 检查下一次请求间隔(毫秒)
-    httpRequestTimeout: 8000,// http请求超时,0表示 无限制
-    showFullUrl: false,//是否显示url
-  })
+  // const [configSettings, setConfigSettings] = useState({
+  //   checkSleepTime: 300,// 检查下一次请求间隔(毫秒)
+  //   httpRequestTimeout: 8000,// http请求超时,0表示 无限制
+  //   showFullUrl: false,//是否显示url
+  // })
 
   useEffect(() => {
     setGroupTab(0)
@@ -79,7 +79,7 @@ export default function SimpleDialog(props) {
     onClose();
   };
 
-  const doDownload = () => {
+  const doDownloadM3u = () => {
     if(_mainContext.nowMod === 1) {
       _mainContext.clientSaveFile(_mainContext.exportDataStr, 'm3u')
     }else{
@@ -94,8 +94,8 @@ export default function SimpleDialog(props) {
 
   const doCsvDownload = () => {
     let csvArr = _mainContext.strToCsv(_mainContext.exportDataStr)
-      // 将数据行转换为 CSV 字符串
-      const csvContent = csvArr.map(e => e.join(",")).join("\n");
+    // 将数据行转换为 CSV 字符串
+    const csvContent = csvArr.map(e => e.join(",")).join("\n");
     if(_mainContext.nowMod === 1) {
       _mainContext.clientSaveFile(csvContent, 'csv')
     }else{
@@ -150,19 +150,19 @@ export default function SimpleDialog(props) {
     setCustomGroupName(e.target.value)
   }
 
-  const doSaveConfigSettings = () => {
-    _mainContext.onChangeSettings(configSettings)
-    onClose();
-  }
+  // const doSaveConfigSettings = () => {
+  //   _mainContext.onChangeSettings(configSettings)
+  //   onClose();
+  // }
 
-  const handleChangeConfigSettings = (e) => {
-    const { name, value } = e.target;
-    let data = value
-    setConfigSettings(prevData => ({
-      ...prevData,
-      [name]: data
-    }));
-  }
+  // const handleChangeConfigSettings = (e) => {
+  //   const { name, value } = e.target;
+  //   let data = value
+  //   setConfigSettings(prevData => ({
+  //     ...prevData,
+  //     [name]: data
+  //   }));
+  // }
 
   return (
     <Dialog onClose={handleClose} open={open}>
@@ -218,7 +218,7 @@ export default function SimpleDialog(props) {
             </LoadingButton>
             <LoadingButton
               size="small"
-              onClick={doDownload}
+              onClick={doDownloadM3u}
               variant="contained"
               style={{ marginRight: '10px' }}
               startIcon={<GetAppIcon />}
@@ -264,8 +264,8 @@ export default function SimpleDialog(props) {
                   label={t('更换分组')}
                   onChange={handleChangeGroup}
                 >
-                  {_mainContext.uGroups.map((value, index) => (
-                    <MenuItem key={index} value={value.key}>{value.key}</MenuItem>
+                  {_mainContext.detailMenu["groups"].map((value, index) => (
+                    <MenuItem key={index} value={value}>{value}</MenuItem>
                   ))}
                 </Select>
               </FormControl>

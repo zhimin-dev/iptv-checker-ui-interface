@@ -132,25 +132,25 @@ export default function Setting(props) {
         setSelectedArr([])
     }
 
-    const handleNeedFastSource = (e) => {
-        _mainContext.onChangeNeedFastSource(e.target.checked)
-    }
+    // const handleNeedFastSource = (e) => {
+    //     _mainContext.onChangeNeedFastSource(e.target.checked)
+    // }
 
     const handleChangeGroup = (e) => {
         setSelectedGroups(e.target.value)
-        let _aMap = {}
-        for (let i = 0; i < e.target.value.length; i++) {
-            _aMap[e.target.value[i]] = e.target.value[i]
-        }
-        let uGroup = _mainContext.uGroups
-        for (let i = 0; i < uGroup.length; i++) {
-            let checked = false
-            if (_aMap[uGroup[i].key] !== undefined) {
-                checked = true
-            }
-            uGroup[i].checked = checked
-        }
-        _mainContext.setUGroups(uGroup)
+        // let _aMap = {}
+        // for (let i = 0; i < e.target.value.length; i++) {
+        //     _aMap[e.target.value[i]] = e.target.value[i]
+        // }
+        // let uGroup = _mainContext.detailMenu["groups"]
+        // for (let i = 0; i < uGroup.length; i++) {
+        //     let checked = false
+        //     if (_aMap[uGroup[i]] !== undefined) {
+        //         checked = true
+        //     }
+        //     uGroup[i].checked = checked
+        // }
+        // _mainContext.setUGroups(uGroup)
     }
 
     const doTransferGroup = () => {
@@ -287,7 +287,7 @@ export default function Setting(props) {
                                     renderValue={(selectedGroups) => selectedGroups.join(', ')}
                                     MenuProps={MenuProps}
                                 >
-                                    {_mainContext.detailMenu["groups"].map((value, index) => (
+                                    {_mainContext.detailMenu["groups"] && _mainContext.detailMenu["groups"].map((value, index) => (
                                         <MenuItem key={index} value={value}>
                                             <Checkbox checked={selectedGroups.indexOf(value) !== -1} />
                                             <ListItemText primary={value} />

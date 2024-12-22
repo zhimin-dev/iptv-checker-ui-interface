@@ -19,6 +19,7 @@ import CloudQueueIcon from '@mui/icons-material/CloudQueue';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import _package from './../../../package';
 import { useTranslation, initReactI18next } from "react-i18next";
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import Divider from '@mui/material/Divider';
 import Collapse from '@mui/material/Collapse';
@@ -138,7 +139,7 @@ export default function Layout() {
                 <div className="side-bar-logo" onClick={() => goToGithub} title='帮忙点个star!!!'>
                     <div className='side-bar-logo-item'>
                         <img src={icon} height="60"></img>
-                        <p className='go-github'>iptv-checker@{nowVersion}</p>
+                        <div className='go-github'>iptv-checker@{nowVersion}</div>
                     </div>
                 </div>
                 {
@@ -208,6 +209,11 @@ export default function Layout() {
         return params.get(key);
     }
 
+    const remove_detail = (md5Str) => {
+        _mainContext.delDetailData(md5Str)
+        navigate("/")
+    }
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
@@ -244,8 +250,16 @@ export default function Layout() {
                                     </Box>
                                     <Box style={{ fontWeight: 'bold', fontSize: '20px' }}>{
                                         nowSelectedMenu.name !== null && nowSelectedMenu.name !== undefined ?
-                                            t(nowSelectedMenu.name) : getQueryParam(location, "md5")
+                                            t(nowSelectedMenu.name) : _mainContext.detailMd5
                                     }</Box>
+                                    {
+                                        _mainContext.detailMd5 !== '' ? (
+                                            <IconButton aria-label="delete" color='error' size="small" onClick={() => remove_detail(_mainContext.detailMd5)}>
+                                                <HighlightOffIcon />
+                                            </IconButton>
+                                        ) : ''
+                                    }
+
                                 </Box>
                                 <div data-tauri-drag-region style={{
                                     display: _mainContext.nowMod === 1 ? 'flex' : 'none',

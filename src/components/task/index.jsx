@@ -380,7 +380,7 @@ function TaskForm(props) {
                                 <FormControl fullWidth style={{
                                     padding: "0 0 20px",
                                 }}>
-                                    <p id="demo-simple-select-standard-label">{t('检查文件列表')}</p>
+                                    <div id="demo-simple-select-standard-label">{t('检查文件列表')}</div>
                                     {
                                         task.original.urls.map((value, index) => (
                                             <div style={{ display: 'flex' }} key={index}>
@@ -1081,7 +1081,7 @@ export default function TaskList(props) {
             ></ExportDialog>
             {
                 _mainContext.nowMod === 1 ? (
-                    <p>{t('当前设置的【后台检查server域名】为')}：{privateHost}</p>
+                    <div>{t('当前设置的【后台检查server域名】为')}：{privateHost}</div>
                 ):''
             }
             <Paper sx={{ width: '1024px', overflow: 'hidden' }}>

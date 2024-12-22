@@ -16,8 +16,7 @@ import CryptoJS from 'crypto-js'
 export const MainContextProvider = function ({ children }) {
     const headerHeight = 145
     const [originalM3uBody, setOriginalM3uBody] = useState('');//原始的m3u信息
-    const [showM3uBody, setShowM3uBody] = useState([])//m3u信息转换成list 数组
-    const [uGroups, setUGroups] = useState([])//当前分组
+    // const [uGroups, setUGroups] = useState([])//当前分组
     const [exportData, setExportData] = useState([])//待导出数据json
     const [exportDataStr, setExportDataStr] = useState('')//导出数据的str
     const [videoResolution, setVideoResolution] = useState([])//视频分辨率筛选
@@ -34,108 +33,52 @@ export const MainContextProvider = function ({ children }) {
         "videoRevolution": []
     })
     const [detailOriginal, setDetailOriginal] = useState(null)
-    const [detailList, setDetailList] = useState([
-        {
-            "index": 1,
-            "url": "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
-            "groupTitle": "央视",
-            "tvgLogo": "https://live.fanmingming.com/tv/CCTV1.png",
-            "tvgLanguage": ["CN"],
-            "tvgCountry": "China",
-            "tvgId": "CCTV1",
-            "name": "CCTV-1",
-            "sName": "cctv-1",
-            "originalData": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
-            "raw": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
-            "status": 2,
-            "video": null,
-            "audio": null,
-            "videoType": "",
-            "delay": 0,
+    const [detailList, setDetailList] = useState([])//列表展示的数据
+    // [
+    //     {
+    //         "index": 1,
+    //         "url": "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
+    //         "groupTitle": "央视",
+    //         "tvgLogo": "https://live.fanmingming.com/tv/CCTV1.png",
+    //         "tvgLanguage": ["CN"],
+    //         "tvgCountry": "China",
+    //         "tvgId": "CCTV1",
+    //         "name": "CCTV-1",
+    //         "sName": "cctv-1",
+    //         "originalData": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
+    //         "raw": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
+    //         "status": 2,
+    //         "video": null,
+    //         "audio": null,
+    //         "videoType": "",
+    //         "delay": 0,
 
-            "checked": false,
-        }
-    ])//列表展示的数据
-    const [subCheckMenuList, setSubCheckMenuList] = useState([
-        {
-            "md5": "xxxxx11",
-            "data": [
-                {
-                    "index": 1,
-                    "url": "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
-                    "groupTitle": "央视",
-                    "tvgLogo": "https://live.fanmingming.com/tv/CCTV1.png",
-                    "tvgLanguage": ["CN"],
-                    "tvgCountry": "China",
-                    "tvgId": "CCTV1",
-                    "name": "CCTV-1",
-                    "sName": "cctv-1",
-                    "originalData": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
-                    "raw": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
-                    "status": 2,
-                    "checked": false,
-                    "video": null,
-                    "audio": null,
-                    "videoType": "",
-                    "delay": 0
-                },
-                {
-                    "index": 2,
-                    "url": "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News2.m3u8",
-                    "groupTitle": "央视",
-                    "tvgLogo": "https://live.fanmingming.com/tv/CCTV21.png",
-                    "tvgLanguage": [],
-                    "tvgCountry": "",
-                    "tvgId": "CCTV21",
-                    "name": "CCTV-21",
-                    "sName": "cctv-21",
-                    "originalData": "#EXTINF:-1 tvg-id=\"CCTV21\" tvg-name=\"CCTV21\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV21.png\" group-title=\"央视\",CCTV-21\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News2.m3u8",
-                    "raw": "#EXTINF:-1 tvg-id=\"CCTV21\" tvg-name=\"CCTV21\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV21.png\" group-title=\"央视\",CCTV-21\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News2.m3u8",
-                    "status": 2,
-                    "checked": false,
-                    "video": null,
-                    "audio": null,
-                    "videoType": "",
-                    "delay": 0
-                },
-                {
-                    "index": 3,
-                    "url": "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8",
-                    "groupTitle": "央视",
-                    "tvgLogo": "https://live.fanmingming.com/tv/CCTV2.png",
-                    "tvgLanguage": [],
-                    "tvgCountry": "",
-                    "tvgId": "CCTV2",
-                    "name": "CCTV-2",
-                    "sName": "cctv-2",
-                    "originalData": "#EXTINF:-1 tvg-id=\"CCTV2\" tvg-name=\"CCTV2\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV2.png\" group-title=\"央视\",CCTV-2\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8",
-                    "raw": "#EXTINF:-1 tvg-id=\"CCTV2\" tvg-name=\"CCTV2\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV2.png\" group-title=\"央视\",CCTV-2\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News3.m3u8",
-                    "status": 2,
-                    "checked": false,
-                    "video": null,
-                    "audio": null,
-                    "videoType": "",
-                    "delay": 0
-                }
-            ],
-            "original": {
-                "urls": [
-                    "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8"
-                ],
-                "ffmpeg": 0,//是否使用ffmpeg
-                "sort": 0,//是否需要排序
-                "check": 0,//是否需要检查
-            },
-            "menu": {
-                "groups": ["央视"]
-            },
-            "query": {
-                "needFast": false,//是否需要选择最快的源
-                "searchName": ["cctv"],//搜索名称
-                "group": "央视",// 分组
-            }
-        }])//子菜单
-
+    //         "checked": false,
+    //     }
+    // ]
+    const [subCheckMenuList, setSubCheckMenuList] = useState([])//子菜单
+    // [
+    //     {
+    //         "md5": "xxxxx11",
+    //         "data": [
+    //         ],
+    //         "original": {
+    //             "urls": [
+    //                 "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8"
+    //             ],
+    //             "ffmpeg": 0,//是否使用ffmpeg
+    //             "sort": 0,//是否需要排序
+    //             "check": 0,//是否需要检查
+    //         },
+    //         "menu": {
+    //             "groups": ["央视"]
+    //         },
+    //         "query": {
+    //             "needFast": false,//是否需要选择最快的源
+    //             "searchName": ["cctv"],//搜索名称
+    //             "group": "央视",// 分组
+    //         }
+    //     }]
     const videoPlayTypes = [
         {
             "name": "mac",
@@ -412,7 +355,7 @@ export const MainContextProvider = function ({ children }) {
 
     const clearDetailData = () => {
         setExportDataStr('')
-        setShowM3uBody([])
+        setDetailList([])
         setOriginalM3uBody('')
     }
 
@@ -422,14 +365,14 @@ export const MainContextProvider = function ({ children }) {
 
     const deleteShowM3uRow = (indexArr) => {
         let result = []
-        for(let i =0;i<detailList.length;i++) {
+        for (let i = 0; i < detailList.length; i++) {
             let isSave = true
             for (let j = 0; j < indexArr.length; j++) {
                 if (indexArr[j] === detailList[i].index) {
-                    isSave= false
+                    isSave = false
                 }
             }
-            if(isSave) {
+            if (isSave) {
                 result.push(detailList[i])
             }
         }
@@ -442,18 +385,18 @@ export const MainContextProvider = function ({ children }) {
             return true
         }))
 
-        console.log("detailList---",result)
+        console.log("detailList---", result)
         let data = get_detail_from_ori(detailMd5)
-        if(data !== null) {
+        if (data !== null) {
             data.data = result
-            console.log("data---",data)
+            console.log("data---", data)
             updateOriginalData(data)
         }
     }
 
     const get_detail_from_ori = (md5Str) => {
-        for(let i =0;i<subCheckMenuList.length;i++) {
-            if(subCheckMenuList[i].md5 === md5Str) {
+        for (let i = 0; i < subCheckMenuList.length; i++) {
+            if (subCheckMenuList[i].md5 === md5Str) {
                 return subCheckMenuList[i]
             }
         }
@@ -464,7 +407,7 @@ export const MainContextProvider = function ({ children }) {
         let list = []
         for (let i = 0; i < subCheckMenuList.length; i++) {
             let save = subCheckMenuList[i]
-            if(subCheckMenuList[i].md5 === detailMd5) {
+            if (subCheckMenuList[i].md5 === detailMd5) {
                 save = data
             }
             list.push(save)
@@ -564,39 +507,39 @@ export const MainContextProvider = function ({ children }) {
         clearDetailData()
         setOriginalM3uBody(body);
         let _res = ParseM3u.parseOriginalBodyToList(body)
-        setShowM3uBody(_res)
-        parseGroup(_res)
+        setDetailList(_res)
+        // parseGroup(_res)
     }
 
-    const parseGroup = (groupList) => {
-        let _group = {}
-        for (let i = 0; i < groupList.length; i++) {
-            _group[groupList[i].groupTitle] = groupList[i].groupTitle
-        }
-        let _tempGroup = []
-        for (let i in _group) {
-            _tempGroup.push({
-                key: _group[i],
-                checked: false
-            })
-        }
-        setUGroups(_tempGroup)
-    }
+    // const parseGroup = (groupList) => {
+    //     let _group = {}
+    //     for (let i = 0; i < groupList.length; i++) {
+    //         _group[groupList[i].groupTitle] = groupList[i].groupTitle
+    //     }
+    //     let _tempGroup = []
+    //     for (let i in _group) {
+    //         _tempGroup.push({
+    //             key: _group[i],
+    //             checked: false
+    //         })
+    //     }
+    //     setUGroups(_tempGroup)
+    // }
 
     const addGroup = (name) => {
         let exists = false
-        for (let i = 0; i < uGroups.length; i++) {
-            if (uGroups[i].key === name) {
+        for (let i = 0; i < detailMenu['groups'].length; i++) {
+            if (detailMenu['groups'][i] === name) {
                 exists = true
             }
         }
         if (!exists) {
-            let row = deepCopyJson(uGroups)
-            row.push({
-                key: name,
-                checked: false
+            let row = deepCopyJson(detailMenu['groups'])
+            row.push(name)
+            setDetailMenu({
+                ...detailMenu,
+                "groups": row,
             })
-            setUGroups(row)
         }
     }
 
@@ -614,8 +557,8 @@ export const MainContextProvider = function ({ children }) {
             }
         }
         clearDetailData()
-        setShowM3uBody(res)
-        parseGroup(res)
+        setDetailList(res)
+        // parseGroup(res)
         setOriginalM3uBody(bodyStr);
     }
 
@@ -647,9 +590,9 @@ export const MainContextProvider = function ({ children }) {
 
     const onExportValidM3uData = () => {
         let _export = []
-        for (let i = 0; i < showM3uBody.length; i += 1) {
-            if (showM3uBody[i].checked) {
-                _export.push(showM3uBody[i])
+        for (let i = 0; i < detailList.length; i += 1) {
+            if (detailList[i].checked) {
+                _export.push(detailList[i])
             }
         }
         setExportData(_export)
@@ -681,11 +624,11 @@ export const MainContextProvider = function ({ children }) {
     const onSelectedOrNotAll = (mod) => {
         //mod = 1选择 0取消选择
         if (mod === 1) {
-            setShowM3uBody(prev => prev.map((item, _) =>
+            setDetailList(prev => prev.map((item, _) =>
                 ({ ...item, checked: true })
             ))
         } else {
-            setShowM3uBody(prev => prev.map((item, _) =>
+            setDetailList(prev => prev.map((item, _) =>
                 ({ ...item, checked: false })
             ))
         }
@@ -874,7 +817,7 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const updateDataByIndex = (indexArr, mapData) => {
-        let row = deepCopyJson(showM3uBody)
+        let row = deepCopyJson(detailList)
         if (mapData["groupTitle"] !== undefined && mapData["groupTitle"] !== null) {
             addGroup(mapData["groupTitle"])
         }
@@ -888,7 +831,7 @@ export const MainContextProvider = function ({ children }) {
                 }
             }
         }
-        let data = ParseM3u.parseOriginalBodyToList(originalM3uBody)
+        let data = detailList
         for (let i = 0; i < data.length; i++) {
             if (inArray(indexArr, data[i].index)) {
                 for (let j in mapData) {
@@ -899,8 +842,7 @@ export const MainContextProvider = function ({ children }) {
                 }
             }
         }
-        setOriginalM3uBody(_toOriginalStr(data))
-        setShowM3uBody(row)
+        setDetailList(row)
     }
 
     const _toOriginalStr = (data) => {
@@ -954,7 +896,7 @@ export const MainContextProvider = function ({ children }) {
 
     const addDetail = (data, urls, isLocal, check, sort) => {
         let dataList = deepCopyJson(subCheckMenuList);
-        console.log("dataList--",dataList)
+        console.log("dataList--", dataList)
         let md5Str = toMd5(JSON.stringify(urls))
         let exists = false
         for (let i = 0; i < dataList.length; i++) {
@@ -1054,11 +996,22 @@ export const MainContextProvider = function ({ children }) {
         return content.substr(0, 7) === "#EXTM3U"
     }
 
+    const delDetailData = (md5Str) => {
+        let list = []
+        for (let i = 0; i < subCheckMenuList.length; i++) {
+            if (subCheckMenuList[i].md5 !== md5Str) {
+                list.push(subCheckMenuList[i])
+            }
+        }
+        saveSubCheckMenuList(list);
+        clear_detail_data()
+    }
+
     const updateDetailMd5 = (detailMd5Str) => {
         console.log("---", detailMd5Str)
         setDetailMd5(detailMd5Str)
         let data = get_detail_from_ori(detailMd5Str)
-        if(data) {
+        if (data) {
             setDetailList(data.data)
             setDetailQuery(data.query)
             setDetailMenu(data.menu)
@@ -1066,15 +1019,22 @@ export const MainContextProvider = function ({ children }) {
         }
     }
 
+    const clear_detail_data = () => {
+        setDetailMd5("")
+        setDetailList([])
+        setDetailQuery(null)
+        setDetailMenu(null)
+        setDetailOriginal([])
+    }
+
     return (
         <MainContext.Provider value={{
             originalM3uBody, changeOriginalM3uBody,
             exportDataStr, setExportDataStr,
             exportData, onChangeExportData,
-            uGroups, setUGroups,
+            // uGroups, setUGroups,
             videoResolution, changeVideoResolution,
             settings, onChangeSettings,
-            showM3uBody,
             headerHeight,
             filterM3u,
             deleteShowM3uRow, onExportValidM3uData,
@@ -1091,7 +1051,9 @@ export const MainContextProvider = function ({ children }) {
             subCheckMenuList, checkHistory, saveDataToHistory,
             addDetail, get_m3u_body, get_m3u8_info_by_m3u_ori_data,
             m3uObjectToM3uBody, m3uObjectToTxtBody, webSaveFile,
-            detailList, detailQuery, detailMenu, detailOriginal,updateDetailMd5
+            detailList, detailQuery, detailMenu, 
+            detailOriginal, updateDetailMd5, delDetailData,
+            detailMd5
         }}>
             {children}
         </MainContext.Provider>
