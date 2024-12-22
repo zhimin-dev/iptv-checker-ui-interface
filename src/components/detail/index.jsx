@@ -159,9 +159,9 @@ export default function Detail() {
         marginTop: "10px",
       }}>
         <VirtualizedTable
-          rowCount={_mainContext.showM3uBody.length}
-          rowGetter={({ index }) => _mainContext.showM3uBody[index]}
-          originalData={_mainContext.showM3uBody}
+          rowCount={_mainContext.detailList.length}
+          rowGetter={({ index }) => _mainContext.detailList[index]}
+          originalData={_mainContext.detailList}
           delRow={deleteThisRow}
           selectAllRow={handleSelectCheckedAll}
           selectRow={onSelectedThisRow}
@@ -169,7 +169,6 @@ export default function Detail() {
           watchRow={watchThisRow}
           nowMod={_mainContext.nowMod}
           t={() => t}
-          // showOriginalUrl={_mainContext.settings.showFullUrl}
           selectedArr={selectedArr}
           selectAll={handleSelectCheckedAll}
           columns={[

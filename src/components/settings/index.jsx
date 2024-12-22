@@ -74,7 +74,7 @@ export default function Settings() {
     const [showAddSourceDialog, setShowAddSourceDialog] = useState(false)
     const [httpRequestTimeout, setHttpRequestTimeout] = useState(8000);
     const [concurrent, setConcurrent] = useState(1);
-    const [language, setLanguage] = useState('en');
+    const [language, setLanguage] = useState('zh');
     const [customLink, setCustomLink] = useState([]);
     const [privateHost, setPrivateHost] = useState('')
     const [dialogMsg, setDialogMsg] = useState('');
@@ -88,7 +88,7 @@ export default function Settings() {
             setHttpRequestTimeout(config.httpRequestTimeout??1000)
             setCustomLink(config.customLink??[])
             setConcurrent(config.concurrent??1)
-            setLanguage(config.language??'en')
+            setLanguage(config.language??'zh')
             setPrivateHost(config.privateHost??'')
             setPlayerSource(config.playerSource??'video/mp2t')
         }

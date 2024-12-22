@@ -26,6 +26,35 @@ export const MainContextProvider = function ({ children }) {
     const [nowPlatform, setNowPlatform] = useState('')
     const [showWindowsTopBar, setShowWindowsTopBar] = useState(true)
     const [checkHistory, setCheckHistory] = useState([])// 检测历史
+
+
+    const [detailQuery, setDetailQuery] = useState(null)
+    const [detailMenu, setDetailMenu] = useState({
+        "groups": ["央视"],
+        "videoRevolution":[]
+    })
+    const [detailOriginal, setDetailOriginal] = useState(null)
+    const [detailList, setDetailList] = useState([
+        {
+            "index": 1,
+            "url": "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
+            "groupTitle": "央视",
+            "tvgLogo": "https://live.fanmingming.com/tv/CCTV1.png",
+            "tvgLanguage": ["CN"],
+            "tvgCountry": "China",
+            "tvgId": "CCTV1",
+            "name": "CCTV-1",
+            "sName": "cctv-1",
+            "originalData": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
+            "raw": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
+            "status": 2,
+            "checked": false,
+            "video": null,
+            "audio": null,
+            "videoType": "",
+            "delay": 0
+        }
+    ])//列表展示的数据
     const [subCheckMenuList, setSubCheckMenuList] = useState([
         {
             "md5": "xxxxx11",
@@ -118,11 +147,11 @@ export const MainContextProvider = function ({ children }) {
     ]
 
     const languageList = [{
-        'code': 'en',
-        "name": "English"
-    }, {
         'code': 'zh',
         "name": "中文"
+    }, {
+        'code': 'en',
+        "name": "English"
     }]
 
     const [settings, setSettings] = useState({
@@ -130,7 +159,7 @@ export const MainContextProvider = function ({ children }) {
         httpRequestTimeout: 8000,// http请求超时,0表示 无限制
         customLink: [],//自定义配置
         concurrent: 1,//并发数
-        language: 'en',//语言
+        language: 'zh',//语言
         privateHost: '',//私有host
         playerSource: "application/x-mpegURL",// 视频播放平台
     })
@@ -195,9 +224,9 @@ export const MainContextProvider = function ({ children }) {
         const downloadDirPath = await downloadDir();
         let download_name = downloadDirPath + 'iptv-checker-file-' + new Date().getTime() + "." + fullSuffix
         let body = ''
-        if(fullSuffix === 'txt') {
+        if (fullSuffix === 'txt') {
             body = m3uObjectToTxtBody(data)
-        }else{
+        } else {
             body = m3uObjectToM3uBody(data)
         }
         const filePath = await save({
@@ -211,28 +240,17 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const webSaveFile = async (data, fullSuffix) => {
-        if(fullSuffix === 'txt') {
-            saveTxtFile(data)
-        }else{
-            saveM3uFile(data)
+        var a = document.createElement('a')
+        let blob_data = ""
+        if (fullSuffix === 'txt') {
+            blob_data = m3uObjectToTxtBody(data)
+        } else {
+            blob_data = m3uObjectToM3uBody(data)
         }
-    }
-
-    const saveM3uFile = (data) => {
-        var a = document.createElement('a')
-        var blob = new Blob([m3uObjectToM3uBody(data)])
+        var blob = new Blob([blob_data])
         var url = window.URL.createObjectURL(blob)
         a.href = url
-        a.download = 'iptv-checker-' + (new Date()).getTime() + ".m3u"
-        a.click()
-    }
-
-    const saveTxtFile = (data) => {
-        var a = document.createElement('a')
-        var blob = new Blob([m3uObjectToTxtBody(data)])
-        var url = window.URL.createObjectURL(blob)
-        a.href = url
-        a.download = 'iptv-checker-' + (new Date()).getTime() + ".txt"
+        a.download = 'iptv-checker-' + (new Date()).getTime() + "." + fullSuffix
         a.click()
     }
 
@@ -567,29 +585,6 @@ export const MainContextProvider = function ({ children }) {
         return JSON.parse(JSON.stringify(obj))
     }
 
-    // const setShowM3uBodyStatus = (index, status, videoObj, audioObj, delay) => {
-    //     setShowM3uBody(list =>
-    //         list.map((item, idx) => {
-    //             if (item.index === index) {
-    //                 let videoType = ''
-    //                 if (videoObj !== null) {
-    //                     videoType = ParseM3u.getVideoResolution(videoObj.width, videoObj.height)
-    //                 }
-    //                 let data = {
-    //                     ...item,
-    //                     status: status,
-    //                     video: videoObj,
-    //                     audio: audioObj,
-    //                     videoType: videoType,
-    //                     delay: delay,
-    //                 };
-    //                 return data
-    //             }
-    //             return item;
-    //         })
-    //     )
-    // }
-
     const setShowM3uBodyStatusByOri = (data, index, status, videoObj, audioObj, delay) => {
         console.log("data", data)
         for (let i = 0; i < data.length; i++) {
@@ -612,12 +607,6 @@ export const MainContextProvider = function ({ children }) {
         return data
     }
 
-    // const setCheckDataStatus = (index, status) => {
-    //     setCheckData(prev =>
-    //         prev.map((item, idx) => idx === index ? { ...item, status: status } : item)
-    //     )
-    // }
-
     const onExportValidM3uData = () => {
         let _export = []
         for (let i = 0; i < showM3uBody.length; i += 1) {
@@ -639,12 +628,6 @@ export const MainContextProvider = function ({ children }) {
         setShowM3uBody(updatedList)
     }
 
-    // const findM3uBodyByIndex = (index) => {
-    //     let updatedList = [...showM3uBody]
-    //     const objIndex = updatedList.findIndex(obj => obj.index == index);
-    //     return showM3uBody[objIndex]
-    // }
-
     const findM3uBodyByIndexByOri = (data, index) => {
         let updatedList = [...data]
         const objIndex = updatedList.findIndex(obj => obj.index === index);
@@ -664,39 +647,6 @@ export const MainContextProvider = function ({ children }) {
         }
     }
 
-    // const getAvailableOrNotAvailableIndex = (mod) => {
-    //     //mod == 1 有效 2无效
-    //     let ids = []
-    //     let updatedList = [...showM3uBody]
-    //     for (let i = 0; i < updatedList.length; i++) {
-    //         let isChecked = false
-    //         // 需要最快延迟的数据
-    //         if (needFastSource) {
-    //             if (showM3uBody[i].status === mod) {
-    //                 if (videoFastNameMapRef.current[showM3uBody[i].sName] === undefined) {
-    //                     isChecked = true
-    //                 } else {
-    //                     if (videoFastNameMapRef.current[showM3uBody[i].sName].index === updatedList[i].index) {
-    //                         isChecked = true
-    //                     }
-    //                 }
-    //             }
-    //         } else {
-    //             if (showM3uBody[i].status === mod) {
-    //                 isChecked = true
-    //             }
-    //         }
-    //         if (isChecked) {
-    //             updatedList[i].checked = true
-    //             ids.push(showM3uBody[i].index)
-    //         } else {
-    //             updatedList[i].checked = false
-    //         }
-    //     }
-    //     setShowM3uBody(updatedList)
-    //     return ids
-    // }
-
     const getCheckUrl = (url, timeout) => {
         if (nowMod === 1) {
             return url
@@ -714,20 +664,6 @@ export const MainContextProvider = function ({ children }) {
         return '/fetch/m3u-body?url=' + url + "&timeout=" + (isNaN(_timeout) ? '-1' : _timeout)
     }
 
-    // const prepareCheckData = () => {
-    //     let _temp = deepCopyJson(showM3uBody)
-    //     setCheckData(_temp)
-    //     return _temp
-    // }
-
-    // const sleep = (time) => {
-    //     return new Promise((resolve) => {
-    //         setTimeout(() => {
-    //             resolve();
-    //         }, time);
-    //     });
-    // }
-
     const chunkArray = (arr, chunkSize) => {
         const chunkedArray = [];
         for (let i = 0; i < arr.length; i += chunkSize) {
@@ -735,140 +671,6 @@ export const MainContextProvider = function ({ children }) {
         }
         return chunkedArray;
     }
-
-    // const doCheck = async (data) => {
-    //     let arr = chunkArray(data, settings.concurrent)
-    //     if (nowMod === 1) {
-    //         console.log("start check")
-    //         for (let i = 0; i < arr.length; i++) {
-    //             if (nowCheckUrlModRef.current === 2) {
-    //                 continue
-    //             }
-    //             let nowData = [];
-    //             let allRequest = [];
-    //             for (let j = 0; j < arr[i].length; j++) {
-    //                 let nowItem = arr[i][j]
-    //                 let getData = findM3uBodyByIndex(nowItem.index)
-    //                 if (getData.status !== 0) {
-    //                     log("do check status != 0")
-    //                     continue
-    //                 }
-    //                 nowData.push(arr[i][j])
-    //                 allRequest.push(axios.get(arr[i][j].url, { timeout: settings.httpRequestTimeout }))
-    //             }
-    //             if (allRequest.length == 0) {
-    //                 continue
-    //             }
-    //             const results = await Promise.allSettled(allRequest);
-    //             results.forEach((result, index) => {
-    //                 let videoInfoMap = videoInfoRef.current
-    //                 let one = nowData[index];
-    //                 if (result.status === 'fulfilled') {
-    //                     const response = result.value;
-    //                     let delay = -1;
-    //                     videoInfoMap[one.url] = {
-    //                         "video": null,
-    //                         "audio": null,
-    //                         "videoType": null,
-    //                         "status": 1,
-    //                         'delay': delay,
-    //                     }
-    //                     let videoFastNameMap = videoFastNameMapRef.current
-    //                     if (videoFastNameMap[one.sName] === undefined || videoFastNameMap[one.sName] === null) {
-    //                         videoFastNameMap[one.sName] = {
-    //                             index: one.index,
-    //                             delay: delay
-    //                         }
-    //                     } else {
-    //                         if (videoFastNameMap[one.sName].delay >= delay) {
-    //                             videoFastNameMap[one.sName] = {
-    //                                 index: one.index,
-    //                                 delay: delay
-    //                             }
-    //                         }
-    //                     }
-    //                     setShowM3uBodyStatus(one.index, 1, null, null, delay)
-    //                     setCheckDataStatus(one.index, 1)
-    //                 } else {
-    //                     videoInfoMap[one.url] = {
-    //                         "status": 2,
-    //                     }
-    //                     setShowM3uBodyStatus(one.index, 2, null, null, 0)
-    //                     setCheckDataStatus(one.index, 2)
-    //                 }
-    //             });
-    //             hasCheckedCountRef.current += settings.concurrent
-    //         }
-    //         console.log("end check")
-    //     } else {
-    //         console.log("start server check")
-    //         for (let i = 0; i < arr.length; i++) {
-    //             console.log("----now", arr[i])
-    //             if (nowCheckUrlModRef.current === 2) {
-    //                 continue
-    //             }
-    //             let nowData = [];
-    //             let allRequest = [];
-
-    //             for (let j = 0; j < arr[i].length; j++) {
-    //                 let nowItem = arr[i][j]
-    //                 let getData = findM3uBodyByIndex(nowItem.index)
-    //                 if (getData.status !== 0) {
-    //                     log("do check status != 0")
-    //                     continue
-    //                 }
-    //                 nowData.push(arr[i][j])
-    //                 let _url = getCheckUrl(arr[i][j].url, settings.httpRequestTimeout)
-    //                 allRequest.push(axios.get(_url, { timeout: settings.httpRequestTimeout }))
-    //             }
-    //             if (allRequest.length == 0) {
-    //                 continue
-    //             }
-    //             const results = await Promise.allSettled(allRequest);
-    //             results.forEach((result, index) => {
-    //                 let videoInfoMap = videoInfoRef.current
-    //                 let one = nowData[index];
-    //                 if (result.status === 'fulfilled') {
-    //                     const res = result.value;
-    //                     console.log("resp", res);
-    //                     let delay = res.data.delay;
-    //                     let videoInfoMap = videoInfoRef.current
-    //                     videoInfoMap[one.url] = {
-    //                         "video": res.data.video,
-    //                         "audio": res.data.audio,
-    //                         "videoType": ParseM3u.getVideoResolution(res.data.video.width, res.data.video.height),
-    //                         "status": 1,
-    //                         'delay': res.data.delay,
-    //                     }
-    //                     let videoFastNameMap = videoFastNameMapRef.current
-    //                     if (videoFastNameMap[one.sName] === undefined || videoFastNameMap[one.sName] === null) {
-    //                         videoFastNameMap[one.sName] = {
-    //                             index: one.index,
-    //                             delay: delay
-    //                         }
-    //                     } else {
-    //                         if (videoFastNameMap[one.sName].delay >= delay) {
-    //                             videoFastNameMap[one.sName] = {
-    //                                 index: one.index,
-    //                                 delay: delay
-    //                             }
-    //                         }
-    //                     }
-    //                     setShowM3uBodyStatus(one.index, 1, res.data.video, res.data.audio, res.data.delay)
-    //                     setCheckDataStatus(one.index, 1)
-    //                 } else {
-    //                     videoInfoMap[one.url] = {
-    //                         "status": 2,
-    //                     }
-    //                     setShowM3uBodyStatus(one.index, 2, null, null, 0)
-    //                     setCheckDataStatus(one.index, 2)
-    //                 }
-    //             });
-    //             hasCheckedCountRef.current += settings.concurrent
-    //         }
-    //     }
-    //     return true
-    // }
 
     const doNewCheck = async (data, settings, func) => {
         let videoInfoMap = {};
@@ -993,22 +795,6 @@ export const MainContextProvider = function ({ children }) {
         return data
     }
 
-    // const setCheckDataIsFinished = () => {
-    //     log("check finished.....")
-    //     log("showM3uBody", showM3uBody)
-    //     log("videoInfoRef.current", videoInfoRef.current)
-    //     if (nowCheckUrlModRef.current === 1) {
-    //         nowCheckUrlModRef.current = 0
-    //     }
-    // }
-
-    // const onCheckTheseLinkIsAvailable = async () => {
-    //     nowCheckUrlModRef.current = 1
-    //     let data = prepareCheckData()
-    //     let _ = await doCheck(data)
-    //     setCheckDataIsFinished()
-    // }
-
     const doFastCheck = async (data, settings, totalFunc, func) => {
         let copyData = deepCopyJson(data)
         totalFunc(copyData.length)
@@ -1029,8 +815,8 @@ export const MainContextProvider = function ({ children }) {
 
     const m3uObjectToTxtBody = (data) => {
         let list = [];
-        for(let i =0;i<data.length;i++) {
-            list.push(data[i].name+","+data[i].url)
+        for (let i = 0; i < data.length; i++) {
+            list.push(data[i].name + "," + data[i].url)
         }
         return list.join("\n")
     }
@@ -1085,25 +871,19 @@ export const MainContextProvider = function ({ children }) {
         nowCheckUrlModRef.current = 2
     }
 
-    // const resumeCheckUrlData = async () => {
-    //     nowCheckUrlModRef.current = 1
-    //     await doCheck(checkData)
-    //     setCheckDataIsFinished()
-    // }
-
     const saveDataToHistory = (urls) => {
         let md5Str = toMd5(JSON.stringify(urls))
-        let needSaveData = { "urls": urls,"md5": md5Str }
+        let needSaveData = { "urls": urls, "md5": md5Str }
         let data = deepCopyJson(checkHistory);
         // 检查md5是否已经存在
         let isExits = false
-        for(let i= 0;i<data.length;i++) {
-            if(data[i].md5 === md5Str) {
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].md5 === md5Str) {
                 isExits = true
             }
         }
-        if(isExits) {
-            return 
+        if (isExits) {
+            return
         }
         if (data.length >= 5) {
             data.splice(0, 1)
@@ -1257,7 +1037,8 @@ export const MainContextProvider = function ({ children }) {
             doFastCheck,
             subCheckMenuList, checkHistory, saveDataToHistory,
             addDetail, get_m3u_body, get_m3u8_info_by_m3u_ori_data,
-            m3uObjectToM3uBody,m3uObjectToTxtBody,webSaveFile
+            m3uObjectToM3uBody, m3uObjectToTxtBody, webSaveFile,
+            detailList,detailQuery,detailMenu,detailOriginal
         }}>
             {children}
         </MainContext.Provider>

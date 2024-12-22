@@ -23,6 +23,7 @@ import ParseM3u from '../../utils/utils';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import { useTranslation, initReactI18next } from "react-i18next";
+import SearchIcon from '@mui/icons-material/Search';
 
 const ListItem = styled('li')(({ theme }) => ({
     margin: theme.spacing(0.5),
@@ -189,11 +190,11 @@ export default function Setting(props) {
                         }}>
                             {
                                 _mainContext.nowMod === 0 ? (
-                                    <FormControlLabel 
-                                    size="small"
-                                    control={<Checkbox size="small" checked={_mainContext.needFastSource} onChange={handleNeedFastSource} />} 
-                                    label={t('选择延迟最低的源')} />
-                                ):''
+                                    <FormControlLabel
+                                        size="small"
+                                        control={<Checkbox size="small" checked={_mainContext.needFastSource} onChange={handleNeedFastSource} />}
+                                        label={t('选择延迟最低的源')} />
+                                ) : ''
                             }
                         </FormControl>
                         {
@@ -273,6 +274,7 @@ export default function Setting(props) {
                                     {t('关键词')}
                                 </LoadingButton>
                             </FormControl>
+
                             <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
                                 <InputLabel id="demo-select-small" size="small">{t('过滤分组')}</InputLabel>
                                 <Select
@@ -286,36 +288,41 @@ export default function Setting(props) {
                                     renderValue={(selectedGroups) => selectedGroups.join(', ')}
                                     MenuProps={MenuProps}
                                 >
-                                    {_mainContext.uGroups.map((value, index) => (
-                                        <MenuItem key={index} value={value.key}>
-                                            <Checkbox checked={value.checked} />
-                                            <ListItemText primary={value.key} />
+                                    {_mainContext.detailMenu["groups"].map((value, index) => (
+                                        <MenuItem key={index} value={value}>
+                                            <Checkbox checked={selectedGroups.indexOf(value) !== -1} />
+                                            <ListItemText primary={value} />
                                         </MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
-                            <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
-                                <InputLabel id="demo-select-small" size="small">{t('过滤视频清晰度')}</InputLabel>
-                                <Select
-                                    labelId="demo-select-small"
-                                    id="demo-select-small"
-                                    size="small"
-                                    multiple
-                                    value={selectedVideoTypes}
-                                    onChange={handleChangeVideoTypes}
-                                    input={<OutlinedInput size="small" label={t('过滤视频清晰度')} />}
-                                    renderValue={(selectedVideoTypes) => selectedVideoTypes.join(', ')}
-                                    MenuProps={MenuProps}
-                                >
-                                    {_mainContext.videoResolution.map((value, index) => (
-                                        <MenuItem key={index} value={value.value}>
-                                            <Checkbox checked={value.checked} />
-                                            <ListItemText primary={value.name} />
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            {/* <FormControl sx={{ marginRight: '5px' }}>
+
+                            {
+                                _mainContext.detailMenu["videoRevolution"].length > 0 ? (
+                                    <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
+                                        <InputLabel id="demo-select-small" size="small">{t('过滤视频清晰度')}</InputLabel>
+                                        <Select
+                                            labelId="demo-select-small"
+                                            id="demo-select-small"
+                                            size="small"
+                                            multiple
+                                            value={selectedVideoTypes}
+                                            onChange={handleChangeVideoTypes}
+                                            input={<OutlinedInput size="small" label={t('过滤视频清晰度')} />}
+                                            renderValue={(selectedVideoTypes) => selectedVideoTypes.join(', ')}
+                                            MenuProps={MenuProps}
+                                        >
+                                            {_mainContext.detailMenu["videoRevolution"].map((value, index) => (
+                                                <MenuItem key={index} value={value.value}>
+                                                    <Checkbox checked={value.checked} />
+                                                    <ListItemText primary={value.name} />
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                ) : ''
+                            }
+                            <FormControl sx={{ marginRight: '5px' }}>
                                 <LoadingButton
                                     size="small"
                                     onClick={doFilter}
@@ -325,12 +332,12 @@ export default function Setting(props) {
                                 >
                                     {t('搜索')}
                                 </LoadingButton>
-                            </FormControl> */}
+                            </FormControl>
                         </Box>
                     </Box>
                     <Box sx={{ paddingRight: "20px", fontSize: '12px' }}>
                         {
-                            chipData.length > 0 ? t('频道名称包含')+":" : ''
+                            chipData.length > 0 ? t('频道名称包含') + ":" : ''
                         }
                         {chipData.map((value, index) => {
                             return (
@@ -350,7 +357,7 @@ export default function Setting(props) {
                             chipData.length > 0 && selectedGroups.length > 0 ? t('且') : ''
                         }
                         {
-                            selectedGroups.length > 0 ? t('只显示分组为')+'[' + selectedGroups.join(',') + ']'+t('的数据') : ''
+                            selectedGroups.length > 0 ? t('只显示分组为') + '[' + selectedGroups.join(',') + ']' + t('的数据') : ''
                         }
                     </Box>
                 </Box>
