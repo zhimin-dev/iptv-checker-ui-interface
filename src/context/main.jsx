@@ -894,7 +894,23 @@ export const MainContextProvider = function ({ children }) {
         localStorage.setItem(local_key_check_history, JSON.stringify(data))
     }
 
+    const sortByField = (a, b) => {
+        const regex = /(\D+)(\d+)/; // 匹配字母和数字部分
+        const [, lettersA, numbersA] = a.sName.match(regex);
+        const [, lettersB, numbersB] = b.sName.match(regex);
+        
+        // 首先比较字母部分
+        if (lettersA < lettersB) return -1;
+        if (lettersA > lettersB) return 1;
+    
+        // 如果字母相同，则比较数字部分
+        return parseInt(numbersA) - parseInt(numbersB);
+    };
+
     const addDetail = (data, urls, isLocal, check, sort) => {
+        if (sort) {
+            data.sort(sortByField);
+        }
         let dataList = deepCopyJson(subCheckMenuList);
         console.log("dataList--", dataList)
         let md5Str = toMd5(JSON.stringify(urls))
