@@ -6,7 +6,7 @@ export default function sort(props) {
   const _mainContext = useContext(MainContext);
   return (
     <SortableList
-      items={_mainContext.exportData}
+      items={_mainContext.detailList}
       onChange={_mainContext.onChangeExportData}
       renderItem={(item) => (
         <SortableList.Item id={item.index}>

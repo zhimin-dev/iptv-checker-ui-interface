@@ -84,6 +84,7 @@ export default function Layout() {
         if (location.pathname == detailUri) {
             setNowSelectedMenu({ 'showHeader': false })
         } else {
+            _mainContext.updateDetailMd5("")
             for (let i = 0; i < menuList.length; i++) {
                 if (location.pathname == menuList[i].uri) {
                     setNowSelectedMenu(menuList[i])
@@ -259,7 +260,6 @@ export default function Layout() {
                                             </IconButton>
                                         ) : ''
                                     }
-
                                 </Box>
                                 <div data-tauri-drag-region style={{
                                     display: _mainContext.nowMod === 1 ? 'flex' : 'none',

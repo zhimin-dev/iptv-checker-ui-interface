@@ -53,12 +53,6 @@ export default function SimpleDialog(props) {
   const [groupTab, setGroupTab] = useState(0)
   const [customGroupName, setCustomGroupName] = useState('')
 
-  // const [configSettings, setConfigSettings] = useState({
-  //   checkSleepTime: 300,// 检查下一次请求间隔(毫秒)
-  //   httpRequestTimeout: 8000,// http请求超时,0表示 无限制
-  //   showFullUrl: false,//是否显示url
-  // })
-
   useEffect(() => {
     setGroupTab(0)
     setSelectedGroups('')
@@ -80,15 +74,20 @@ export default function SimpleDialog(props) {
   };
 
   const doDownloadM3u = () => {
-    if(_mainContext.nowMod === 1) {
-      _mainContext.clientSaveFile(_mainContext.exportDataStr, 'm3u')
-    }else{
-      var a = document.createElement('a')
-      var blob = new Blob([_mainContext.exportDataStr])
-      var url = window.URL.createObjectURL(blob)
-      a.href = url
-      a.download = 'iptv-checker-' + (new Date()).getTime() + ".m3u"
-      a.click()
+    // if(_mainContext.nowMod === 1) {
+    //   _mainContext.clientSaveFile(_mainContext.exportDataStr, 'm3u')
+    // }else{
+    //   var a = document.createElement('a')
+    //   var blob = new Blob([_mainContext.exportDataStr])
+    //   var url = window.URL.createObjectURL(blob)
+    //   a.href = url
+    //   a.download = 'iptv-checker-' + (new Date()).getTime() + ".m3u"
+    //   a.click()
+    // }
+    if (_mainContext.nowMod === 1) {
+      _mainContext.clientSaveFile(_mainContext.detailList, 'm3u')
+    } else {
+      _mainContext.webSaveFile(_mainContext.detailList, 'm3u')
     }
   }
 
@@ -96,9 +95,9 @@ export default function SimpleDialog(props) {
     let csvArr = _mainContext.strToCsv(_mainContext.exportDataStr)
     // 将数据行转换为 CSV 字符串
     const csvContent = csvArr.map(e => e.join(",")).join("\n");
-    if(_mainContext.nowMod === 1) {
+    if (_mainContext.nowMod === 1) {
       _mainContext.clientSaveFile(csvContent, 'csv')
-    }else{
+    } else {
       // 创建下载链接并将 CSV 文件下载到本地
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -113,11 +112,11 @@ export default function SimpleDialog(props) {
     }
   }
 
-  const doDoAgain = () => {
-    _mainContext.changeOriginalM3uBody(_mainContext.exportDataStr)
-    clearSelectedArrFunc()
-    onClose();
-  }
+  // const doDoAgain = () => {
+  //   _mainContext.changeOriginalM3uBody(_mainContext.exportDataStr)
+  //   clearSelectedArrFunc()
+  //   onClose();
+  // }
 
   const doNextStep = () => {
     setDialogMod(1)
@@ -150,6 +149,14 @@ export default function SimpleDialog(props) {
     setCustomGroupName(e.target.value)
   }
 
+  const doDownloadTxt = () => {
+    if (_mainContext.nowMod === 1) {
+      _mainContext.clientSaveFile(_mainContext.detailList, 'txt')
+    } else {
+      _mainContext.webSaveFile(_mainContext.detailList, 'txt')
+    }
+  }
+
   // const doSaveConfigSettings = () => {
   //   _mainContext.onChangeSettings(configSettings)
   //   onClose();
@@ -166,8 +173,8 @@ export default function SimpleDialog(props) {
 
   return (
     <Dialog onClose={handleClose} open={open}>
-      <Box style={{ minWidth: mod !== 3 ? '800px' : '', 'paddingTop': '10px', 'overflow':'hidden' }}>
-        <span style={{ paddingLeft: '10px'}}>{showTextAreaLable}</span>
+      <Box style={{ minWidth: mod !== 3 ? '800px' : '', 'paddingTop': '10px', 'overflow': 'hidden' }}>
+        <span style={{ paddingLeft: '10px' }}>{showTextAreaLable}</span>
       </Box>
       {mod === 1 || mod === 2 ? (
         <FormControl sx={{ width: 550, margin: '10px' }}>
@@ -176,7 +183,7 @@ export default function SimpleDialog(props) {
       ) : ''}
       {
         mod === 4 ? (
-          <Box style={{"padding":'5px'}}>
+          <Box style={{ "padding": '5px' }}>
             <Sort></Sort>
             <Box>
               <FormControl sx={{
@@ -227,21 +234,30 @@ export default function SimpleDialog(props) {
             </LoadingButton>
             <LoadingButton
               size="small"
+              onClick={doDownloadTxt}
+              variant="outlined"
+              style={{ marginRight: '10px' }}
+              startIcon={<GetAppIcon />}
+            >
+              {t('下载txt文件')}
+            </LoadingButton>
+            {/* <LoadingButton
+              size="small"
               onClick={doCsvDownload}
               variant="outlined"
               style={{ marginRight: '10px' }}
               startIcon={<InsertDriveFileIcon />}
             >
               {t('下载csv文件')}
-            </LoadingButton>
-            <LoadingButton
+            </LoadingButton> */}
+            {/* <LoadingButton
               size="small"
               onClick={doDoAgain}
               variant="contained"
               startIcon={<AutorenewIcon />}
             >
               {t('再次处理')}
-            </LoadingButton>
+            </LoadingButton> */}
           </FormControl>
         ) : ''
       }
@@ -281,7 +297,7 @@ export default function SimpleDialog(props) {
               justifyContent: 'flex-end',
               marginTop: '5px'
             }}>
-              <Button variant="outlined" onClick={doTransferGroup}>{groupTab === 0? t('更改'):t('新增')}</Button>
+              <Button variant="outlined" onClick={doTransferGroup}>{groupTab === 0 ? t('更改') : t('新增')}</Button>
             </Box>
           </Box>
         ) : ''

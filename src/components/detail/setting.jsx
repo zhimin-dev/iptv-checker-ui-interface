@@ -46,7 +46,7 @@ export default function Setting(props) {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const _mainContext = useContext(MainContext);
-    const { selectedArr, setSelectedArr } = props;
+    const { selectedArr, setSelectedArr,showMultiSelect,changeShowMultiSelect } = props;
     const [selectedGroups, setSelectedGroups] = useState([]);
     const [searchTitle, setSearchTitle] = useState('')
     const [chipData, setChipData] = useState([]);
@@ -109,7 +109,11 @@ export default function Setting(props) {
     }
 
     const doFilter = () => {
-        _mainContext.filterM3u(chipData)
+        let keywords = []
+        if(searchTitle !== '') {
+            keywords.push(searchTitle)
+        }
+        _mainContext.filterM3u(keywords, selectedGroups, selectedVideoTypes)
     }
 
     const exportValidM3uData = () => {
@@ -118,11 +122,11 @@ export default function Setting(props) {
         setOpen(true);
     }
 
-    const showOriginalM3uBodyInfo = () => {
-        _mainContext.changeDialogBodyData()
-        setDialogMod(2)
-        setOpen(true);
-    }
+    // const showOriginalM3uBodyInfo = () => {
+    //     _mainContext.changeDialogBodyData()
+    //     setDialogMod(2)
+    //     setOpen(true);
+    // }
 
     const handleClose = (value) => {
         setOpen(false);
@@ -159,9 +163,13 @@ export default function Setting(props) {
     }
 
     const doDelSelected = () => {
-        console.log("selectedArr---",selectedArr)
+        console.log("selectedArr---", selectedArr)
         _mainContext.deleteShowM3uRow(selectedArr)
         setSelectedArr([])
+    }
+
+    const showFilter = (e) => {
+        changeShowMultiSelect(e.target.checked)
     }
 
     return (
@@ -181,9 +189,10 @@ export default function Setting(props) {
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Box>
                     <Box sx={{ marginBottom: '10px' }}>
-                        <FormControl sx={{ marginRight: '5px' }}>
+                        {/* <FormControl sx={{ marginRight: '5px' }}>
                             <Button startIcon={<FindInPageIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">{t('原始数据')}</Button>
-                        </FormControl>
+                        </FormControl> */}
+                        <FormControlLabel control={<Checkbox />} onChange={showFilter} label="筛选" />
                         {/* <FormControl sx={{
                             marginRight: "5px",
                         }}>
@@ -230,7 +239,7 @@ export default function Setting(props) {
                             ) : ''
                         }
                         {
-                            selectedArr.length === 0 ? (
+                            !showMultiSelect ? (
                                 <FormControl sx={{
                                     marginRight: "5px",
                                 }}>
@@ -246,119 +255,88 @@ export default function Setting(props) {
                             ) : ''
                         }
                     </Box>
-                    <Box sx={{ display: "flex" }}>
-                        <Box component="form"
-                            sx={{
-                                marginBottom: "5px",
-                                display: 'flex',
-                                alignItems: 'flex-end'
-                            }}>
-                            <FormControl sx={{ marginRight: '5px', width: 200 }}>
-                                <TextField
-                                    id="outlined-name"
-                                    variant="outlined"
-                                    size="small"
-                                    value={searchTitle}
-                                    onChange={handleChangeSearchTitle}
-                                    label={t('多关键词搜索')}
-                                />
-                            </FormControl>
-                            <FormControl sx={{ marginRight: '5px' }}>
-                                <LoadingButton
-                                    size="small"
-                                    onClick={addNewSearchFilter}
-                                    variant="outlined"
-                                    startIcon={<AddCircleOutlineIcon />}
-                                >
-                                    {t('关键词')}
-                                </LoadingButton>
-                            </FormControl>
-
-                            <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
-                                <InputLabel id="demo-select-small" size="small">{t('过滤分组')}</InputLabel>
-                                <Select
-                                    labelId="demo-select-small"
-                                    id="demo-select-small"
-                                    size="small"
-                                    multiple
-                                    value={selectedGroups}
-                                    onChange={handleChangeGroup}
-                                    input={<OutlinedInput size="small" label={t('过滤分组')} />}
-                                    renderValue={(selectedGroups) => selectedGroups.join(', ')}
-                                    MenuProps={MenuProps}
-                                >
-                                    {_mainContext.detailMenu["groups"] && _mainContext.detailMenu["groups"].map((value, index) => (
-                                        <MenuItem key={index} value={value}>
-                                            <Checkbox checked={selectedGroups.indexOf(value) !== -1} />
-                                            <ListItemText primary={value} />
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-
-                            {
-                                _mainContext.detailMenu["videoRevolution"]&&_mainContext.detailMenu["videoRevolution"].length > 0 ? (
-                                    <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
-                                        <InputLabel id="demo-select-small" size="small">{t('过滤视频清晰度')}</InputLabel>
-                                        <Select
-                                            labelId="demo-select-small"
-                                            id="demo-select-small"
-                                            size="small"
-                                            multiple
-                                            value={selectedVideoTypes}
-                                            onChange={handleChangeVideoTypes}
-                                            input={<OutlinedInput size="small" label={t('过滤视频清晰度')} />}
-                                            renderValue={(selectedVideoTypes) => selectedVideoTypes.join(', ')}
-                                            MenuProps={MenuProps}
-                                        >
-                                            {_mainContext.detailMenu["videoRevolution"].map((value, index) => (
-                                                <MenuItem key={index} value={value.value}>
-                                                    <Checkbox checked={value.checked} />
-                                                    <ListItemText primary={value.name} />
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                ) : ''
-                            }
-                            <FormControl sx={{ marginRight: '5px' }}>
-                                <LoadingButton
-                                    size="small"
-                                    onClick={doFilter}
-                                    variant="contained"
-                                    color="success"
-                                    startIcon={<SearchIcon />}
-                                >
-                                    {t('搜索')}
-                                </LoadingButton>
-                            </FormControl>
-                        </Box>
-                    </Box>
-                    <Box sx={{ paddingRight: "20px", fontSize: '12px' }}>
-                        {
-                            chipData.length > 0 ? t('频道名称包含') + ":" : ''
-                        }
-                        {chipData.map((value, index) => {
-                            return (
-                                <ListItem key={index}>
-                                    <Chip
-                                        label={value}
+                    {
+                        showMultiSelect ? (
+                            <div>
+                        <Box sx={{ display: "flex" }}>
+                            <Box component="form"
+                                sx={{
+                                    marginBottom: "5px",
+                                    display: 'flex',
+                                    alignItems: 'flex-end'
+                                }}>
+                                <FormControl sx={{ marginRight: '5px', width: 200 }}>
+                                    <TextField
+                                        id="outlined-name"
+                                        variant="outlined"
                                         size="small"
-                                        onDelete={handleDeleteChip(index)}
+                                        value={searchTitle}
+                                        onChange={handleChangeSearchTitle}
+                                        label={t('多关键词搜索')}
                                     />
-                                    {
-                                        index < chipData.length - 1 ? t('或') : ''
-                                    }
-                                </ListItem>
-                            );
-                        })}
-                        {
-                            chipData.length > 0 && selectedGroups.length > 0 ? t('且') : ''
-                        }
-                        {
-                            selectedGroups.length > 0 ? t('只显示分组为') + '[' + selectedGroups.join(',') + ']' + t('的数据') : ''
-                        }
-                    </Box>
+                                </FormControl>
+                                <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
+                                    <InputLabel id="demo-select-small" size="small">{t('过滤分组')}</InputLabel>
+                                    <Select
+                                        labelId="demo-select-small"
+                                        id="demo-select-small"
+                                        size="small"
+                                        multiple
+                                        value={selectedGroups}
+                                        onChange={handleChangeGroup}
+                                        input={<OutlinedInput size="small" label={t('过滤分组')} />}
+                                        renderValue={(selectedGroups) => selectedGroups.join(', ')}
+                                        MenuProps={MenuProps}
+                                    >
+                                        {_mainContext.detailMenu["groups"] && _mainContext.detailMenu["groups"].map((value, index) => (
+                                            <MenuItem key={index} value={value}>
+                                                <Checkbox checked={selectedGroups.indexOf(value) !== -1} />
+                                                <ListItemText primary={value} />
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                                {
+                                    _mainContext.detailMenu["videoRevolution"] && _mainContext.detailMenu["videoRevolution"].length > 0 ? (
+                                        <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
+                                            <InputLabel id="demo-select-small" size="small">{t('过滤视频清晰度')}</InputLabel>
+                                            <Select
+                                                labelId="demo-select-small"
+                                                id="demo-select-small"
+                                                size="small"
+                                                multiple
+                                                value={selectedVideoTypes}
+                                                onChange={handleChangeVideoTypes}
+                                                input={<OutlinedInput size="small" label={t('过滤视频清晰度')} />}
+                                                renderValue={(selectedVideoTypes) => selectedVideoTypes.join(', ')}
+                                                MenuProps={MenuProps}
+                                            >
+                                                {_mainContext.detailMenu["videoRevolution"].map((value, index) => (
+                                                    <MenuItem key={index} value={value.value}>
+                                                        <Checkbox checked={value.checked} />
+                                                        <ListItemText primary={value.name} />
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    ) : ''
+                                }
+                                <FormControl sx={{ marginRight: '5px' }}>
+                                    <LoadingButton
+                                        size="small"
+                                        onClick={doFilter}
+                                        variant="contained"
+                                        color="success"
+                                        startIcon={<SearchIcon />}
+                                    >
+                                        {t('搜索')}
+                                    </LoadingButton>
+                                </FormControl>
+                            </Box>
+                        </Box>
+                    </div>
+                        ):''
+                    }
                 </Box>
             </Box>
         </Box>

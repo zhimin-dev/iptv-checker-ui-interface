@@ -21,7 +21,7 @@ export const MainContextProvider = function ({ children }) {
     const [exportDataStr, setExportDataStr] = useState('')//导出数据的str
     const [videoResolution, setVideoResolution] = useState([])//视频分辨率筛选
     const [needFastSource, setNeedFastSource] = useState(false)// 是否选择最快的源, false否， true是
-    const [nowMod, setNowMod] = useState(1);// 当前运行模式 0服务端模式 1客户端模式
+    const [nowMod, setNowMod] = useState(0);// 当前运行模式 0服务端模式 1客户端模式
     const [nowPlatform, setNowPlatform] = useState('')
     const [showWindowsTopBar, setShowWindowsTopBar] = useState(true)
     const [checkHistory, setCheckHistory] = useState([])// 检测历史
@@ -385,11 +385,11 @@ export const MainContextProvider = function ({ children }) {
             return true
         }))
 
-        console.log("detailList---", result)
+        console.log("detailList---", result, detailList)
         let data = get_detail_from_ori(detailMd5)
         if (data !== null) {
             data.data = result
-            console.log("data---", data)
+            console.log("updateOriginalData data---", data)
             updateOriginalData(data)
         }
     }
@@ -445,12 +445,14 @@ export const MainContextProvider = function ({ children }) {
     // }
 
     const filterM3u = (filterNames, selectedGroupTitles, videoResArr) => {
+        console.log("filterM3u", filterNames, selectedGroupTitles, videoResArr)
         // let selectedGroupTitles = getSelectedGroupTitle()
         // let videoResArr = videoResolutionGetChecked()
         if (filterNames.length === 0 && selectedGroupTitles.length === 0 && videoResArr.length === 0) {
             return
         }
-        let temp = detailList
+        let temp = getNowDeatil()
+        console.log("temp", temp)
         let rows = [];
         let _index = 1
         for (let i = 0; i < temp.length; i++) {
@@ -599,13 +601,18 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const changeDialogBodyData = () => {
+        let data = getNowDeatil(detailMd5)
+        setExportDataStr(m3uObjectToM3uBody(data))
+    }
+
+    const getNowDeatil = ()=> {
         let data = null
         for (let i = 0; i < subCheckMenuList.length; i++) {
             if (subCheckMenuList[i].md5 === detailMd5) {
                 data = subCheckMenuList[i].data
             }
         }
-        setExportDataStr(m3uObjectToM3uBody(data))
+        return data;
     }
 
     const onSelectedRow = (index) => {
@@ -789,11 +796,11 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const onChangeExportData = (value) => {
-        setExportData(value)
+        setDetailList(value)
     }
 
     const onChangeExportStr = () => {
-        setExportDataStr(_toOriginalStr(exportData))
+        setExportDataStr(_toOriginalStr(detailList))
     }
 
     const m3uObjectToM3uBody = (data) => {
@@ -896,9 +903,27 @@ export const MainContextProvider = function ({ children }) {
 
     const sortByField = (a, b) => {
         const regex = /(\D+)(\d+)/; // 匹配字母和数字部分
-        const [, lettersA, numbersA] = a.sName.match(regex);
-        const [, lettersB, numbersB] = b.sName.match(regex);
-        
+        if(a === null || b === null ) {
+            return -1
+        }
+        console.log("----a", a)
+        console.log("----b", b)
+        let lettersA = '';
+        let numbersA = '';
+        let lettersB = -1;
+        let numbersB = -1;
+        let regA = a.sName.match(regex);
+        if(regA && regA.length >=3) {
+            lettersA = regA[1]
+            numbersA = regA[2]
+        }
+
+        let regB = b.sName.match(regex);
+        if(regB && regB.length >=3) {
+            lettersB = regB[1]
+            numbersB = regB[2]
+        }
+
         // 首先比较字母部分
         if (lettersA < lettersB) return -1;
         if (lettersA > lettersB) return 1;
@@ -909,6 +934,7 @@ export const MainContextProvider = function ({ children }) {
 
     const addDetail = (data, urls, isLocal, check, sort) => {
         if (sort) {
+            console.log("addDetail----sort----",data)
             data.sort(sortByField);
         }
         let dataList = deepCopyJson(subCheckMenuList);

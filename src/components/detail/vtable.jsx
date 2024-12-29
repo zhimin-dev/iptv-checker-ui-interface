@@ -80,7 +80,7 @@ class MuiVirtualizedTable extends React.PureComponent {
     }
 
     cellRenderer = ({ cellData, columnIndex }) => {
-        const { t, rowHeight, onRowClick, selectRow, watchRow, originalData, columns, seeDetail, nowMod } = this.props;
+        const { t, rowHeight, onRowClick, showMultiSelect, selectRow, watchRow, originalData, columns, seeDetail, nowMod } = this.props;
         return (
             <TableCell
                 component="div"
@@ -96,14 +96,18 @@ class MuiVirtualizedTable extends React.PureComponent {
             >
                 {
                     columnIndex === 0 ? (
-                        <Checkbox
-                            color="primary"
-                            checked={originalData[this.getObjectIndexIndex(cellData)].checked}
-                            onClick={() => selectRow(cellData)}
-                            inputProps={{
-                                'aria-labelledby': columnIndex,
-                            }}
-                        />
+                        showMultiSelect ? (
+                            <Checkbox
+                                color="primary"
+                                checked={originalData[this.getObjectIndexIndex(cellData)].checked}
+                                onClick={() => selectRow(cellData)}
+                                inputProps={{
+                                    'aria-labelledby': columnIndex,
+                                }}
+                            />
+                        ) : (
+                            <></>
+                        )
                     ) : ''
                 }
                 {
@@ -119,7 +123,7 @@ class MuiVirtualizedTable extends React.PureComponent {
                                     ) : ''
                                 }
                             </div>
-                            <div style={{ fontSize: '12px', color: '#7a7a7a',overflow:'hidden',height:'16px' }}><i>{originalData[this.getObjectIndexIndex(cellData)].url}</i></div>
+                            <div style={{ fontSize: '12px', color: '#7a7a7a', overflow: 'hidden', height: '16px' }}><i>{originalData[this.getObjectIndexIndex(cellData)].url}</i></div>
                             <div style={{ fontSize: '12px', color: '#7a7a7a' }}>{originalData[this.getObjectIndexIndex(cellData)].video ? "" + originalData[this.getObjectIndexIndex(cellData)].video.width + "x" + originalData[this.getObjectIndexIndex(cellData)].video.height + "-" + originalData[this.getObjectIndexIndex(cellData)].video.codec + "" : ''}{'-'}{originalData[this.getObjectIndexIndex(cellData)].audio ? "" + originalData[this.getObjectIndexIndex(cellData)].audio.codec + "-" + originalData[this.getObjectIndexIndex(cellData)].audio.channels + " audio channels" : ''}</div>
                         </div>
                     ) : ''
@@ -136,17 +140,17 @@ class MuiVirtualizedTable extends React.PureComponent {
                             }
                             {
                                 originalData[this.getObjectIndexIndex(cellData)].status === 1 ? (
-                                        nowMod === 0 ? (
-                                            <div style={{
-                                                color: originalData[this.getObjectIndexIndex(cellData)].delay < 500 ? 'green' : 'red',
-                                                fontWeight: "bold",
-                                            }}>{originalData[this.getObjectIndexIndex(cellData)].delay}ms</div>
-                                        ):(
-                                            <Avatar sx={{ bgcolor: green[500], width: 24, height: 24 }}>
-                                                <TagFacesIcon />
-                                            </Avatar>
-                                        )
-                                    
+                                    nowMod === 0 ? (
+                                        <div style={{
+                                            color: originalData[this.getObjectIndexIndex(cellData)].delay < 500 ? 'green' : 'red',
+                                            fontWeight: "bold",
+                                        }}>{originalData[this.getObjectIndexIndex(cellData)].delay}ms</div>
+                                    ) : (
+                                        <Avatar sx={{ bgcolor: green[500], width: 24, height: 24 }}>
+                                            <TagFacesIcon />
+                                        </Avatar>
+                                    )
+
                                 ) : ''
                             }
                             {
@@ -164,7 +168,7 @@ class MuiVirtualizedTable extends React.PureComponent {
     };
 
     headerRenderer = ({ label, columnIndex }) => {
-        const { selectedArr, originalData, selectAll, columns } = this.props;
+        const { selectedArr, originalData, showMultiSelect, selectAll, columns } = this.props;
         return (
             <TableCell
                 component="div"
@@ -177,15 +181,19 @@ class MuiVirtualizedTable extends React.PureComponent {
             >
                 {
                     columnIndex === 0 ? (
-                        <Checkbox
-                            color="primary"
-                            checked={selectedArr.length > 0 && selectedArr.length === originalData.length}
-                            onClick={selectAll}
-                            indeterminate={selectedArr.length > 0 && selectedArr.length !== originalData.length}
-                            inputProps={{
-                                'aria-labelledby': -1,
-                            }}
-                        />
+                        showMultiSelect ? (
+                            <Checkbox
+                                color="primary"
+                                checked={selectedArr.length > 0 && selectedArr.length === originalData.length}
+                                onClick={selectAll}
+                                indeterminate={selectedArr.length > 0 && selectedArr.length !== originalData.length}
+                                inputProps={{
+                                    'aria-labelledby': -1,
+                                }}
+                            />
+                        ) : (
+                            <div>&nbsp;&nbsp;&nbsp;&nbsp;</div>
+                        )
                     ) : ''
                 }
                 {

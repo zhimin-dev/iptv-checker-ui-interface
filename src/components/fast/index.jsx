@@ -139,7 +139,17 @@ export default function Fast() {
         } else {
             data = urls
         }
-        let md5Str = _mainContext.addDetail(checkData, data, selectedType === 0, needCheck === 'true' ? 1 : 0, needSort === 'true' ? 1 : 0)
+        let saveData = []
+        if(needCheck === 'true') {
+            for(let i = 0;i<checkData.length;i++) {
+                if(checkData[i].status === 1) {
+                    saveData.push(checkData[i])
+                }
+            }
+        }else{
+            saveData = checkData
+        }
+        let md5Str = _mainContext.addDetail(saveData, data, selectedType === 0, needCheck === 'true' ? 1 : 0, needSort === 'true' ? 1 : 0)
         navigate("/detail?md5=" + md5Str)
     }
 
@@ -292,10 +302,21 @@ export default function Fast() {
     }, [selectedType]);
 
     const handleDownload = (extention) => {
+        let saveData = [];
+        console.log("---checkData",checkData)
+        if(needCheck === 'true') {
+            for(let i = 0;i<checkData.length;i++) {
+                if(checkData[i].status === 1) {
+                    saveData.push(checkData[i])
+                }
+            }
+        }else{
+            saveData = checkData
+        }
         if (_mainContext.nowMod === 1) {
-            _mainContext.clientSaveFile(checkData, extention === 'txt' ? 'txt' : 'm3u')
+            _mainContext.clientSaveFile(saveData, extention === 'txt' ? 'txt' : 'm3u')
         } else {
-            _mainContext.webSaveFile(checkData, extention === 'txt' ? 'txt' : 'm3u')
+            _mainContext.webSaveFile(saveData, extention === 'txt' ? 'txt' : 'm3u')
         }
     }
 
@@ -553,6 +574,7 @@ export default function Fast() {
                                         size="small"
                                         onClick={handleDetail}
                                         loading={loading}
+                                        style={{marginRight: '5px'}}
                                         variant="contained"
                                         startIcon={<NavigateNextIcon />}
                                     >
@@ -563,6 +585,7 @@ export default function Fast() {
                                         onClick={() => handleDownload('m3u')}
                                         loading={loading}
                                         variant="contained"
+                                        style={{marginRight: '5px'}}
                                         startIcon={<DownloadIcon />}
                                     >
                                         {t('下载结果.m3u格式')}
@@ -571,7 +594,7 @@ export default function Fast() {
                                         size="small"
                                         onClick={() => handleDownload('txt')}
                                         loading={loading}
-                                        variant="contained"
+                                        variant="outlined"
                                         startIcon={<DownloadIcon />}
                                     >
                                         {t('下载结果.txt格式')}

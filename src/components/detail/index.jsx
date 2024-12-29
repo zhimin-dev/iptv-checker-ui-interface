@@ -22,6 +22,7 @@ export default function Detail() {
   const [selectedArr, setSelectedArr] = useState([])//已选中的id
   const [showChannelMod, setShowChannelMod] = useState(0)// 0不显示弹框 1展示非编辑 2编辑页面
   const [showDetailObj, setShowDetailObj] = useState(null)// 选中查看对象
+  const [showMultiSelect,setShowMultiSelect] = useState(false)
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -168,9 +169,18 @@ export default function Detail() {
     setShowChannelMod(2)
   }
 
+  const changeShowMultiSelect = (val) => {
+    setShowMultiSelect(val)
+  }
+
   return (
     <Box style={{ padding: '0 20px' }}>
-      <Setting setSelectedArr={setSelectedArr} selectedArr={selectedArr}></Setting>
+      <Setting 
+        setSelectedArr={setSelectedArr} 
+        showMultiSelect={showMultiSelect} 
+        selectedArr={selectedArr}
+        changeShowMultiSelect={changeShowMultiSelect}
+      ></Setting>
       <Paper style={{
         height: vTableHeight,
         marginTop: "10px",
@@ -179,8 +189,8 @@ export default function Detail() {
           rowCount={_mainContext.detailList.length}
           rowGetter={({ index }) => _mainContext.detailList[index]}
           originalData={_mainContext.detailList}
-          // delRow={deleteThisRow}
           selectAllRow={handleSelectCheckedAll}
+          showMultiSelect={showMultiSelect}
           selectRow={onSelectedThisRow}
           seeDetail={seeDetail}
           watchRow={watchThisRow}
