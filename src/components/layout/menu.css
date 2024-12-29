@@ -2,13 +2,11 @@
   position: relative;
   top: 0;
   bottom: 0;
+  min-height: 100vh;
 }
 .side-bar {
-  width: 250px;
-  position: fixed;
-  float: left;
+  width: 240px;
   z-index: 99;
-  background-color: antiquewhite;
   height: 100vh;
 }
 .side-bar-logo {
@@ -31,6 +29,4 @@
   cursor: pointer;
 }
 .container-inner {
-  width: calc(100% - 270px);
-  float: right;
 }

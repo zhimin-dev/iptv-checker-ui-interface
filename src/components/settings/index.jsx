@@ -74,7 +74,7 @@ export default function Settings() {
     const [showAddSourceDialog, setShowAddSourceDialog] = useState(false)
     const [httpRequestTimeout, setHttpRequestTimeout] = useState(8000);
     const [concurrent, setConcurrent] = useState(1);
-    const [language, setLanguage] = useState('en');
+    const [language, setLanguage] = useState('zh');
     const [customLink, setCustomLink] = useState([]);
     const [privateHost, setPrivateHost] = useState('')
     const [dialogMsg, setDialogMsg] = useState('');
@@ -85,12 +85,12 @@ export default function Settings() {
     useEffect(() => {
         let config = _mainContext.settings
         if(config !== null) {
-            setHttpRequestTimeout(config.httpRequestTimeout??8000)
+            setHttpRequestTimeout(config.httpRequestTimeout??1000)
             setCustomLink(config.customLink??[])
             setConcurrent(config.concurrent??1)
-            setLanguage(config.language??'en')
+            setLanguage(config.language??'zh')
             setPrivateHost(config.privateHost??'')
-            setPlayerSource(config.playerSource??'')
+            setPlayerSource(config.playerSource??'video/mp2t')
         }
     }, [_mainContext])
 
@@ -221,7 +221,7 @@ export default function Settings() {
                         </FormControl>
                     ):''
                 }
-                <FormControl sx={{ marginBottom: '20px' }}>
+                {/* <FormControl sx={{ marginBottom: '20px' }}>
                     <FormLabel id="demo-row-radio-buttons-group-label">
                         {t('自定义网络源')}
                         <IconButton aria-label={t('新增')} onClick={() => handleShowAddSourceDialog(true)}>
@@ -239,7 +239,7 @@ export default function Settings() {
                             ))
                         }
                     </Box>
-                </FormControl>
+                </FormControl> */}
                 <FormControl  sx={{ marginBottom: '20px' }}>
                     <InputLabel id="demo-row-radio-buttons-group-label">{t('播放平台')}</InputLabel>
                     <Select

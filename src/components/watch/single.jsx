@@ -6,7 +6,6 @@ import _Tabbar from './../layout/tabbar'
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { listen } from "@tauri-apps/api/event";
 import { LogicalSize,LogicalPosition } from '@tauri-apps/api/window';
-const appWindow = getCurrentWebviewWindow()
 
 export default function Single(props) {
     const _mainContext = useContext(MainContext);
@@ -41,6 +40,7 @@ export default function Single(props) {
     const [httpHeaders, setHttpHeaders] = useState([])
 
     const listenEvent = async () => {
+        const appWindow = getCurrentWebviewWindow()
         const unlisten = await listen('changeWatchUrl', (event) => {
             // event.event 是事件名称 (当你想用一个回调函数处理不同类型的事件时很有用)
             // event.payload 是负载对象
@@ -109,6 +109,7 @@ export default function Single(props) {
         player.ready(function () {
             console.log(player.controlBar)
             var fullScreenButton = player.controlBar.fullscreenToggle;
+            const appWindow = getCurrentWebviewWindow()
 
             fullScreenButton.on('click', function () {
                 console.log("user click full")

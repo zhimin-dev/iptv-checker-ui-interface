@@ -57,7 +57,7 @@ const ParseM3u = {
                 "#EXTINF:" + rows[i][1],
                 rows[i][3] + "" + rows[i][4],
                 rows[i][0]
-            )) !== null
+            ))
         }
         if (resultList.length === 0) {
             return ParseM3u.removeRepeatList(ParseM3u.parseQuoteFormat(originalM3uBody), videoInfoMap)
@@ -87,7 +87,7 @@ const ParseM3u = {
         let rows = []
         let groupTitle = "Undefined"
         let arr = body.split("\n")
-        for (var i = 0; i < arr.length; i++) {
+        for (let i = 0; i < arr.length; i++) {
             if (arr[i] !== "") {
                 let item = arr[i].split(",")
                 if (item !== "") {
@@ -194,7 +194,7 @@ const ParseM3u = {
             groupTitle = 'Undefined'
         }
         let originalData = `${one}\n${two}`
-        let data = this.buildM3uBaseObject(index,
+        return this.buildM3uBaseObject(index,
             two,
             groupTitle,
             ParseM3u.pregValue(one, "tvg-logo"),
@@ -203,8 +203,7 @@ const ParseM3u = {
             ParseM3u.pregValue(one, "tvg-id"),
             ParseM3u.parseName(one),
             originalData,
-            raw)
-        return data;
+            raw);
     },
     parseName: (name) => {
         const row = name.split(",");
@@ -248,10 +247,7 @@ const ParseM3u = {
     },
     checkRespIsValudM3u8Data: (body) => {
         let data = body.split('\n')
-        if (data[0].indexOf('#EXTM3U') !== -1) {
-            return true
-        }
-        return false
+        return data[0].indexOf('#EXTM3U') !== -1;
     },
     removeNameExtraInfo: (str) => {
         const regex = /\((.*)/gm;

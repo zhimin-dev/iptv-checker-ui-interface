@@ -11,6 +11,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import BoltIcon from '@mui/icons-material/Bolt';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AdjustIcon from '@mui/icons-material/Adjust';
 import PublicIcon from '@mui/icons-material/Public';
@@ -18,21 +19,30 @@ import CloudQueueIcon from '@mui/icons-material/CloudQueue';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import _package from './../../../package';
 import { useTranslation, initReactI18next } from "react-i18next";
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import Divider from '@mui/material/Divider';
-import _Tabbar from './tabbar'
-const appWindow = getCurrentWebviewWindow()
+import Collapse from '@mui/material/Collapse';
+import StarBorder from '@mui/icons-material/StarBorder';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import Drawer from '@mui/material/Drawer';
+import IconButton from '@mui/material/IconButton';
+import DehazeIcon from '@mui/icons-material/Dehaze';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import CssBaseline from '@mui/material/CssBaseline';
 
 let menuList = [{
-    "name": "检测源",
-    "uri": "/check",
-    "icon": "AdjustIcon",
+    "name": "快速检测",
+    "uri": "/",
+    "icon": "BoltIcon",
     'showMod': [0, 1],
     'showHeader': true
 }, {
-    "name": "公共订阅源",
-    "uri": "/public",
-    "icon": "PublicIcon",
+    "name": "已检测源",
+    "uri": "/detail",
+    "icon": "AdjustIcon",
     'showMod': [0, 1],
     'showHeader': true
 }, {
@@ -55,24 +65,26 @@ let menuList = [{
     'showHeader': true
 }]
 
+const detailUri = '/detail'
+
+
+const drawerWidth = 240;
+
 export default function Layout() {
     const { t } = useTranslation();
     let location = useLocation();
     const _mainContext = useContext(MainContext);
     const navigate = useNavigate();
-    const [nowSelectedMenu, setNowSelectedMenu] = useState({
-        "name": "检测源",
-        "ename": "menu source check",
-        "uri": "/check",
-        "icon": "AdjustIcon",
-        'showMod': [0, 1],
-        'showHeader': true
-    })
+    const [nowSelectedMenu, setNowSelectedMenu] = useState(menuList[0])
+    const [openSubCheckedMenu, setOpenSubCheckedMenu] = useState(false)
+    const [nowSelectedCheckedMenu, setNowSelectedCheckedMenu] = useState(null)
+    const [openDrawer, setOpenDrawer] = useState(true);
 
     useEffect(() => {
-        if (location.pathname == '/detail') {
+        if (location.pathname == detailUri) {
             setNowSelectedMenu({ 'showHeader': false })
         } else {
+            _mainContext.updateDetailMd5("")
             for (let i = 0; i < menuList.length; i++) {
                 if (location.pathname == menuList[i].uri) {
                     setNowSelectedMenu(menuList[i])
@@ -84,69 +96,194 @@ export default function Layout() {
     const nowVersion = _package.version;
 
     const changePath = (e) => {
-        setNowSelectedMenu(e)
-        navigate(e.uri)
+        if (e.uri === detailUri) {
+            setOpenSubCheckedMenu(!openSubCheckedMenu)
+        } else {
+            setNowSelectedMenu(e)
+            navigate(e.uri)
+        }
+    }
+
+    const changeCheckedPath = (e) => {
+        setNowSelectedCheckedMenu(e)
+        navigate(detailUri + "?md5=" + e.md5)
     }
 
     const goToGithub = () => {
         window.open(_package.homepage_url)
     }
 
-    return (
-        <div className="layout">
-            <Box className="side-bar" role="presentation">
-                <List>
-                    <div className="side-bar-logo" onClick={() => goToGithub} title='帮忙点个star!!!'>
-                        <div className='side-bar-logo-item'>
-                            <img src={icon} height="60"></img>
-                            <p className='go-github'>iptv-checker@{nowVersion}</p>
-                        </div>
+    const toggleDrawer = (newOpen) => () => {
+        setOpenDrawer(newOpen);
+    };
+
+    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+
+
+    const theme = React.useMemo(
+        () =>
+            createTheme({
+                palette: {
+                    mode: prefersDarkMode ? 'dark' : 'light',
+                    sideBarBgColor: {
+                        dark: '#021d2a',
+                        light: 'antiquewhite'
+                    }
+                },
+            }),
+        [prefersDarkMode],
+    );
+
+    const DrawerList = (
+        <Box className="side-bar" style={{ backgroundColor: theme.palette.sideBarBgColor[prefersDarkMode ? 'dark' : 'light'] }} sx={{ width: drawerWidth }} role="presentation">
+            <List>
+                <div className="side-bar-logo" onClick={() => goToGithub} title='帮忙点个star!!!'>
+                    <div className='side-bar-logo-item'>
+                        <img src={icon} height="60"></img>
+                        <div className='go-github'>iptv-checker@{nowVersion}</div>
                     </div>
-                    {
-                        menuList.map((value, index) => (
-                            value.showMod.includes(_mainContext.nowMod) ? (
-                                <ListItem key={index} disablePadding onClick={() => changePath(value)}>
-                                    <ListItemButton>
-                                        <ListItemIcon>
-                                            {
-                                                value.icon === 'SettingsIcon' ? <SettingsIcon /> : ''
-                                            }
-                                            {
-                                                value.icon === 'AdjustIcon' ? <AdjustIcon /> : ''
-                                            }
-                                            {
-                                                value.icon === 'PublicIcon' ? <PublicIcon /> : ''
-                                            }
-                                            {
-                                                value.icon === 'CloudQueueIcon' ? <CloudQueueIcon /> : ''
-                                            }
-                                            {
-                                                value.icon === 'RemoveRedEyeIcon' ? <RemoveRedEyeIcon /> : ''
-                                            }
-                                        </ListItemIcon>
-                                        <ListItemText primary={t(value.name)} />
-                                    </ListItemButton>
-                                </ListItem>
-                            ) : ''
-                        ))}
-                </List>
-            </Box>
-            <Box className="container-inner">
-                <_Tabbar></_Tabbar>
+                </div>
                 {
-                    nowSelectedMenu.showHeader ? (
-                        <>
+                    menuList.map((value, index) => (
+                        value.showMod.includes(_mainContext.nowMod) ? (
+                            <div key={index}>
+                                {
+                                    value.uri !== detailUri || (value.uri === detailUri && _mainContext.subCheckMenuList.length > 0) ? (
+                                        <ListItem key={index} disablePadding onClick={() => changePath(value)}>
+                                            <ListItemButton>
+                                                <ListItemIcon>
+                                                    {
+                                                        value.icon === 'SettingsIcon' ? <SettingsIcon /> : ''
+                                                    }
+                                                    {
+                                                        value.icon === 'AdjustIcon' ? <AdjustIcon /> : ''
+                                                    }
+                                                    {
+                                                        value.icon === 'PublicIcon' ? <PublicIcon /> : ''
+                                                    }
+                                                    {
+                                                        value.icon === 'CloudQueueIcon' ? <CloudQueueIcon /> : ''
+                                                    }
+                                                    {
+                                                        value.icon === 'RemoveRedEyeIcon' ? <RemoveRedEyeIcon /> : ''
+                                                    }
+                                                    {
+                                                        value.icon === 'BoltIcon' ? <BoltIcon /> : ''
+                                                    }
+                                                </ListItemIcon>
+                                                <ListItemText primary={t(value.name)} />
+                                                {
+                                                    value.uri === detailUri ? (
+                                                        openSubCheckedMenu ? <ExpandLess /> : <ExpandMore />
+                                                    ) : ''
+                                                }
+                                            </ListItemButton>
+                                        </ListItem>
+                                    ) : ''
+                                }
+
+                                {
+                                    value.uri === detailUri && openSubCheckedMenu ? (
+                                        <List component="div" disablePadding key={detailUri + "0000"}>
+                                            {
+                                                _mainContext.subCheckMenuList.map((value, index) => (
+                                                    <ListItemButton sx={{ pl: 4 }} key={detailUri + index} onClick={() => changeCheckedPath(value)}>
+                                                        <ListItemText primary={value.md5} />
+                                                    </ListItemButton>
+                                                ))
+                                            }
+                                        </List>
+                                    ) : ''
+                                }
+                            </div>
+                        ) : ''
+                    ))}
+            </List>
+        </Box>
+    );
+
+    const getQueryParam = (location, key) => {
+        // 使用 URLSearchParams 获取查询参数
+        const params = new URLSearchParams(location.search);
+
+        // 获取对应的值
+        return params.get(key);
+    }
+
+    const remove_detail = (md5Str) => {
+        _mainContext.delDetailData(md5Str)
+        navigate("/")
+    }
+
+    return (
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <div className="layout">
+                <Drawer open={openDrawer} anchor="left" variant={openDrawer ? "permanent" : 'temporary'}>
+                    {DrawerList}
+                </Drawer>
+                <Box className="container-inner" style={{
+                    marginLeft: openDrawer ? drawerWidth + "px" : '',
+                }}>
+                    <div data-tauri-drag-region style={{ width: '100%', height: '20px' }}></div>
+                    {
+                        <div style={{
+                            padding: '0 20px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            height: '60px',
+                        }}>
                             <div style={{
-                                fontSize: '40px',
-                                padding: '50px 10px',
-                                fontWeight: '600'
-                            }}>{t(nowSelectedMenu.name)}</div>
-                            <Divider style={{ marginBottom: '25px' }} />
-                        </>
-                    ) : ''
-                }
-                <Outlet />
-            </Box>
-        </div>
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                height: '60px',
+                                width: '100%'
+                            }}>
+                                <Box style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}>
+                                    <Box>
+                                        <IconButton aria-label="delete" size="small" onClick={toggleDrawer(!openDrawer)}>
+                                            <DehazeIcon />
+                                        </IconButton>
+                                    </Box>
+                                    <Box style={{ fontWeight: 'bold', fontSize: '20px' }}>{
+                                        nowSelectedMenu.name !== null && nowSelectedMenu.name !== undefined ?
+                                            t(nowSelectedMenu.name) : _mainContext.detailMd5
+                                    }</Box>
+                                    {
+                                        _mainContext.detailMd5 !== '' ? (
+                                            <IconButton aria-label="delete" color='error' size="small" onClick={() => remove_detail(_mainContext.detailMd5)}>
+                                                <HighlightOffIcon />
+                                            </IconButton>
+                                        ) : ''
+                                    }
+                                </Box>
+                                <div data-tauri-drag-region style={{
+                                    display: _mainContext.nowMod === 1 ? 'flex' : 'none',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}>
+                                    <div className="titlebar-button" id="titlebar-minimize">
+                                        <img
+                                            src="https://api.iconify.design/mdi:window-minimize.svg"
+                                            alt="minimize"
+                                        />
+                                    </div>
+                                    <div className="titlebar-button" id="titlebar-close">
+                                        <img src="https://api.iconify.design/mdi:close.svg" alt="close" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    <div style={{ width: '100%', height: '20px' }}></div>
+                    <Divider style={{ marginBottom: '10px' }} />
+                    <Outlet />
+                </Box>
+            </div>
+        </ThemeProvider>
     )
 }

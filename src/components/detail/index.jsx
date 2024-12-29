@@ -3,7 +3,7 @@ import * as React from 'react';
 import { MainContext } from './../../context/main';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Setting from './setting';
 import { VirtualizedTable } from './vtable'
 import FormControl from '@mui/material/FormControl';
@@ -15,12 +15,14 @@ import { emit, listen } from '@tauri-apps/api/event'
 
 export default function Detail() {
   const { t } = useTranslation();
+  const location = useLocation();
   const _mainContext = useContext(MainContext);
   const [vTableHeight, setVTableHeight] = useState(550)
   const navigate = useNavigate();
   const [selectedArr, setSelectedArr] = useState([])//已选中的id
   const [showChannelMod, setShowChannelMod] = useState(0)// 0不显示弹框 1展示非编辑 2编辑页面
   const [showDetailObj, setShowDetailObj] = useState(null)// 选中查看对象
+  const [showMultiSelect,setShowMultiSelect] = useState(false)
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -29,6 +31,22 @@ export default function Detail() {
       [name]: value
     }));
   };
+
+  const getQueryParam = (location, key) => {
+    // 使用 URLSearchParams 获取查询参数
+    const params = new URLSearchParams(location.search);
+
+    // 获取对应的值
+    return params.get(key);
+  }
+
+  useEffect(() => {
+    let md5 = getQueryParam(location, "md5")
+    if (location.pathname === '/detail') {
+      _mainContext.updateDetailMd5(md5)
+    }
+    console.log("-----",location)
+  }, [location])
 
   const saveEditData = () => {
     _mainContext.updateDataByIndex([showDetailObj.index], {
@@ -45,50 +63,50 @@ export default function Detail() {
     window.addEventListener("resize", e => {
       setVTableHeight(e.currentTarget.innerHeight - _mainContext.headerHeight - 50)
     })
-    window.addEventListener('beforeunload', (e) => {
-      e.preventDefault()
-      let returnValue = t('刷新后将跳转首页')
-      e.returnValue = returnValue
-    })
-    if (_mainContext.showM3uBody.length === 0) {
-      navigate("/check")
-    }
+    // window.addEventListener('beforeunload', (e) => {
+    //   e.preventDefault()
+    //   let returnValue = t('刷新后将跳转首页')
+    //   e.returnValue = returnValue
+    // })
+    // if (_mainContext.showM3uBody.length === 0) {
+    //   navigate("/check")
+    // }
   }, [])
 
-  const deleteThisRow = (index, tableIndex) => {
-    let row = []
-    for (let i = 0; i < selectedArr.length; i++) {
-      if (selectedArr[i] !== index) {
-        row.push(selectedArr[i]);
-      }
-    }
-    setSelectedArr(row)
-    _mainContext.deleteShowM3uRow(index)
-  }
+  // const deleteThisRow = (index, tableIndex) => {
+  //   let row = []
+  //   for (let i = 0; i < selectedArr.length; i++) {
+  //     if (selectedArr[i] !== index) {
+  //       row.push(selectedArr[i]);
+  //     }
+  //   }
+  //   setSelectedArr(row)
+  //   _mainContext.deleteShowM3uRow(index)
+  // }
 
   const watchThisRow = async (val) => {
     let platform = _mainContext.nowPlatform
     if (_mainContext.nowMod === 1) {
       let label = 'watch'
       let appWindow = await WebviewWindow.getByLabel(label);
-      if(appWindow !== null) {
+      if (appWindow !== null) {
         // 携带负载对象触发 `click` 事件
         emit('changeWatchUrl', {
           data: val,
         })
-        return 
+        return
       }
       const webview = new WebviewWindow(label, {
-        url: '/watch/single?platform='+platform+'&url='+val.url,
+        url: '/watch/single?platform=' + platform + '&url=' + val.url,
         x: 0,
         y: 0,
         width: 1024,
         height: 600,
-        title:val.name,
+        title: val.name,
         center: true,
         maximizable: false,
       })
-      console.log("webview",webview)
+      console.log("webview", webview)
       // _mainContext.initControlBar(webview, label)
       // since the webview window is created asynchronously,
       // Tauri emits the `tauri://created` and `tauri://error` to notify you of the creation response
@@ -111,8 +129,8 @@ export default function Detail() {
     }
     let temp = []
     if (mod === 1) {
-      for (let i = 0; i < _mainContext.showM3uBody.length; i++) {
-        temp.push(_mainContext.showM3uBody[i].index)
+      for (let i = 0; i < _mainContext.detailList.length; i++) {
+        temp.push(_mainContext.detailList[i].index)
       }
     }
     _mainContext.onSelectedOrNotAll(mod)
@@ -151,28 +169,35 @@ export default function Detail() {
     setShowChannelMod(2)
   }
 
+  const changeShowMultiSelect = (val) => {
+    setShowMultiSelect(val)
+  }
+
   return (
     <Box style={{ padding: '0 20px' }}>
-      <Setting style={{ marginTop: '20px' }} setSelectedArr={setSelectedArr} selectedArr={selectedArr}></Setting>
+      <Setting 
+        setSelectedArr={setSelectedArr} 
+        showMultiSelect={showMultiSelect} 
+        selectedArr={selectedArr}
+        changeShowMultiSelect={changeShowMultiSelect}
+      ></Setting>
       <Paper style={{
         height: vTableHeight,
-        marginTop: (_mainContext.headerHeight + 10) + "px",
+        marginTop: "10px",
       }}>
         <VirtualizedTable
-          rowCount={_mainContext.showM3uBody.length}
-          rowGetter={({ index }) => _mainContext.showM3uBody[index]}
-          originalData={_mainContext.showM3uBody}
-          delRow={deleteThisRow}
+          rowCount={_mainContext.detailList.length}
+          rowGetter={({ index }) => _mainContext.detailList[index]}
+          originalData={_mainContext.detailList}
           selectAllRow={handleSelectCheckedAll}
+          showMultiSelect={showMultiSelect}
           selectRow={onSelectedThisRow}
           seeDetail={seeDetail}
           watchRow={watchThisRow}
           nowMod={_mainContext.nowMod}
           t={() => t}
-          // showOriginalUrl={_mainContext.settings.showFullUrl}
           selectedArr={selectedArr}
           selectAll={handleSelectCheckedAll}
-          handleMod={_mainContext.handleMod}
           columns={[
             {
               width: 80,
@@ -195,14 +220,8 @@ export default function Detail() {
       {
         showChannelMod !== 0 ? (
           <Box sx={{
-            position: 'fixed',
-            'bottom': 100,
-            'width': 600,
-            'right': 0,
             'backgroundColor': '#fff',
-            border: '3px solid #eee',
             borderRadius: '10px',
-            padding: '10px'
           }}>
             <Box>
               <Box sx={{ display: "flex", flexDirection: "column" }}>

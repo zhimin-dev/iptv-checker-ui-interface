@@ -380,7 +380,7 @@ function TaskForm(props) {
                                 <FormControl fullWidth style={{
                                     padding: "0 0 20px",
                                 }}>
-                                    <p id="demo-simple-select-standard-label">{t('检查文件列表')}</p>
+                                    <div id="demo-simple-select-standard-label">{t('检查文件列表')}</div>
                                     {
                                         task.original.urls.map((value, index) => (
                                             <div style={{ display: 'flex' }} key={index}>
@@ -632,8 +632,8 @@ function Row(props) {
                     <div>{t('最后一次运行时间')}：{row.task_info.last_run_time > 0 ? (new Date(row.task_info.last_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
                     <div>{t('下一次运行时间')}：{row.task_info.next_run_time > 0 ? (new Date(row.task_info.next_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
                     <div>{t('运行类型')}：{row.task_info.run_type} </div>
-                    <div>{t('是否不需要检查')}：{row.task_info.no_check? t('是'):t('否')} </div>
-                    <div>{t('是否需要排序')}：{row.task_info.sort?t('是'):t('否')} </div>
+                    <div>{t('是否不需要检查')}：{row.original.no_check ? t('是'):t('否')}</div>
+                    <div>{t('是否需要排序')}：{row.original.sort?t('是'):t('否')} </div>
                 </TableCell>
             </TableRow>
             <TableRow>
@@ -1081,7 +1081,7 @@ export default function TaskList(props) {
             ></ExportDialog>
             {
                 _mainContext.nowMod === 1 ? (
-                    <p>{t('当前设置的【后台检查server域名】为')}：{privateHost}</p>
+                    <div>{t('当前设置的【后台检查server域名】为')}：{privateHost}</div>
                 ):''
             }
             <Paper sx={{ width: '1024px', overflow: 'hidden' }}>
