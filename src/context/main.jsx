@@ -161,7 +161,7 @@ export const MainContextProvider = function ({ children }) {
 
     const clientSaveFile = async (data, fullSuffix) => {
         const downloadDirPath = await downloadDir();
-        let download_name = downloadDirPath + 'iptv-checker-file-' + new Date().getTime() + "." + fullSuffix
+        let download_name = downloadDirPath + '/iptv-checker-file-' + new Date().getTime() + "." + fullSuffix
         let body = ''
         if (fullSuffix === 'txt') {
             body = m3uObjectToTxtBody(data)
@@ -175,7 +175,8 @@ export const MainContextProvider = function ({ children }) {
                 extensions: [fullSuffix]
             }]
         });
-        filePath && await writeTextFile(download_name, body)
+        console.log("filePath---",filePath)
+        filePath && await writeTextFile(filePath, body)
     }
 
     const webSaveFile = async (data, fullSuffix) => {
