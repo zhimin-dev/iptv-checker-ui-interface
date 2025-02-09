@@ -141,6 +141,8 @@ function TaskForm(props) {
             formValue.original.concurrent = formValue.original.concurrent ?? 0;
             formValue.original.sort = formValue.original.sort ?? false;
             formValue.original.no_check = formValue.original.no_check ?? false;
+            formValue.original.rename = formValue.original.rename ?? false;
+            formValue.original.ffmpeg_check = formValue.original.ffmpeg_check ?? false;
             setTask(formValue)
         } else {
             let default_data = JSON.parse(JSON.stringify(defaultValue))
@@ -301,6 +303,38 @@ function TaskForm(props) {
             original: {
                 ...task.original,
                 concurrent: parseInt(e.target.value, 10)
+            }
+        });
+    }
+
+    const handleChangeRename = (e) => {
+        let checked = false
+        if (e.target.defaultValue === "false") {
+            checked = false
+        } else {
+            checked = true
+        }
+        setTask({
+            ...task,
+            original: {
+                ...task.original,
+                rename: checked
+            }
+        });
+    }
+
+    const handleChangeFfmepgCheck = (e) => {
+        let checked = false
+        if (e.target.defaultValue === "false") {
+            checked = false
+        } else {
+            checked = true
+        }
+        setTask({
+            ...task,
+            original: {
+                ...task.original,
+                ffmpeg_check: checked
             }
         });
     }
@@ -560,6 +594,38 @@ function TaskForm(props) {
                             <FormControlLabel value="true" control={<Radio />} label={t('是')} />
                         </RadioGroup>
                     </FormControl>
+
+                    <FormControl fullWidth style={{
+                        margin: "20px 0 20px",
+                    }}>
+                        <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要去掉频道多余字符')}</FormLabel>
+                        <RadioGroup
+                            row
+                            aria-labelledby="demo-row-radio-buttons-group-label"
+                            name="row-radio-buttons-group"
+                            value={task.original.rename}
+                            onChange={handleChangeRename}
+                        >
+                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                        </RadioGroup>
+                    </FormControl>
+
+                    <FormControl fullWidth style={{
+                        margin: "20px 0 20px",
+                    }}>
+                        <FormLabel id="demo-row-radio-buttons-group-label">{t('是否强制使用ffmpeg检查')}</FormLabel>
+                        <RadioGroup
+                            row
+                            aria-labelledby="demo-row-radio-buttons-group-label"
+                            name="row-radio-buttons-group"
+                            value={task.original.ffmpeg_check}
+                            onChange={handleChangeFfmepgCheck}
+                        >
+                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                        </RadioGroup>
+                    </FormControl>
                 </CustomTabPanel>
                 <CustomTabPanel value={tabIndex} index={2}>
                     <FormControl fullWidth style={{
@@ -634,6 +700,8 @@ function Row(props) {
                     <div>{t('运行类型')}：{row.task_info.run_type} </div>
                     <div>{t('是否不需要检查')}：{row.original.no_check ? t('是'):t('否')}</div>
                     <div>{t('是否需要排序')}：{row.original.sort?t('是'):t('否')} </div>
+                    <div>{t('是否需要去掉频道多余字符')}：{row.original.rename?t('是'):t('否')} </div>
+                    <div>{t('是否强制使用ffmpeg检查')}：{row.original.ffmpeg_check?t('是'):t('否')} </div>
                 </TableCell>
             </TableRow>
             <TableRow>
@@ -882,6 +950,8 @@ export default function TaskList(props) {
             "sort": value.original.sort,
             "no_check": value.original.no_check,
             "concurrent": value.original.concurrent,
+            "rename": value.original.rename,
+            "ffmpeg_check": value.original.ffmpeg_check,
         }
     }
 
