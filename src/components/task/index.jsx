@@ -18,6 +18,9 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
+import Stepper from '@mui/material/Stepper';
+import Step from '@mui/material/Step';
+import StepLabel from '@mui/material/StepLabel';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
@@ -64,6 +67,8 @@ const defaultValue = {
         "concurrent": 30,
         "sort": false,
         "no_check": false,
+        "rename": false,
+        "ffmpeg_check": false,
     },
     "id": "",
     "create_time": 0,
@@ -134,6 +139,11 @@ function TaskForm(props) {
     }
 
     useEffect(() => {
+        setActiveStep(0)
+    }, []);
+
+    useEffect(() => {
+        setActiveStep(0)
         if (formValue !== null) {
             formValue.original.result_name = formValue.original.result_name.replace(output_folder, "").replace(output_extenion, "")
             formValue.original.http_timeout = formValue.original.http_timeout ?? 0;
@@ -276,7 +286,7 @@ function TaskForm(props) {
     }
 
     const deleteThisLikeKw = (i) => {
-        let kw = task.original.keyword_like??[];
+        let kw = task.original.keyword_like ?? [];
         kw.splice(i, 1)
         setTask({
             ...task,
@@ -381,273 +391,301 @@ function TaskForm(props) {
         });
     }
 
+    const steps = ['基础配置', '个性化配置', '系统配置'];
+
+    const [activeStep, setActiveStep] = React.useState(0);
+
+    const handleNext = () => {
+        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    };
+
+    const handleBack = () => {
+        setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    };
+
     return (
         <Dialog onClose={handleClose} open={open}>
-            <div style={{ padding: '40px', width: '500px' }}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={tabIndex} onChange={handleTabChange}>
-                        <Tab label={t('基础配置')} />
-                        <Tab label={t('个性化配置')} />
-                        <Tab label={t('系统配置')} />
+            <Box sx={{ width: '100%', padding: '40px' }}>
+                <Stepper activeStep={activeStep}>
+                    {steps.map((label, index) => {
+                        const stepProps = {};
+                        const labelProps = {};
+                        return (
+                            <Step key={label} {...stepProps}>
+                                <StepLabel {...labelProps}>{label}</StepLabel>
+                            </Step>
+                        );
+                    })}
+                </Stepper>
+
+                <React.Fragment>
+                    <Typography sx={{ mt: 2, mb: 1 }}>
                         {
-                            task.id !== '' ? (
-                                <Tab label={t('运行状态')} />
+                            activeStep === 0 ? (
+                                <div>
+                                    {
+                                        task.original.urls.length > 0 ? (
+                                            <FormControl fullWidth style={{
+                                                padding: "0 0 20px",
+                                            }}>
+                                                <div id="demo-simple-select-standard-label">{t('检查文件列表')}</div>
+                                                {
+                                                    task.original.urls.map((value, index) => (
+                                                        <div style={{ display: 'flex' }} key={index}>
+                                                            <TextField style={{ width: '100%' }} disabled={value.startsWith("static")} id="standard-basic" variant="standard" name={"url-" + index} value={value} onChange={changeUrls} />
+                                                            <IconButton aria-label="delete" onClick={() => handleDelRow(index)}>
+                                                                <DeleteIcon />
+                                                            </IconButton>
+                                                        </div>
+                                                    ))
+                                                }
+                                            </FormControl>
+                                        ) : ''
+                                    }
+                                    <FormControl fullWidth style={{
+                                        padding: "20px 0 20px", display: 'flex',
+                                        flexDirection: 'row',
+                                        justifyContent: 'space-between'
+                                    }}>
+                                        <Button variant="outlined" onClick={() => addNewM3uLink()} startIcon={<PublicIcon />}>{t('添加在线链接')}</Button>
+                                        <Button variant="contained" component="label" startIcon={<UploadIcon />}>
+                                            {t('本地上传m3u文件')}
+                                            <input hidden accept="*" multiple type="file" onChange={handleFileUpload} />
+                                        </Button>
+                                    </FormControl>
+                                    <FormControl fullWidth style={{
+                                        margin: "0 0 20px",
+                                    }}>
+                                        <InputLabel id="demo-simple-select-standard-label">{t('定时检查时间')}</InputLabel>
+                                        <Select
+                                            labelId="demo-simple-select-standard-label"
+                                            id="demo-simple-select-standard"
+                                            value={task.original.run_type}
+                                            label={t('定时检查时间')}
+                                            onChange={handleChangeRunType}
+                                        >
+                                            {
+                                                run_type_list.map((value, index) => (
+                                                    <MenuItem value={value.value} key={index}>{value.name}</MenuItem>
+                                                ))
+                                            }
+                                        </Select>
+                                    </FormControl>
+                                    <FormControl fullWidth style={{
+                                        margin: "20px 0 20px",
+                                    }}>
+                                        <InputLabel htmlFor="outlined-adornment-amount">{t('结果文件名')}</InputLabel>
+                                        <OutlinedInput
+                                            style={{ width: '100%' }}
+                                            name="resultName"
+                                            endAdornment={<InputAdornment position="end">{output_extenion}</InputAdornment>}
+                                            startAdornment={<InputAdornment position="start">{output_folder}</InputAdornment>}
+                                            aria-describedby="outlined-weight-helper-text"
+                                            label={t('结果文件名')}
+                                            value={task.original.result_name}
+                                            onChange={changeResultName}
+                                        />
+                                    </FormControl>
+                                </div>
                             ) : ''
                         }
-                    </Tabs>
-                </Box>
-                {
-                    task.id !== '' ? (
-                        <CustomTabPanel value={tabIndex} index={3}>
-                            <div style={{ padding: "10px 0" }}>{t('任务id')}：{task.id}</div>
-                            <div style={{ padding: "10px 0" }}>{t('运行状态')}：{task.task_info.task_status}</div>
-                            <div style={{ padding: "10px 0" }}>{t('创建时间')}：{task.create_time > 0 ? (new Date(task.create_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''}</div>
-                            <div style={{ padding: "10px 0" }}>{t('最后一次运行时间')}：{task.task_info.last_run_time > 0 ? (new Date(task.task_info.last_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''}</div>
-                            <div style={{ padding: "10px 0" }}>{t('下一次运行时间')}：{task.task_info.next_run_time > 0 ? (new Date(task.task_info.next_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''}</div>
-                        </CustomTabPanel>
-                    ) : ''
-                }
-                <CustomTabPanel value={tabIndex} index={0}>
-                    <div>
                         {
-                            task.original.urls.length > 0 ? (
-                                <FormControl fullWidth style={{
-                                    padding: "0 0 20px",
-                                }}>
-                                    <div id="demo-simple-select-standard-label">{t('检查文件列表')}</div>
+                            activeStep === 1 ? (
+                                <div>
                                     {
-                                        task.original.urls.map((value, index) => (
-                                            <div style={{ display: 'flex' }} key={index}>
-                                                <TextField style={{ width: '100%' }} disabled={value.startsWith("static")} id="standard-basic" variant="standard" name={"url-" + index} value={value} onChange={changeUrls} />
-                                                <IconButton aria-label="delete" onClick={() => handleDelRow(index)}>
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </div>
-                                        ))
+                                        task.original.keyword_like !== null && task.original.keyword_like.length > 0 ? (
+                                            <FormControl fullWidth style={{
+                                                padding: "0 0 20px",
+                                            }}>
+                                                <FormLabel id="demo-row-radio-buttons-group-label">{t('只看频道关键词')}</FormLabel>
+                                                <Stack direction="row" spacing={1}>
+                                                    {
+                                                        task.original.keyword_like !== null && task.original.keyword_like.map((value, i) => (
+                                                            <Chip
+                                                                label={value}
+                                                                onDelete={() => deleteThisLikeKw(i)}
+                                                                variant="outlined"
+                                                                key={i}
+                                                            />
+                                                        ))
+                                                    }
+                                                </Stack>
+                                            </FormControl>
+                                        ) : ''
                                     }
-                                </FormControl>
+                                    {
+                                        task.original.keyword_dislike !== null && task.original.keyword_dislike.length > 0 ? (
+                                            <FormControl fullWidth style={{
+                                                padding: "0 0 20px",
+                                            }}>
+                                                <FormLabel id="demo-row-radio-buttons-group-label">{t('不看频道关键词')}</FormLabel>
+                                                <Stack direction="row" spacing={1}>
+                                                    {
+                                                        task.original.keyword_dislike.map((value, i) => (
+                                                            <Chip
+                                                                label={value}
+                                                                variant="outlined"
+                                                                onDelete={() => deleteThisDislikeKw(i)}
+                                                                key={i}
+                                                            />
+                                                        ))
+                                                    }
+                                                </Stack>
+                                            </FormControl>
+                                        ) : ''
+                                    }
+                                    <FormControl fullWidth style={{
+                                        margin: "20px 0 20px",
+                                    }}>
+                                        <Stack direction="row" spacing={1}>
+                                            <TextField
+                                                id="standard-basic"
+                                                label={t('添加关键词')}
+                                                variant="standard"
+                                                value={filterKeyword} onChange={changeFilterKeyword} />
+                                            <Button
+                                                size='small'
+                                                variant="outlined"
+                                                onClick={() => addKeyword(1)}
+                                                startIcon={<InsertEmoticonIcon />}
+                                            >{t('添加只看')}</Button>
+                                            <Button
+                                                size='small'
+                                                variant="outlined"
+                                                onClick={() => addKeyword(2)}
+                                                startIcon={<MoodBadIcon />}>{t('添加不看')}</Button>
+                                        </Stack>
+                                    </FormControl>
+                                    <FormControl fullWidth style={{
+                                        margin: "20px 0 20px",
+                                    }}>
+                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要排序')}</FormLabel>
+                                        <RadioGroup
+                                            row
+                                            aria-labelledby="demo-row-radio-buttons-group-label"
+                                            name="row-radio-buttons-group"
+                                            value={task.original.sort}
+                                            onChange={handleChangeSortValue}
+                                        >
+                                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormControl fullWidth style={{
+                                        margin: "20px 0 20px",
+                                    }}>
+                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('是否不需要检查')}</FormLabel>
+                                        <RadioGroup
+                                            row
+                                            aria-labelledby="demo-row-radio-buttons-group-label"
+                                            name="row-radio-buttons-group"
+                                            value={task.original.no_check}
+                                            onChange={handleChangeNoCheckValue}
+                                        >
+                                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                        </RadioGroup>
+                                    </FormControl>
+
+                                    <FormControl fullWidth style={{
+                                        margin: "20px 0 20px",
+                                    }}>
+                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要去掉频道多余字符')}</FormLabel>
+                                        <RadioGroup
+                                            row
+                                            aria-labelledby="demo-row-radio-buttons-group-label"
+                                            name="row-radio-buttons-group"
+                                            value={task.original.rename}
+                                            onChange={handleChangeRename}
+                                        >
+                                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                        </RadioGroup>
+                                    </FormControl>
+
+                                    <FormControl fullWidth style={{
+                                        margin: "20px 0 20px",
+                                    }}>
+                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('是否强制使用ffmpeg检查')}</FormLabel>
+                                        <RadioGroup
+                                            row
+                                            aria-labelledby="demo-row-radio-buttons-group-label"
+                                            name="row-radio-buttons-group"
+                                            value={task.original.ffmpeg_check}
+                                            onChange={handleChangeFfmepgCheck}
+                                        >
+                                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                        </RadioGroup>
+                                    </FormControl>
+                                </div>
                             ) : ''
                         }
-                        <FormControl fullWidth style={{
-                            padding: "20px 0 20px", display: 'flex',
-                            flexDirection: 'row',
-                            justifyContent: 'space-between'
-                        }}>
-                            <Button variant="outlined" onClick={() => addNewM3uLink()} startIcon={<PublicIcon />}>{t('添加在线链接')}</Button>
-                            <Button variant="contained" component="label" startIcon={<UploadIcon />}>
-                                {t('本地上传m3u文件')}
-                                <input hidden accept="*" multiple type="file" onChange={handleFileUpload} />
-                            </Button>
-                        </FormControl>
-                        <FormControl fullWidth style={{
-                            margin: "0 0 20px",
-                        }}>
-                            <InputLabel id="demo-simple-select-standard-label">{t('定时检查时间')}</InputLabel>
-                            <Select
-                                labelId="demo-simple-select-standard-label"
-                                id="demo-simple-select-standard"
-                                value={task.original.run_type}
-                                label={t('定时检查时间')}
-                                onChange={handleChangeRunType}
-                            >
-                                {
-                                    run_type_list.map((value, index) => (
-                                        <MenuItem value={value.value} key={index}>{value.name}</MenuItem>
-                                    ))
-                                }
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth style={{
-                            margin: "20px 0 20px",
-                        }}>
-                            <InputLabel htmlFor="outlined-adornment-amount">{t('结果文件名')}</InputLabel>
-                            <OutlinedInput
-                                style={{ width: '100%' }}
-                                name="resultName"
-                                endAdornment={<InputAdornment position="end">{output_extenion}</InputAdornment>}
-                                startAdornment={<InputAdornment position="start">{output_folder}</InputAdornment>}
-                                aria-describedby="outlined-weight-helper-text"
-                                label={t('结果文件名')}
-                                value={task.original.result_name}
-                                onChange={changeResultName}
-                            />
-                        </FormControl>
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-around',
-                            flexDirection: 'row-reverse'
-                        }}>
-                            <Button
-                                variant="outlined"
-                                style={{ marginRight: '20px' }}
-                                onClick={handleSaveClick}
-                                startIcon={<SaveIcon />}
-                            >
-                                {t('保存')}
-                            </Button>
-                            {
-                                task.id !== '' ? (
-                                    <Button
-                                        variant="outlined"
-                                        style={{}}
-                                        color="error"
-                                        onClick={handleDeleteClick}
-                                        startIcon={<DeleteIcon />}
-                                    >{t('删除')}</Button>
-                                ) : ''
-                            }
-                        </div>
-                    </div>
-                </CustomTabPanel>
-                <CustomTabPanel value={tabIndex} index={1}>
-                    {
-                        task.original.keyword_like !== null && task.original.keyword_like.length > 0 ? (
-                            <FormControl fullWidth style={{
-                                padding: "0 0 20px",
-                            }}>
-                                <FormLabel id="demo-row-radio-buttons-group-label">{t('只看频道关键词')}</FormLabel>
-                                <Stack direction="row" spacing={1}>
-                                    {
-                                        task.original.keyword_like !== null && task.original.keyword_like.map((value, i) => (
-                                            <Chip
-                                                label={value}
-                                                onDelete={() => deleteThisLikeKw(i)}
-                                                variant="outlined"
-                                                key={i}
-                                            />
-                                        ))
-                                    }
-                                </Stack>
-                            </FormControl>
-                        ) : ''
-                    }
-                    {
-                        task.original.keyword_dislike !== null && task.original.keyword_dislike.length > 0 ? (
-                            <FormControl fullWidth style={{
-                                padding: "0 0 20px",
-                            }}>
-                                <FormLabel id="demo-row-radio-buttons-group-label">{t('不看频道关键词')}</FormLabel>
-                                <Stack direction="row" spacing={1}>
-                                    {
-                                        task.original.keyword_dislike.map((value, i) => (
-                                            <Chip
-                                                label={value}
-                                                variant="outlined"
-                                                onDelete={() => deleteThisDislikeKw(i)}
-                                                key={i}
-                                            />
-                                        ))
-                                    }
-                                </Stack>
-                            </FormControl>
-                        ) : ''
-                    }
-                    <FormControl fullWidth style={{
-                        margin: "20px 0 20px",
-                    }}>
-                        <Stack direction="row" spacing={1}>
-                            <TextField
-                                id="standard-basic"
-                                label={t('添加关键词')}
-                                variant="standard"
-                                value={filterKeyword} onChange={changeFilterKeyword} />
-                            <Button
-                                size='small'
-                                variant="outlined"
-                                onClick={() => addKeyword(1)}
-                                startIcon={<InsertEmoticonIcon />}
-                            >{t('添加只看')}</Button>
-                            <Button
-                                size='small'
-                                variant="outlined"
-                                onClick={() => addKeyword(2)}
-                                startIcon={<MoodBadIcon />}>{t('添加不看')}</Button>
-                        </Stack>
-                    </FormControl>
-                    <FormControl fullWidth style={{
-                        margin: "20px 0 20px",
-                    }}>
-                        <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要排序')}</FormLabel>
-                        <RadioGroup
-                            row
-                            aria-labelledby="demo-row-radio-buttons-group-label"
-                            name="row-radio-buttons-group"
-                            value={task.original.sort}
-                            onChange={handleChangeSortValue}
-                        >
-                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                        </RadioGroup>
-                    </FormControl>
-                    <FormControl fullWidth style={{
-                        margin: "20px 0 20px",
-                    }}>
-                        <FormLabel id="demo-row-radio-buttons-group-label">{t('是否不需要检查')}</FormLabel>
-                        <RadioGroup
-                            row
-                            aria-labelledby="demo-row-radio-buttons-group-label"
-                            name="row-radio-buttons-group"
-                            value={task.original.no_check}
-                            onChange={handleChangeNoCheckValue}
-                        >
-                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                        </RadioGroup>
-                    </FormControl>
+                        {
+                            activeStep === 2 ? (
+                                <div>
+                                    <FormControl fullWidth style={{
+                                        margin: "20px 0 20px",
+                                    }}>
+                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('http超时(毫秒ms)')}</FormLabel>
+                                        <TextField id="standard-basic" variant="standard" value={task.original.http_timeout} onChange={changeHttpTimeout} />
+                                    </FormControl>
+                                    <FormControl fullWidth style={{
+                                        margin: "20px 0 20px",
+                                    }}>
+                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('检查超时(毫秒ms)')}</FormLabel>
+                                        <TextField id="standard-basic" variant="standard" value={task.original.check_timeout} onChange={changeCheckTimeout} />
+                                    </FormControl>
+                                    <FormControl fullWidth style={{
+                                        margin: "20px 0 20px",
+                                    }}>
+                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('检查并发数')}</FormLabel>
+                                        <TextField id="standard-basic" variant="standard" value={task.original.concurrent} onChange={changeConcurrent} />
+                                    </FormControl>
+                                </div>
+                            ) : ''
+                        }
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
 
-                    <FormControl fullWidth style={{
-                        margin: "20px 0 20px",
-                    }}>
-                        <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要去掉频道多余字符')}</FormLabel>
-                        <RadioGroup
-                            row
-                            aria-labelledby="demo-row-radio-buttons-group-label"
-                            name="row-radio-buttons-group"
-                            value={task.original.rename}
-                            onChange={handleChangeRename}
-                        >
-                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                        </RadioGroup>
-                    </FormControl>
+                        {
+                            activeStep !== 0 ? (
+                                <Button
+                                    color="inherit"
+                                    onClick={handleBack}
+                                    sx={{ mr: 1 }}
+                                >
+                                    上一页
+                                </Button>
+                            ) : ""
+                        }
+                        {
+                            activeStep === 0 && task.id !== '' ? (
+                                <Button
+                                    style={{}}
+                                    color="error"
+                                    onClick={handleDeleteClick}
+                                    startIcon={<DeleteIcon />}
+                                >{t('删除')}</Button>
+                            ) : ''
+                        }
+                        <Box sx={{ flex: '1 1 auto' }} />
 
-                    <FormControl fullWidth style={{
-                        margin: "20px 0 20px",
-                    }}>
-                        <FormLabel id="demo-row-radio-buttons-group-label">{t('是否强制使用ffmpeg检查')}</FormLabel>
-                        <RadioGroup
-                            row
-                            aria-labelledby="demo-row-radio-buttons-group-label"
-                            name="row-radio-buttons-group"
-                            value={task.original.ffmpeg_check}
-                            onChange={handleChangeFfmepgCheck}
-                        >
-                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                        </RadioGroup>
-                    </FormControl>
-                </CustomTabPanel>
-                <CustomTabPanel value={tabIndex} index={2}>
-                    <FormControl fullWidth style={{
-                        margin: "20px 0 20px",
-                    }}>
-                        <FormLabel id="demo-row-radio-buttons-group-label">{t('http超时(毫秒ms)')}</FormLabel>
-                        <TextField id="standard-basic" variant="standard" value={task.original.http_timeout} onChange={changeHttpTimeout} />
-                    </FormControl>
-                    <FormControl fullWidth style={{
-                        margin: "20px 0 20px",
-                    }}>
-                        <FormLabel id="demo-row-radio-buttons-group-label">{t('检查超时(毫秒ms)')}</FormLabel>
-                        <TextField id="standard-basic" variant="standard" value={task.original.check_timeout} onChange={changeCheckTimeout} />
-                    </FormControl>
-                    <FormControl fullWidth style={{
-                        margin: "20px 0 20px",
-                    }}>
-                        <FormLabel id="demo-row-radio-buttons-group-label">{t('检查并发数')}</FormLabel>
-                        <TextField id="standard-basic" variant="standard" value={task.original.concurrent} onChange={changeConcurrent} />
-                    </FormControl>
-                </CustomTabPanel>
-            </div>
+                        {
+                            activeStep === steps.length - 1 ? (
+                                <Button onClick={handleSaveClick}>
+                                    保存
+                                </Button>
+                            ) : (
+                                <Button onClick={handleNext}>
+                                    下一页
+                                </Button>
+                            )
+                        }
+
+                    </Box>
+                </React.Fragment>
+            </Box>
         </Dialog>
     );
 }
@@ -698,10 +736,10 @@ function Row(props) {
                     <div>{t('最后一次运行时间')}：{row.task_info.last_run_time > 0 ? (new Date(row.task_info.last_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
                     <div>{t('下一次运行时间')}：{row.task_info.next_run_time > 0 ? (new Date(row.task_info.next_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
                     <div>{t('运行类型')}：{row.task_info.run_type} </div>
-                    <div>{t('是否不需要检查')}：{row.original.no_check ? t('是'):t('否')}</div>
-                    <div>{t('是否需要排序')}：{row.original.sort?t('是'):t('否')} </div>
-                    <div>{t('是否需要去掉频道多余字符')}：{row.original.rename?t('是'):t('否')} </div>
-                    <div>{t('是否强制使用ffmpeg检查')}：{row.original.ffmpeg_check?t('是'):t('否')} </div>
+                    <div>{t('是否不需要检查')}：{row.original.no_check ? t('是') : t('否')}</div>
+                    <div>{t('是否需要排序')}：{row.original.sort ? t('是') : t('否')} </div>
+                    <div>{t('是否需要去掉频道多余字符')}：{row.original.rename ? t('是') : t('否')} </div>
+                    <div>{t('是否强制使用ffmpeg检查')}：{row.original.ffmpeg_check ? t('是') : t('否')} </div>
                 </TableCell>
             </TableRow>
             <TableRow>
@@ -720,7 +758,7 @@ function Row(props) {
                                     row.original.keyword_dislike !== null ? (
                                         <TableRow key="dislike-row">
                                             <TableCell component="th" scope="row">
-                                                {t('不喜欢关键词')}：{row.original.keyword_dislike?row.original.keyword_dislike.join("、"):''}
+                                                {t('不喜欢关键词')}：{row.original.keyword_dislike ? row.original.keyword_dislike.join("、") : ''}
                                             </TableCell>
                                         </TableRow>
                                     ) : ''
@@ -729,7 +767,7 @@ function Row(props) {
                                     row.original.keyword_like !== null ? (
                                         <TableRow key="like-row">
                                             <TableCell component="th" scope="row">
-                                                {t('喜欢关键词')}：{row.original.keyword_like?row.original.keyword_like.join("、"):''}
+                                                {t('喜欢关键词')}：{row.original.keyword_like ? row.original.keyword_like.join("、") : ''}
                                             </TableCell>
                                         </TableRow>
                                     ) : ''
@@ -764,11 +802,11 @@ function DownloadDialog(props) {
         }
     }, [formValue])
 
-    const downloadFile = async() => {
+    const downloadFile = async () => {
         _mainContext.saveFile()
-        if(_mainContext.nowMod === 1) {
+        if (_mainContext.nowMod === 1) {
             window.open(url)
-        }else{
+        } else {
             _mainContext.clientSaveFile(formValue.content, 'm3u')
         }
     }
@@ -827,7 +865,7 @@ function DownloadDialog(props) {
 
 function ImportDialog(props) {
     const { t } = useTranslation();
-    const { onClose, open,onSave } = props;
+    const { onClose, open, onSave } = props;
 
     const [body, setBody] = React.useState('');
 
@@ -846,14 +884,14 @@ function ImportDialog(props) {
 
     return (
         <Dialog onClose={handleClose} open={open}>
-            <Box sx={{width: 500, padding:'20px'}}>
-            <TextField
-                id="outlined-multiline-flexible"
-                multiline
-                value={body}
-                maxRows={4}
-                style={{width:'500px'}}
-                onChange={changeValue}
+            <Box sx={{ width: 500, padding: '20px' }}>
+                <TextField
+                    id="outlined-multiline-flexible"
+                    multiline
+                    value={body}
+                    maxRows={4}
+                    style={{ width: '500px' }}
+                    onChange={changeValue}
                 />
             </Box>
             <Button variant="text" onClick={() => saveImport()}>{t('导入')}</Button>
@@ -870,13 +908,13 @@ function ExportDialog(props) {
 
     return (
         <Dialog onClose={handleClose} open={open}>
-            <Box sx={{width: 500, padding:'20px'}}>
-            <TextField
-                id="outlined-multiline-flexible"
-                multiline
-                value={formValue}
-                maxRows={4}
-                style={{width:'500px'}}
+            <Box sx={{ width: 500, padding: '20px' }}>
+                <TextField
+                    id="outlined-multiline-flexible"
+                    multiline
+                    value={formValue}
+                    maxRows={4}
+                    style={{ width: '500px' }}
                 />
             </Box>
         </Dialog>
@@ -889,10 +927,10 @@ export default function TaskList(props) {
     const privateHostRef = useRef("")
     const { t } = useTranslation();
     useEffect(() => {
-        if(_mainContext.nowMod === 1) {
+        if (_mainContext.nowMod === 1) {
             let config = _mainContext.settings
-            if(config !== null) {
-                if(config.privateHost !== '') {
+            if (config !== null) {
+                if (config.privateHost !== '') {
                     setPrivateHost(config.privateHost)
                     privateHostRef.current = config.privateHost
                     get_task_list()
@@ -968,15 +1006,15 @@ export default function TaskList(props) {
     }
 
     const getHost = () => {
-        if(_mainContext.nowMod === 0) {
+        if (_mainContext.nowMod === 0) {
             return ''
-        }else{
+        } else {
             return privateHostRef.current
         }
     }
 
     const task_add = (value) => {
-        axios.post(getHost()+"/tasks/add", getTaskSaveData(value)).then(res => {
+        axios.post(getHost() + "/tasks/add", getTaskSaveData(value)).then(res => {
             if (res.data.code === "200") {
                 get_task_list()
             } else {
@@ -988,7 +1026,7 @@ export default function TaskList(props) {
     }
 
     const handleDelete = (value) => {
-        axios.delete(getHost()+"/tasks/delete/" + value.id).then(res => {
+        axios.delete(getHost() + "/tasks/delete/" + value.id).then(res => {
             if (res.data.code === "200") {
                 get_task_list()
             } else {
@@ -1000,7 +1038,7 @@ export default function TaskList(props) {
     }
 
     const get_task_list = () => {
-        let url = getHost()+"/tasks/list?page=1"
+        let url = getHost() + "/tasks/list?page=1"
         axios.get(url).then(res => {
             setTaskList(res.data.list)
         }).catch(e => {
@@ -1020,7 +1058,7 @@ export default function TaskList(props) {
     }
 
     const doTaskRightNow = (id) => {
-        axios.get(getHost()+"/tasks/run?task_id=" + id).then(res => {
+        axios.get(getHost() + "/tasks/run?task_id=" + id).then(res => {
             get_task_list()
         }).catch(e => {
             handleOpenAlertBar(t('操作失败'))
@@ -1028,7 +1066,7 @@ export default function TaskList(props) {
     }
 
     const getDownloadBody = (id) => {
-        axios.get(getHost()+"/tasks/get-download-body?task_id=" + id).then(res => {
+        axios.get(getHost() + "/tasks/get-download-body?task_id=" + id).then(res => {
             setOpenDownloadBody(true)
             setDownloadBody({ 'content': res.data.content, "url": res.data.url })
         }).catch(e => {
@@ -1050,141 +1088,142 @@ export default function TaskList(props) {
     }
 
     const handleExportDialog = (val) => {
-        if(val) {
-            axios.get(getHost()+"/system/tasks/export").then(res => {
+        if (val) {
+            axios.get(getHost() + "/system/tasks/export").then(res => {
                 setShowExportDialog(true)
                 setExportBody(JSON.stringify(res.data))
             }).catch(e => {
                 handleOpenAlertBar(t('获取失败'))
             })
-        }else{
+        } else {
             setShowExportDialog(false)
         }
     }
 
-    const handleSaveImportData = (val) =>  {
-        try{
+    const handleSaveImportData = (val) => {
+        try {
             let data = JSON.parse(val)
-            axios.post(getHost()+"/system/tasks/import", data).then(res => {
+            axios.post(getHost() + "/system/tasks/import", data).then(res => {
                 setShowImportDialog(false)
                 refreshList()
             }).catch(e => {
                 handleOpenAlertBar(t('保存失败'))
             })
-        }catch(e) {
+        } catch (e) {
             console.log(e)
             handleOpenAlertBar(t('非法参数'))
         }
-    } 
+    }
 
     return (
-        <Box style={{padding: '0 20px'}}>
+        <Box style={{ padding: '0 20px' }}>
             {
                 privateHost || _mainContext.nowMod === 0 ? (
-            <>
-            <Box style={{
-                marginBottom: '10px',
-                display: 'flex',
-                justifyContent: 'space-between'}}>
-                <div>
-                    <Button 
-                        variant="contained" 
-                        startIcon={<AddIcon />} 
-                        onClick={() => handleClickOpen(null)}
-                        style={{marginRight: '10px'}}
-                        >
-                            {t('新增')}
-                    </Button>
-                    <Button 
-                        variant="outlined" 
-                        startIcon={<RefreshIcon />} 
-                        onClick={() => refreshList()}
-                        >
-                            {t('刷新列表')}
-                    </Button>
-                </div>
-                <div>
-                    <Button 
-                        variant="outlined" 
-                        startIcon={<PublishIcon />} 
-                        style={{marginRight: '10px'}}
-                        onClick={() => handleImportDialog(true)}
-                        >
-                        {t('任务导入')}
-                    </Button>
-                    <Button 
-                        variant="outlined" 
-                        startIcon={<GetAppIcon />} 
-                        onClick={() => handleExportDialog(true)}
-                        >
-                        {t('全部任务导出')}
-                    </Button>
-                </div>
-            </Box>
-            <Snackbar
-                open={openAlertBar}
-                autoHideDuration={6000}
-                onClose={handleCloseAlertBar}
-                message={alertBarMsg}
-            />
-            <TaskForm
-                formValue={JSON.parse(JSON.stringify(formValue))}
-                open={formDialog}
-                onClose={handleClose}
-                handleSave={handleSave}
-                handleDelete={handleDelete}
-            />
-            <DownloadDialog
-                formValue={downloadBody}
-                open={openDownloadBody}
-                onClose={() => handleDownloadClose(false)}
-            />
-            <ImportDialog 
-                open={showImportDialog} 
-                onClose={() => handleImportDialog(false)}
-                onSave={handleSaveImportData}
-                ></ImportDialog>
-            <ExportDialog 
-            open={showExportDialog} 
-            formValue={exportBody}
-            onClose={() => handleExportDialog(false)}
-            ></ExportDialog>
-            {
-                _mainContext.nowMod === 1 ? (
-                    <div>{t('当前设置的【后台检查server域名】为')}：{privateHost}</div>
-                ):''
-            }
-            <Paper sx={{ width: '1024px', overflow: 'hidden' }}>
-                <TableContainer>
-                <Table aria-label="simple table">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell></TableCell>
-                            <TableCell>任务id</TableCell>
-                            <TableCell>输出文件</TableCell>
-                            <TableCell align="right">其他</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
+                    <>
+                        <Box style={{
+                            marginBottom: '10px',
+                            display: 'flex',
+                            justifyContent: 'space-between'
+                        }}>
+                            <div>
+                                <Button
+                                    variant="contained"
+                                    startIcon={<AddIcon />}
+                                    onClick={() => handleClickOpen(null)}
+                                    style={{ marginRight: '10px' }}
+                                >
+                                    {t('新增')}
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<RefreshIcon />}
+                                    onClick={() => refreshList()}
+                                >
+                                    {t('刷新列表')}
+                                </Button>
+                            </div>
+                            <div>
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<PublishIcon />}
+                                    style={{ marginRight: '10px' }}
+                                    onClick={() => handleImportDialog(true)}
+                                >
+                                    {t('任务导入')}
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    startIcon={<GetAppIcon />}
+                                    onClick={() => handleExportDialog(true)}
+                                >
+                                    {t('全部任务导出')}
+                                </Button>
+                            </div>
+                        </Box>
+                        <Snackbar
+                            open={openAlertBar}
+                            autoHideDuration={6000}
+                            onClose={handleCloseAlertBar}
+                            message={alertBarMsg}
+                        />
+                        <TaskForm
+                            formValue={JSON.parse(JSON.stringify(formValue))}
+                            open={formDialog}
+                            onClose={handleClose}
+                            handleSave={handleSave}
+                            handleDelete={handleDelete}
+                        />
+                        <DownloadDialog
+                            formValue={downloadBody}
+                            open={openDownloadBody}
+                            onClose={() => handleDownloadClose(false)}
+                        />
+                        <ImportDialog
+                            open={showImportDialog}
+                            onClose={() => handleImportDialog(false)}
+                            onSave={handleSaveImportData}
+                        ></ImportDialog>
+                        <ExportDialog
+                            open={showExportDialog}
+                            formValue={exportBody}
+                            onClose={() => handleExportDialog(false)}
+                        ></ExportDialog>
                         {
-                            taskList.map((row) => (
-                                <Row
-                                    key={row.id}
-                                    row={row}
-                                    doTaskRightNow={doTaskRightNow}
-                                    showDownloadDialog={getDownloadBody}
-                                    clickTask={() => handleClickOpen(row)}
-                                />
-                            ))
+                            _mainContext.nowMod === 1 ? (
+                                <div>{t('当前设置的【后台检查server域名】为')}：{privateHost}</div>
+                            ) : ''
                         }
-                    </TableBody>
-                </Table>
-            </TableContainer>
-            </Paper>
-            </>
-            ):(
-                <Box>{t('对不起，您没有设置【后台检查server域名】，请至设置页面操作后再来查看')}</Box>
-            )}
+                        <Paper sx={{ width: '1024px', overflow: 'hidden' }}>
+                            <TableContainer>
+                                <Table aria-label="simple table">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell></TableCell>
+                                            <TableCell>任务id</TableCell>
+                                            <TableCell>输出文件</TableCell>
+                                            <TableCell align="right">其他</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {
+                                            taskList.map((row) => (
+                                                <Row
+                                                    key={row.id}
+                                                    row={row}
+                                                    doTaskRightNow={doTaskRightNow}
+                                                    showDownloadDialog={getDownloadBody}
+                                                    clickTask={() => handleClickOpen(row)}
+                                                />
+                                            ))
+                                        }
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </Paper>
+                    </>
+                ) : (
+                    <Box>{t('对不起，您没有设置【后台检查server域名】，请至设置页面操作后再来查看')}</Box>
+                )}
         </Box>
     );
 }
