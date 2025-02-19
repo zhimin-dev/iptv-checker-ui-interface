@@ -9,7 +9,6 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
-import DialogTitle from '@mui/material/DialogTitle';
 import Paper from '@mui/material/Paper';
 import axios from 'axios'
 import Collapse from '@mui/material/Collapse';
@@ -34,11 +33,8 @@ import UploadIcon from '@mui/icons-material/Upload';
 import AddIcon from '@mui/icons-material/Add';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import DeleteIcon from '@mui/icons-material/Delete';
-import SaveIcon from '@mui/icons-material/Save';
 import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 import MoodBadIcon from '@mui/icons-material/MoodBad';
 import Radio from '@mui/material/Radio';
@@ -49,6 +45,10 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import { useTranslation, initReactI18next } from "react-i18next";
 import GetAppIcon from '@mui/icons-material/GetApp';
 import PublishIcon from '@mui/icons-material/Publish';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 
 const run_type_list = [{ "value": "EveryDay", "name": "每天" }, { "value": "EveryHour", "name": "每小时" }]
 const output_folder = "static/output/"
@@ -126,6 +126,7 @@ function TaskForm(props) {
 
     const handleDeleteClick = () => {
         handleDelete(task)
+        handleDelClose()
         onClose();
     }
 
@@ -433,312 +434,336 @@ function TaskForm(props) {
         setActiveStep((prevActiveStep) => prevActiveStep - 1);
     };
 
-    return (
-        <Dialog onClose={handleClose} open={open}>
-            <Box sx={{ width: '100%', padding: '40px' }}>
-                <Stepper activeStep={activeStep}>
-                    {steps.map((label, index) => {
-                        const stepProps = {};
-                        const labelProps = {};
-                        return (
-                            <Step key={label} {...stepProps}>
-                                <StepLabel {...labelProps}>{label}</StepLabel>
-                            </Step>
-                        );
-                    })}
-                </Stepper>
+    const [delOpen, setDelOpen] = React.useState(false);
 
-                <React.Fragment>
-                    <Typography sx={{ mt: 2, mb: 1 }}>
-                        {
-                            activeStep === 0 ? (
-                                <div>
-                                    {
-                                        task.original.urls.length > 0 ? (
-                                            <FormControl fullWidth style={{
-                                                padding: "0 0 20px",
-                                            }}>
-                                                <div id="demo-simple-select-standard-label">{t('检查文件列表')}</div>
+    const handleDelClickOpen = () => {
+        setDelOpen(true);
+    };
+
+    const handleDelClose = () => {
+        setDelOpen(false);
+    };
+
+    return (
+        <>
+            <Dialog
+                open={delOpen}
+                onClose={handleDelClose}
+                maxWidth={true}
+                aria-describedby="alert-dialog-slide-description"
+            >
+                <DialogTitle>{"确定要删除吗？删除后不可恢复"}</DialogTitle>
+                <DialogActions>
+                <Button onClick={handleDelClose}>No</Button>
+                <Button onClick={handleDeleteClick}>Yes</Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog onClose={handleClose} open={open}>
+                <Box sx={{ width: '100%', padding: '40px' }}>
+                    <Stepper activeStep={activeStep}>
+                        {steps.map((label, index) => {
+                            const stepProps = {};
+                            const labelProps = {};
+                            return (
+                                <Step key={label} {...stepProps}>
+                                    <StepLabel {...labelProps}>{label}</StepLabel>
+                                </Step>
+                            );
+                        })}
+                    </Stepper>
+
+                    <React.Fragment>
+                        <Typography sx={{ mt: 2, mb: 1 }}>
+                            {
+                                activeStep === 0 ? (
+                                    <div>
+                                        {
+                                            task.original.urls.length > 0 ? (
+                                                <FormControl fullWidth style={{
+                                                    padding: "0 0 20px",
+                                                }}>
+                                                    <div id="demo-simple-select-standard-label">{t('检查文件列表')}</div>
+                                                    {
+                                                        task.original.urls.map((value, index) => (
+                                                            <div style={{ display: 'flex' }} key={index}>
+                                                                <TextField style={{ width: '100%' }} disabled={value.startsWith("static")} id="standard-basic" variant="standard" name={"url-" + index} value={value} onChange={changeUrls} />
+                                                                <IconButton aria-label="delete" onClick={() => handleDelRow(index)}>
+                                                                    <DeleteIcon />
+                                                                </IconButton>
+                                                            </div>
+                                                        ))
+                                                    }
+                                                </FormControl>
+                                            ) : ''
+                                        }
+                                        <FormControl fullWidth style={{
+                                            padding: "20px 0 20px", display: 'flex',
+                                            flexDirection: 'row',
+                                            justifyContent: 'space-between'
+                                        }}>
+                                            <Button variant="outlined" onClick={() => addNewM3uLink()} startIcon={<PublicIcon />}>{t('添加在线链接')}</Button>
+                                            <Button variant="contained" component="label" startIcon={<UploadIcon />}>
+                                                {t('本地上传m3u文件')}
+                                                <input hidden accept="*" multiple type="file" onChange={handleFileUpload} />
+                                            </Button>
+                                        </FormControl>
+                                        <FormControl fullWidth style={{
+                                            margin: "0 0 20px",
+                                        }}>
+                                            <InputLabel id="demo-simple-select-standard-label">{t('定时检查时间')}</InputLabel>
+                                            <Select
+                                                labelId="demo-simple-select-standard-label"
+                                                id="demo-simple-select-standard"
+                                                value={task.original.run_type}
+                                                label={t('定时检查时间')}
+                                                onChange={handleChangeRunType}
+                                            >
                                                 {
-                                                    task.original.urls.map((value, index) => (
-                                                        <div style={{ display: 'flex' }} key={index}>
-                                                            <TextField style={{ width: '100%' }} disabled={value.startsWith("static")} id="standard-basic" variant="standard" name={"url-" + index} value={value} onChange={changeUrls} />
-                                                            <IconButton aria-label="delete" onClick={() => handleDelRow(index)}>
-                                                                <DeleteIcon />
-                                                            </IconButton>
-                                                        </div>
+                                                    run_type_list.map((value, index) => (
+                                                        <MenuItem value={value.value} key={index}>{value.name}</MenuItem>
                                                     ))
                                                 }
-                                            </FormControl>
-                                        ) : ''
-                                    }
-                                    <FormControl fullWidth style={{
-                                        padding: "20px 0 20px", display: 'flex',
-                                        flexDirection: 'row',
-                                        justifyContent: 'space-between'
-                                    }}>
-                                        <Button variant="outlined" onClick={() => addNewM3uLink()} startIcon={<PublicIcon />}>{t('添加在线链接')}</Button>
-                                        <Button variant="contained" component="label" startIcon={<UploadIcon />}>
-                                            {t('本地上传m3u文件')}
-                                            <input hidden accept="*" multiple type="file" onChange={handleFileUpload} />
-                                        </Button>
-                                    </FormControl>
-                                    <FormControl fullWidth style={{
-                                        margin: "0 0 20px",
-                                    }}>
-                                        <InputLabel id="demo-simple-select-standard-label">{t('定时检查时间')}</InputLabel>
-                                        <Select
-                                            labelId="demo-simple-select-standard-label"
-                                            id="demo-simple-select-standard"
-                                            value={task.original.run_type}
-                                            label={t('定时检查时间')}
-                                            onChange={handleChangeRunType}
-                                        >
-                                            {
-                                                run_type_list.map((value, index) => (
-                                                    <MenuItem value={value.value} key={index}>{value.name}</MenuItem>
-                                                ))
-                                            }
-                                        </Select>
-                                    </FormControl>
-                                    <FormControl fullWidth style={{
-                                        margin: "20px 0 20px",
-                                    }}>
-                                        <InputLabel htmlFor="outlined-adornment-amount">{t('结果文件名')}</InputLabel>
-                                        <OutlinedInput
-                                            style={{ width: '100%' }}
-                                            name="resultName"
-                                            endAdornment={<InputAdornment position="end">{output_extenion}</InputAdornment>}
-                                            startAdornment={<InputAdornment position="start">{output_folder}</InputAdornment>}
-                                            aria-describedby="outlined-weight-helper-text"
-                                            label={t('结果文件名')}
-                                            value={task.original.result_name}
-                                            onChange={changeResultName}
-                                        />
-                                    </FormControl>
-                                </div>
-                            ) : ''
-                        }
-                        {
-                            activeStep === 1 ? (
-                                <div>
-                                    {
-                                        task.original.keyword_like !== null && task.original.keyword_like.length > 0 ? (
-                                            <FormControl fullWidth style={{
-                                                padding: "0 0 20px",
-                                            }}>
-                                                <FormLabel id="demo-row-radio-buttons-group-label">{t('只看频道关键词')}</FormLabel>
-                                                <Stack direction="row" spacing={1}>
-                                                    {
-                                                        task.original.keyword_like !== null && task.original.keyword_like.map((value, i) => (
-                                                            <Chip
-                                                                label={value}
-                                                                onDelete={() => deleteThisLikeKw(i)}
-                                                                variant="outlined"
-                                                                key={i}
-                                                            />
-                                                        ))
-                                                    }
-                                                </Stack>
-                                            </FormControl>
-                                        ) : ''
-                                    }
-                                    {
-                                        task.original.keyword_dislike !== null && task.original.keyword_dislike.length > 0 ? (
-                                            <FormControl fullWidth style={{
-                                                padding: "0 0 20px",
-                                            }}>
-                                                <FormLabel id="demo-row-radio-buttons-group-label">{t('不看频道关键词')}</FormLabel>
-                                                <Stack direction="row" spacing={1}>
-                                                    {
-                                                        task.original.keyword_dislike.map((value, i) => (
-                                                            <Chip
-                                                                label={value}
-                                                                variant="outlined"
-                                                                onDelete={() => deleteThisDislikeKw(i)}
-                                                                key={i}
-                                                            />
-                                                        ))
-                                                    }
-                                                </Stack>
-                                            </FormControl>
-                                        ) : ''
-                                    }
-                                    <FormControl fullWidth style={{
-                                        margin: "20px 0 20px",
-                                    }}>
-                                        <Stack direction="row" spacing={1}>
-                                            <TextField
-                                                id="standard-basic"
-                                                label={t('添加关键词')}
-                                                variant="standard"
-                                                value={filterKeyword} onChange={changeFilterKeyword} />
-                                            <Button
-                                                size='small'
-                                                variant="outlined"
-                                                onClick={() => addKeyword(1)}
-                                                startIcon={<InsertEmoticonIcon />}
-                                            >{t('添加只看')}</Button>
-                                            <Button
-                                                size='small'
-                                                variant="outlined"
-                                                onClick={() => addKeyword(2)}
-                                                startIcon={<MoodBadIcon />}>{t('添加不看')}</Button>
-                                        </Stack>
-                                    </FormControl>
-                                    <FormControl fullWidth style={{
-                                        margin: "20px 0 20px",
-                                    }}>
-                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要排序')}</FormLabel>
-                                        <RadioGroup
-                                            row
-                                            aria-labelledby="demo-row-radio-buttons-group-label"
-                                            name="row-radio-buttons-group"
-                                            value={task.original.sort}
-                                            onChange={handleChangeSortValue}
-                                        >
-                                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                                        </RadioGroup>
-                                    </FormControl>
-                                    <FormControl fullWidth style={{
-                                        margin: "20px 0 20px",
-                                    }}>
-                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('是否不需要检查')}</FormLabel>
-                                        <RadioGroup
-                                            row
-                                            aria-labelledby="demo-row-radio-buttons-group-label"
-                                            name="row-radio-buttons-group"
-                                            value={task.original.no_check}
-                                            onChange={handleChangeNoCheckValue}
-                                        >
-                                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                                        </RadioGroup>
-                                    </FormControl>
+                                            </Select>
+                                        </FormControl>
+                                        <FormControl fullWidth style={{
+                                            margin: "20px 0 20px",
+                                        }}>
+                                            <InputLabel htmlFor="outlined-adornment-amount">{t('结果文件名')}</InputLabel>
+                                            <OutlinedInput
+                                                style={{ width: '100%' }}
+                                                name="resultName"
+                                                endAdornment={<InputAdornment position="end">{output_extenion}</InputAdornment>}
+                                                startAdornment={<InputAdornment position="start">{output_folder}</InputAdornment>}
+                                                aria-describedby="outlined-weight-helper-text"
+                                                label={t('结果文件名')}
+                                                value={task.original.result_name}
+                                                onChange={changeResultName}
+                                            />
+                                        </FormControl>
+                                    </div>
+                                ) : ''
+                            }
+                            {
+                                activeStep === 1 ? (
+                                    <div>
+                                        {
+                                            task.original.keyword_like !== null && task.original.keyword_like.length > 0 ? (
+                                                <FormControl fullWidth style={{
+                                                    padding: "0 0 20px",
+                                                }}>
+                                                    <FormLabel id="demo-row-radio-buttons-group-label">{t('只看频道关键词')}</FormLabel>
+                                                    <Stack direction="row" spacing={1}>
+                                                        {
+                                                            task.original.keyword_like !== null && task.original.keyword_like.map((value, i) => (
+                                                                <Chip
+                                                                    label={value}
+                                                                    onDelete={() => deleteThisLikeKw(i)}
+                                                                    variant="outlined"
+                                                                    key={i}
+                                                                />
+                                                            ))
+                                                        }
+                                                    </Stack>
+                                                </FormControl>
+                                            ) : ''
+                                        }
+                                        {
+                                            task.original.keyword_dislike !== null && task.original.keyword_dislike.length > 0 ? (
+                                                <FormControl fullWidth style={{
+                                                    padding: "0 0 20px",
+                                                }}>
+                                                    <FormLabel id="demo-row-radio-buttons-group-label">{t('不看频道关键词')}</FormLabel>
+                                                    <Stack direction="row" spacing={1}>
+                                                        {
+                                                            task.original.keyword_dislike.map((value, i) => (
+                                                                <Chip
+                                                                    label={value}
+                                                                    variant="outlined"
+                                                                    onDelete={() => deleteThisDislikeKw(i)}
+                                                                    key={i}
+                                                                />
+                                                            ))
+                                                        }
+                                                    </Stack>
+                                                </FormControl>
+                                            ) : ''
+                                        }
+                                        <FormControl fullWidth style={{
+                                            margin: "20px 0 20px",
+                                        }}>
+                                            <Stack direction="row" spacing={1}>
+                                                <TextField
+                                                    id="standard-basic"
+                                                    label={t('添加关键词')}
+                                                    variant="standard"
+                                                    value={filterKeyword} onChange={changeFilterKeyword} />
+                                                <Button
+                                                    size='small'
+                                                    variant="outlined"
+                                                    onClick={() => addKeyword(1)}
+                                                    startIcon={<InsertEmoticonIcon />}
+                                                >{t('添加只看')}</Button>
+                                                <Button
+                                                    size='small'
+                                                    variant="outlined"
+                                                    onClick={() => addKeyword(2)}
+                                                    startIcon={<MoodBadIcon />}>{t('添加不看')}</Button>
+                                            </Stack>
+                                        </FormControl>
+                                        <FormControl fullWidth style={{
+                                            margin: "20px 0 20px",
+                                        }}>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要排序')}</FormLabel>
+                                            <RadioGroup
+                                                row
+                                                aria-labelledby="demo-row-radio-buttons-group-label"
+                                                name="row-radio-buttons-group"
+                                                value={task.original.sort}
+                                                onChange={handleChangeSortValue}
+                                            >
+                                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                            </RadioGroup>
+                                        </FormControl>
+                                        <FormControl fullWidth style={{
+                                            margin: "20px 0 20px",
+                                        }}>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否不需要检查')}</FormLabel>
+                                            <RadioGroup
+                                                row
+                                                aria-labelledby="demo-row-radio-buttons-group-label"
+                                                name="row-radio-buttons-group"
+                                                value={task.original.no_check}
+                                                onChange={handleChangeNoCheckValue}
+                                            >
+                                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                            </RadioGroup>
+                                        </FormControl>
 
-                                    <FormControl fullWidth style={{
-                                        margin: "20px 0 20px",
-                                    }}>
-                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要去掉频道多余字符')}</FormLabel>
-                                        <RadioGroup
-                                            row
-                                            aria-labelledby="demo-row-radio-buttons-group-label"
-                                            name="row-radio-buttons-group"
-                                            value={task.original.rename}
-                                            onChange={handleChangeRename}
-                                        >
-                                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                                        </RadioGroup>
-                                    </FormControl>
+                                        <FormControl fullWidth style={{
+                                            margin: "20px 0 20px",
+                                        }}>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要去掉频道多余字符')}</FormLabel>
+                                            <RadioGroup
+                                                row
+                                                aria-labelledby="demo-row-radio-buttons-group-label"
+                                                name="row-radio-buttons-group"
+                                                value={task.original.rename}
+                                                onChange={handleChangeRename}
+                                            >
+                                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                            </RadioGroup>
+                                        </FormControl>
 
-                                    <FormControl fullWidth style={{
-                                        margin: "20px 0 20px",
-                                    }}>
-                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('是否强制使用ffmpeg检查')}</FormLabel>
-                                        <RadioGroup
-                                            row
-                                            aria-labelledby="demo-row-radio-buttons-group-label"
-                                            name="row-radio-buttons-group"
-                                            value={task.original.ffmpeg_check}
-                                            onChange={handleChangeFfmepgCheck}
-                                        >
-                                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                                        </RadioGroup>
-                                    </FormControl>
+                                        <FormControl fullWidth style={{
+                                            margin: "20px 0 20px",
+                                        }}>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否强制使用ffmpeg检查')}</FormLabel>
+                                            <RadioGroup
+                                                row
+                                                aria-labelledby="demo-row-radio-buttons-group-label"
+                                                name="row-radio-buttons-group"
+                                                value={task.original.ffmpeg_check}
+                                                onChange={handleChangeFfmepgCheck}
+                                            >
+                                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                            </RadioGroup>
+                                        </FormControl>
 
-                                    <FormControl fullWidth style={{
-                                        margin: "20px 0 20px",
-                                    }}>
-                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('如果不是http链接则跳过')}</FormLabel>
-                                        <RadioGroup
-                                            row
-                                            aria-labelledby="demo-row-radio-buttons-group-label"
-                                            name="row-radio-buttons-group"
-                                            value={task.original.not_http_skip}
-                                            onChange={handleChangeNotHttpSkip}
-                                        >
-                                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                                        </RadioGroup>
-                                    </FormControl>
+                                        <FormControl fullWidth style={{
+                                            margin: "20px 0 20px",
+                                        }}>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('如果不是http链接则跳过')}</FormLabel>
+                                            <RadioGroup
+                                                row
+                                                aria-labelledby="demo-row-radio-buttons-group-label"
+                                                name="row-radio-buttons-group"
+                                                value={task.original.not_http_skip}
+                                                onChange={handleChangeNotHttpSkip}
+                                            >
+                                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                            </RadioGroup>
+                                        </FormControl>
 
-                                    <FormControl fullWidth style={{
-                                        margin: "20px 0 20px",
-                                    }}>
-                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('相同名称保存条数')}</FormLabel>
-                                        <TextField id="standard-basic" variant="standard" value={task.original.same_save_num} onChange={changeSameSaveNum} />
-                                    </FormControl>
-                                </div>
-                            ) : ''
-                        }
-                        {
-                            activeStep === 2 ? (
-                                <div>
-                                    <FormControl fullWidth style={{
-                                        margin: "20px 0 20px",
-                                    }}>
-                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('http超时(毫秒ms)')}</FormLabel>
-                                        <TextField id="standard-basic" variant="standard" value={task.original.http_timeout} onChange={changeHttpTimeout} />
-                                    </FormControl>
-                                    <FormControl fullWidth style={{
-                                        margin: "20px 0 20px",
-                                    }}>
-                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('检查超时(毫秒ms)')}</FormLabel>
-                                        <TextField id="standard-basic" variant="standard" value={task.original.check_timeout} onChange={changeCheckTimeout} />
-                                    </FormControl>
-                                    <FormControl fullWidth style={{
-                                        margin: "20px 0 20px",
-                                    }}>
-                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('检查并发数')}</FormLabel>
-                                        <TextField id="standard-basic" variant="standard" value={task.original.concurrent} onChange={changeConcurrent} />
-                                    </FormControl>
-                                </div>
-                            ) : ''
-                        }
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-                        {
-                            activeStep !== 0 ? (
-                                <Button
-                                    color="inherit"
-                                    onClick={handleBack}
-                                    sx={{ mr: 1 }}
-                                >
-                                    上一页
-                                </Button>
-                            ) : ""
-                        }
-                        {
-                            activeStep === 0 && task.id !== '' ? (
-                                <Button
-                                    style={{}}
-                                    color="error"
-                                    onClick={handleDeleteClick}
-                                    startIcon={<DeleteIcon />}
-                                >{t('删除')}</Button>
-                            ) : ''
-                        }
-                        <Box sx={{ flex: '1 1 auto' }} />
+                                        <FormControl fullWidth style={{
+                                            margin: "20px 0 20px",
+                                        }}>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('相同名称保存条数')}</FormLabel>
+                                            <TextField id="standard-basic" variant="standard" value={task.original.same_save_num} onChange={changeSameSaveNum} />
+                                        </FormControl>
+                                    </div>
+                                ) : ''
+                            }
+                            {
+                                activeStep === 2 ? (
+                                    <div>
+                                        <FormControl fullWidth style={{
+                                            margin: "20px 0 20px",
+                                        }}>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('http超时(毫秒ms)')}</FormLabel>
+                                            <TextField id="standard-basic" variant="standard" value={task.original.http_timeout} onChange={changeHttpTimeout} />
+                                        </FormControl>
+                                        <FormControl fullWidth style={{
+                                            margin: "20px 0 20px",
+                                        }}>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('检查超时(毫秒ms)')}</FormLabel>
+                                            <TextField id="standard-basic" variant="standard" value={task.original.check_timeout} onChange={changeCheckTimeout} />
+                                        </FormControl>
+                                        <FormControl fullWidth style={{
+                                            margin: "20px 0 20px",
+                                        }}>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('检查并发数')}</FormLabel>
+                                            <TextField id="standard-basic" variant="standard" value={task.original.concurrent} onChange={changeConcurrent} />
+                                        </FormControl>
+                                    </div>
+                                ) : ''
+                            }
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
+                            {
+                                activeStep !== 0 ? (
+                                    <Button
+                                        color="inherit"
+                                        onClick={handleBack}
+                                        sx={{ mr: 1 }}
+                                    >
+                                        上一页
+                                    </Button>
+                                ) : ""
+                            }
+                            {
+                                activeStep === 0 && task.id !== '' ? (
+                                    <Button
+                                        style={{}}
+                                        color="error"
+                                        onClick={handleDelClickOpen}
+                                        startIcon={<DeleteIcon />}
+                                    >{t('删除')}</Button>
+                                ) : ''
+                            }
+                            <Box sx={{ flex: '1 1 auto' }} />
 
-                        {
-                            activeStep === steps.length - 1 ? (
-                                <Button onClick={handleSaveClick}>
-                                    保存
-                                </Button>
-                            ) : (
-                                <Button onClick={handleNext}>
-                                    下一页
-                                </Button>
-                            )
-                        }
+                            {
+                                activeStep === steps.length - 1 ? (
+                                    <Button onClick={handleSaveClick}>
+                                        保存
+                                    </Button>
+                                ) : (
+                                    <Button onClick={handleNext}>
+                                        下一页
+                                    </Button>
+                                )
+                            }
 
-                    </Box>
-                </React.Fragment>
-            </Box>
-        </Dialog>
+                        </Box>
+                    </React.Fragment>
+                </Box>
+            </Dialog>
+        </>
     );
 }
 
