@@ -69,6 +69,8 @@ const defaultValue = {
         "no_check": false,
         "rename": false,
         "ffmpeg_check": false,
+        "not_http_skip": false,
+        "same_save_num":0,
     },
     "id": "",
     "create_time": 0,
@@ -153,6 +155,8 @@ function TaskForm(props) {
             formValue.original.no_check = formValue.original.no_check ?? false;
             formValue.original.rename = formValue.original.rename ?? false;
             formValue.original.ffmpeg_check = formValue.original.ffmpeg_check ?? false;
+            formValue.original.not_http_skip = formValue.original.not_http_skip??false;
+            formValue.original.same_save_num = formValue.original.same_save_num ?? 0;
             setTask(formValue)
         } else {
             let default_data = JSON.parse(JSON.stringify(defaultValue))
@@ -349,12 +353,38 @@ function TaskForm(props) {
         });
     }
 
+    const handleChangeNotHttpSkip = (e) => {
+        let checked = false
+        if (e.target.defaultValue === "false") {
+            checked = false
+        } else {
+            checked = true
+        }
+        setTask({
+            ...task,
+            original: {
+                ...task.original,
+                not_http_skip: checked
+            }
+        });
+    }
+
     const changeHttpTimeout = (e) => {
         setTask({
             ...task,
             original: {
                 ...task.original,
                 http_timeout: parseInt(e.target.value, 10)
+            }
+        });
+    }
+
+    const changeSameSaveNum = (e) => {
+        setTask({
+            ...task,
+            original: {
+                ...task.original,
+                same_save_num: parseInt(e.target.value, 10)
             }
         });
     }
@@ -618,6 +648,29 @@ function TaskForm(props) {
                                             <FormControlLabel value="true" control={<Radio />} label={t('是')} />
                                         </RadioGroup>
                                     </FormControl>
+
+                                    <FormControl fullWidth style={{
+                                        margin: "20px 0 20px",
+                                    }}>
+                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('如果不是http链接则跳过')}</FormLabel>
+                                        <RadioGroup
+                                            row
+                                            aria-labelledby="demo-row-radio-buttons-group-label"
+                                            name="row-radio-buttons-group"
+                                            value={task.original.not_http_skip}
+                                            onChange={handleChangeNotHttpSkip}
+                                        >
+                                            <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                            <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                        </RadioGroup>
+                                    </FormControl>
+
+                                    <FormControl fullWidth style={{
+                                        margin: "20px 0 20px",
+                                    }}>
+                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('相同名称保存条数')}</FormLabel>
+                                        <TextField id="standard-basic" variant="standard" value={task.original.same_save_num} onChange={changeSameSaveNum} />
+                                    </FormControl>
                                 </div>
                             ) : ''
                         }
@@ -647,7 +700,6 @@ function TaskForm(props) {
                         }
                     </Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-
                         {
                             activeStep !== 0 ? (
                                 <Button
@@ -740,6 +792,8 @@ function Row(props) {
                     <div>{t('是否需要排序')}：{row.original.sort ? t('是') : t('否')} </div>
                     <div>{t('是否需要去掉频道多余字符')}：{row.original.rename ? t('是') : t('否')} </div>
                     <div>{t('是否强制使用ffmpeg检查')}：{row.original.ffmpeg_check ? t('是') : t('否')} </div>
+                    <div>{t('如果不是http链接则跳过')}：{row.original.not_http_skip ? t('是') : t('否')} </div>
+                    <div>{t('相同名称保存条数')}：{row.original.same_save_num > 0 ? row.original.same_save_num : t('保存全部')} </div>
                 </TableCell>
             </TableRow>
             <TableRow>
@@ -990,6 +1044,8 @@ export default function TaskList(props) {
             "concurrent": value.original.concurrent,
             "rename": value.original.rename,
             "ffmpeg_check": value.original.ffmpeg_check,
+            "not_http_skip": value.original.not_http_skip,
+            "same_save_num": value.original.same_save_num,
         }
     }
 
