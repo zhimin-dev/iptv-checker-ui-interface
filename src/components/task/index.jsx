@@ -70,7 +70,7 @@ const defaultValue = {
         "rename": false,
         "ffmpeg_check": false,
         "not_http_skip": false,
-        "same_save_num":0,
+        "same_save_num": 0,
     },
     "id": "",
     "create_time": 0,
@@ -81,25 +81,6 @@ const defaultValue = {
         "is_running": false,
         "task_status": "Pending"
     }
-}
-
-function CustomTabPanel(props) {
-    const { children, value, index, ...other } = props;
-
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`simple-tabpanel-${index}`}
-            aria-labelledby={`simple-tab-${index}`}
-            style={{ height: '400px' }}
-            {...other}
-        >
-            {value === index && (
-                <Typography>{children}</Typography>
-            )}
-        </div>
-    );
 }
 
 
@@ -156,7 +137,7 @@ function TaskForm(props) {
             formValue.original.no_check = formValue.original.no_check ?? false;
             formValue.original.rename = formValue.original.rename ?? false;
             formValue.original.ffmpeg_check = formValue.original.ffmpeg_check ?? false;
-            formValue.original.not_http_skip = formValue.original.not_http_skip??false;
+            formValue.original.not_http_skip = formValue.original.not_http_skip ?? false;
             formValue.original.same_save_num = formValue.original.same_save_num ?? 0;
             setTask(formValue)
         } else {
@@ -422,7 +403,7 @@ function TaskForm(props) {
         });
     }
 
-    const steps = ['基础配置', '个性化配置', '系统配置'];
+    const steps = ['基础配置', '个性化配置', '检查配置'];
 
     const [activeStep, setActiveStep] = React.useState(0);
 
@@ -454,8 +435,8 @@ function TaskForm(props) {
             >
                 <DialogTitle>{"确定要删除吗？删除后不可恢复"}</DialogTitle>
                 <DialogActions>
-                <Button onClick={handleDelClose}>No</Button>
-                <Button onClick={handleDeleteClick}>Yes</Button>
+                    <Button onClick={handleDelClose}>No</Button>
+                    <Button onClick={handleDeleteClick}>Yes</Button>
                 </DialogActions>
             </Dialog>
             <Dialog onClose={handleClose} open={open}>
@@ -610,91 +591,6 @@ function TaskForm(props) {
                                                     startIcon={<MoodBadIcon />}>{t('添加不看')}</Button>
                                             </Stack>
                                         </FormControl>
-                                        <FormControl fullWidth style={{
-                                            margin: "10px 0 20px",
-                                        }}>
-                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要排序')}</FormLabel>
-                                            <RadioGroup
-                                                row
-                                                aria-labelledby="demo-row-radio-buttons-group-label"
-                                                name="row-radio-buttons-group"
-                                                value={task.original.sort}
-                                                onChange={handleChangeSortValue}
-                                            >
-                                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                                            </RadioGroup>
-                                        </FormControl>
-                                        <FormControl fullWidth style={{
-                                            margin: "10px 0 20px",
-                                        }}>
-                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否不需要检查(不去检查链接是否有效)')}</FormLabel>
-                                            <RadioGroup
-                                                row
-                                                aria-labelledby="demo-row-radio-buttons-group-label"
-                                                name="row-radio-buttons-group"
-                                                value={task.original.no_check}
-                                                onChange={handleChangeNoCheckValue}
-                                            >
-                                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                                            </RadioGroup>
-                                        </FormControl>
-
-                                        <FormControl fullWidth style={{
-                                            margin: "10px 0 20px",
-                                        }}>
-                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要去掉频道多余字符(比如"[HD]CCTV1"将去掉"[HD]"字符)')}</FormLabel>
-                                            <RadioGroup
-                                                row
-                                                aria-labelledby="demo-row-radio-buttons-group-label"
-                                                name="row-radio-buttons-group"
-                                                value={task.original.rename}
-                                                onChange={handleChangeRename}
-                                            >
-                                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                                            </RadioGroup>
-                                        </FormControl>
-
-                                        <FormControl fullWidth style={{
-                                            margin: "10px 0 20px",
-                                        }}>
-                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否强制使用ffmpeg检查(默认使用http检查)')}</FormLabel>
-                                            <RadioGroup
-                                                row
-                                                aria-labelledby="demo-row-radio-buttons-group-label"
-                                                name="row-radio-buttons-group"
-                                                value={task.original.ffmpeg_check}
-                                                onChange={handleChangeFfmepgCheck}
-                                            >
-                                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                                            </RadioGroup>
-                                        </FormControl>
-
-                                        <FormControl fullWidth style={{
-                                            margin: "10px 0 20px",
-                                        }}>
-                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('如果不是http链接则跳过(当使用http检查时无法检查非http(s)前缀的链接)')}</FormLabel>
-                                            <RadioGroup
-                                                row
-                                                aria-labelledby="demo-row-radio-buttons-group-label"
-                                                name="row-radio-buttons-group"
-                                                value={task.original.not_http_skip}
-                                                onChange={handleChangeNotHttpSkip}
-                                            >
-                                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                                            </RadioGroup>
-                                        </FormControl>
-
-                                        <FormControl fullWidth style={{
-                                            margin: "10px 0 20px",
-                                        }}>
-                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('相同名称保存条数(默认0全部保存， 设置大于0则保存相应数量频道)')}</FormLabel>
-                                            <TextField id="standard-basic" variant="standard" value={task.original.same_save_num} onChange={changeSameSaveNum} />
-                                        </FormControl>
                                     </div>
                                 ) : ''
                             }
@@ -713,11 +609,104 @@ function TaskForm(props) {
                                             <FormLabel id="demo-row-radio-buttons-group-label">{t('检查超时(毫秒ms)')}</FormLabel>
                                             <TextField id="standard-basic" variant="standard" value={task.original.check_timeout} onChange={changeCheckTimeout} />
                                         </FormControl>
+
+
                                         <FormControl fullWidth style={{
-                                            margin: "20px 0 20px",
+                                            margin: "10px 0 20px",
                                         }}>
-                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('检查并发数')}</FormLabel>
-                                            <TextField id="standard-basic" variant="standard" value={task.original.concurrent} onChange={changeConcurrent} />
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要检查')}</FormLabel>
+                                            <RadioGroup
+                                                row
+                                                aria-labelledby="demo-row-radio-buttons-group-label"
+                                                name="row-radio-buttons-group"
+                                                value={task.original.no_check}
+                                                onChange={handleChangeNoCheckValue}
+                                            >
+                                                <FormControlLabel value="false" control={<Radio />} label={t('是')} />
+                                                <FormControlLabel value="true" control={<Radio />} label={t('否')} />
+                                            </RadioGroup>
+                                        </FormControl>
+                                        {
+                                            task.original.no_check === false ? (
+                                                <>
+                                                    <FormControl fullWidth style={{
+                                                        margin: "10px 0 20px",
+                                                    }}>
+                                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('检查并发数')}</FormLabel>
+                                                        <TextField id="standard-basic" variant="standard" value={task.original.concurrent} onChange={changeConcurrent} />
+                                                    </FormControl>
+                                                    <FormControl fullWidth style={{
+                                                        margin: "10px 0 20px",
+                                                    }}>
+                                                        <FormLabel id="demo-row-radio-buttons-group-label">{t('检查方式')}</FormLabel>
+                                                        <RadioGroup
+                                                            row
+                                                            aria-labelledby="demo-row-radio-buttons-group-label"
+                                                            name="row-radio-buttons-group"
+                                                            value={task.original.ffmpeg_check}
+                                                            onChange={handleChangeFfmepgCheck}
+                                                        >
+                                                            <FormControlLabel value="false" control={<Radio />} label={t('http快速检查')} />
+                                                            <FormControlLabel value="true" control={<Radio />} label={t('ffmpeg慢速检查')} />
+                                                        </RadioGroup>
+                                                    </FormControl>
+                                                    {
+                                                        task.original.ffmpeg_check === false ? (
+                                                            <FormControl fullWidth style={{
+                                                                margin: "10px 0 20px",
+                                                            }}>
+                                                                <FormLabel id="demo-row-radio-buttons-group-label">{t('如果非http链接则跳过')}</FormLabel>
+                                                                <RadioGroup
+                                                                    row
+                                                                    aria-labelledby="demo-row-radio-buttons-group-label"
+                                                                    name="row-radio-buttons-group"
+                                                                    value={task.original.not_http_skip}
+                                                                    onChange={handleChangeNotHttpSkip}
+                                                                >
+                                                                    <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                                                    <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                                                </RadioGroup>
+                                                            </FormControl>
+                                                        ) : ''
+                                                    }
+                                                </>
+                                            ) : ''
+                                        }
+                                        <FormControl fullWidth style={{
+                                            margin: "10px 0 20px",
+                                        }}>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要去掉频道多余字符(比如"[HD]CCTV1"将去掉"[HD]"字符)')}</FormLabel>
+                                            <RadioGroup
+                                                row
+                                                aria-labelledby="demo-row-radio-buttons-group-label"
+                                                name="row-radio-buttons-group"
+                                                value={task.original.rename}
+                                                onChange={handleChangeRename}
+                                            >
+                                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                            </RadioGroup>
+                                        </FormControl>
+                                        <FormControl fullWidth style={{
+                                            margin: "10px 0 20px",
+                                        }}>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要排序')}</FormLabel>
+                                            <RadioGroup
+                                                row
+                                                aria-labelledby="demo-row-radio-buttons-group-label"
+                                                name="row-radio-buttons-group"
+                                                value={task.original.sort}
+                                                onChange={handleChangeSortValue}
+                                            >
+                                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                            </RadioGroup>
+                                        </FormControl>
+                                        <FormControl fullWidth style={{
+                                            margin: "10px 0 20px",
+                                        }}>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('相同名称保存条数(默认0全部保存， 设置大于0则保存相应数量频道)')}</FormLabel>
+                                            <TextField id="standard-basic" variant="standard" value={task.original.same_save_num} onChange={changeSameSaveNum} />
                                         </FormControl>
                                     </div>
                                 ) : ''
@@ -746,7 +735,6 @@ function TaskForm(props) {
                                 ) : ''
                             }
                             <Box sx={{ flex: '1 1 auto' }} />
-
                             {
                                 activeStep === steps.length - 1 ? (
                                     <Button onClick={handleSaveClick}>
@@ -758,7 +746,6 @@ function TaskForm(props) {
                                     </Button>
                                 )
                             }
-
                         </Box>
                     </React.Fragment>
                 </Box>
