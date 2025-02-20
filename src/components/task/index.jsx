@@ -570,7 +570,7 @@ function TaskForm(props) {
                                         {
                                             task.original.keyword_dislike !== null && task.original.keyword_dislike.length > 0 ? (
                                                 <FormControl fullWidth style={{
-                                                    padding: "0 0 20px",
+                                                    padding: "0 0 10px",
                                                 }}>
                                                     <FormLabel id="demo-row-radio-buttons-group-label">{t('不看频道关键词')}</FormLabel>
                                                     <Stack direction="row" spacing={1}>
@@ -589,7 +589,7 @@ function TaskForm(props) {
                                             ) : ''
                                         }
                                         <FormControl fullWidth style={{
-                                            margin: "20px 0 20px",
+                                            margin: "10px 0 20px",
                                         }}>
                                             <Stack direction="row" spacing={1}>
                                                 <TextField
@@ -611,7 +611,7 @@ function TaskForm(props) {
                                             </Stack>
                                         </FormControl>
                                         <FormControl fullWidth style={{
-                                            margin: "20px 0 20px",
+                                            margin: "10px 0 20px",
                                         }}>
                                             <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要排序')}</FormLabel>
                                             <RadioGroup
@@ -626,9 +626,9 @@ function TaskForm(props) {
                                             </RadioGroup>
                                         </FormControl>
                                         <FormControl fullWidth style={{
-                                            margin: "20px 0 20px",
+                                            margin: "10px 0 20px",
                                         }}>
-                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否不需要检查')}</FormLabel>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否不需要检查(不去检查链接是否有效)')}</FormLabel>
                                             <RadioGroup
                                                 row
                                                 aria-labelledby="demo-row-radio-buttons-group-label"
@@ -642,9 +642,9 @@ function TaskForm(props) {
                                         </FormControl>
 
                                         <FormControl fullWidth style={{
-                                            margin: "20px 0 20px",
+                                            margin: "10px 0 20px",
                                         }}>
-                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要去掉频道多余字符')}</FormLabel>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否需要去掉频道多余字符(比如"[HD]CCTV1"将去掉"[HD]"字符)')}</FormLabel>
                                             <RadioGroup
                                                 row
                                                 aria-labelledby="demo-row-radio-buttons-group-label"
@@ -658,9 +658,9 @@ function TaskForm(props) {
                                         </FormControl>
 
                                         <FormControl fullWidth style={{
-                                            margin: "20px 0 20px",
+                                            margin: "10px 0 20px",
                                         }}>
-                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否强制使用ffmpeg检查')}</FormLabel>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('是否强制使用ffmpeg检查(默认使用http检查)')}</FormLabel>
                                             <RadioGroup
                                                 row
                                                 aria-labelledby="demo-row-radio-buttons-group-label"
@@ -674,9 +674,9 @@ function TaskForm(props) {
                                         </FormControl>
 
                                         <FormControl fullWidth style={{
-                                            margin: "20px 0 20px",
+                                            margin: "10px 0 20px",
                                         }}>
-                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('如果不是http链接则跳过')}</FormLabel>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('如果不是http链接则跳过(当使用http检查时无法检查非http(s)前缀的链接)')}</FormLabel>
                                             <RadioGroup
                                                 row
                                                 aria-labelledby="demo-row-radio-buttons-group-label"
@@ -690,9 +690,9 @@ function TaskForm(props) {
                                         </FormControl>
 
                                         <FormControl fullWidth style={{
-                                            margin: "20px 0 20px",
+                                            margin: "10px 0 20px",
                                         }}>
-                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('相同名称保存条数')}</FormLabel>
+                                            <FormLabel id="demo-row-radio-buttons-group-label">{t('相同名称保存条数(默认0全部保存， 设置大于0则保存相应数量频道)')}</FormLabel>
                                             <TextField id="standard-basic" variant="standard" value={task.original.same_save_num} onChange={changeSameSaveNum} />
                                         </FormControl>
                                     </div>
