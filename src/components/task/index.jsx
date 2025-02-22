@@ -430,7 +430,6 @@ function TaskForm(props) {
             <Dialog
                 open={delOpen}
                 onClose={handleDelClose}
-                maxWidth={true}
                 aria-describedby="alert-dialog-slide-description"
             >
                 <DialogTitle>{"确定要删除吗？删除后不可恢复"}</DialogTitle>
@@ -796,12 +795,6 @@ function Row(props) {
                     </Tooltip>
                 </TableCell>
                 <TableCell component="th" scope="row">
-                    <div>{t('任务创建时间')}：{row.create_time > 0 ? (new Date(row.create_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
-                    <div>{t('最后运行时间')}：{row.task_info.last_run_time > 0 ? (new Date(row.task_info.last_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
-                    <div>{t('下一次运行时间')}：{row.task_info.next_run_time > 0 ? (new Date(row.task_info.next_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
-                    <div>{t('运行类型')}：{row.task_info.run_type} </div>
-                </TableCell>
-                <TableCell align="right">
                     <div>{t('是否需要检查')}：{!row.original.no_check ? t('是') : t('否')}</div>
                     {
                         !row.original.no_check ? (
@@ -818,6 +811,12 @@ function Row(props) {
                     <div>{t('是否需要排序')}：{row.original.sort ? t('是') : t('否')} </div>
                     <div>{t('是否需要去掉频道多余字符')}：{row.original.rename ? t('是') : t('否')} </div>
                     <div>{t('相同名称保存条数')}：{row.original.same_save_num > 0 ? row.original.same_save_num : t('保存全部')} </div>
+                </TableCell>
+                <TableCell align="right">
+                    <div>{t('任务创建时间')}：{row.create_time > 0 ? (new Date(row.create_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
+                    <div>{t('最后运行时间')}：{row.task_info.last_run_time > 0 ? (new Date(row.task_info.last_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
+                    <div>{t('下一次运行时间')}：{row.task_info.next_run_time > 0 ? (new Date(row.task_info.next_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
+                    <div>{t('运行时间')}：{row.task_info.run_type === 'EveryHour'?t('每小时一次'):t('每天一次')} </div>
                 </TableCell>
             </TableRow>
             <TableRow>
@@ -1281,8 +1280,8 @@ export default function TaskList(props) {
                                             <TableCell></TableCell>
                                             <TableCell>任务id</TableCell>
                                             <TableCell>输出文件</TableCell>
-                                            <TableCell>运行时间</TableCell>
-                                            <TableCell align="right">任务信息</TableCell>
+                                            <TableCell>任务信息</TableCell>
+                                            <TableCell align="right">运行时间</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>

@@ -12,6 +12,8 @@ import { save } from '@tauri-apps/plugin-dialog';
 import { downloadDir } from '@tauri-apps/api/path';
 import { type } from '@tauri-apps/plugin-os';
 import CryptoJS from 'crypto-js'
+import _package from './../../package';
+const config_url = 'https://static.zmis.me/public/iptv-checker/init.json'
 
 export const MainContextProvider = function ({ children }) {
     const headerHeight = 145
@@ -25,6 +27,11 @@ export const MainContextProvider = function ({ children }) {
     const [nowPlatform, setNowPlatform] = useState('')
     const [showWindowsTopBar, setShowWindowsTopBar] = useState(true)
     const [checkHistory, setCheckHistory] = useState([])// 检测历史
+    const [showNewVersion, setShowNewVersion] = useState(false)//是否显示新版本
+    const [configInfo, setConfigInfo] = useState({
+        "version": "",
+        "sponsor": [],
+    })
 
     const [detailMd5, setDetailMd5] = useState('')
     const [detailQuery, setDetailQuery] = useState(null)
@@ -120,6 +127,63 @@ export const MainContextProvider = function ({ children }) {
         i18n.changeLanguage(val)
     }
 
+    const getYearMonthDayHour = () => {
+        // 创建一个 Date 对象
+        const date = new Date();
+
+        // 获取年份
+        const year = date.getFullYear();
+
+        // 获取月份（注意：月份从 0 开始，所以需要加 1）
+        const month = date.getMonth() + 1;
+
+        // 获取日期
+        const day = date.getDate();
+
+        // 小时
+        const hour = date.getHours()
+
+        return `${year}${month}${day}${hour}`
+    }
+
+    const init_config_info = () => {
+        axios.get(config_url + "?date=" + getYearMonthDayHour()).then((response) => {
+            if (response.status === 200) {
+                try {
+                    setConfigInfo(response.data)
+                    check_version(response.data.version)
+                } catch (err) {
+                    console.log(err)
+                }
+            }
+        })
+    }
+
+    const check_version = (version) => {
+        if (compareVersion(version, _package.version) > 0) {
+            setShowNewVersion(true)
+        } else {
+            setShowNewVersion(false)
+        }
+    }
+
+    const compareVersion = (version1, version2) => {
+        const v1Parts = version1.split('.').map(Number);
+        const v2Parts = version2.split('.').map(Number);
+
+        const maxLength = Math.max(v1Parts.length, v2Parts.length);
+
+        for (let i = 0; i < maxLength; i++) {
+            const v1Part = v1Parts[i] || 0;  // 如果该部分为空，默认值为0
+            const v2Part = v2Parts[i] || 0;  // 如果该部分为空，默认值为0
+
+            if (v1Part > v2Part) return 1;  // version1 > version2
+            if (v1Part < v2Part) return -1; // version1 < version2
+        }
+
+        return 0;  // version1 == version2
+    }
+
     const checkFFmpeg = () => {
         invoke("check_ffmpeg").then((result) => {
             if (result) {
@@ -175,7 +239,7 @@ export const MainContextProvider = function ({ children }) {
                 extensions: [fullSuffix]
             }]
         });
-        console.log("filePath---",filePath)
+        console.log("filePath---", filePath)
         filePath && await writeTextFile(filePath, body)
     }
 
@@ -200,6 +264,7 @@ export const MainContextProvider = function ({ children }) {
 
     useEffect(() => {
         checkFFmpeg()
+        init_config_info()//初始化配置文件
         initCheckHistory()//初始化检查历史
         initSubCheckMenuList() //初始化子菜单
         invoke('now_mod', {}).then((response) => {
@@ -606,7 +671,7 @@ export const MainContextProvider = function ({ children }) {
         setExportDataStr(m3uObjectToM3uBody(data))
     }
 
-    const getNowDeatil = ()=> {
+    const getNowDeatil = () => {
         let data = null
         for (let i = 0; i < subCheckMenuList.length; i++) {
             if (subCheckMenuList[i].md5 === detailMd5) {
@@ -904,7 +969,7 @@ export const MainContextProvider = function ({ children }) {
 
     const sortByField = (a, b) => {
         const regex = /(\D+)(\d+)/; // 匹配字母和数字部分
-        if(a === null || b === null ) {
+        if (a === null || b === null) {
             return -1
         }
         console.log("----a", a)
@@ -914,13 +979,13 @@ export const MainContextProvider = function ({ children }) {
         let lettersB = -1;
         let numbersB = -1;
         let regA = a.sName.match(regex);
-        if(regA && regA.length >=3) {
+        if (regA && regA.length >= 3) {
             lettersA = regA[1]
             numbersA = regA[2]
         }
 
         let regB = b.sName.match(regex);
-        if(regB && regB.length >=3) {
+        if (regB && regB.length >= 3) {
             lettersB = regB[1]
             numbersB = regB[2]
         }
@@ -928,14 +993,14 @@ export const MainContextProvider = function ({ children }) {
         // 首先比较字母部分
         if (lettersA < lettersB) return -1;
         if (lettersA > lettersB) return 1;
-    
+
         // 如果字母相同，则比较数字部分
         return parseInt(numbersA) - parseInt(numbersB);
     };
 
     const addDetail = (data, urls, isLocal, check, sort) => {
         if (sort) {
-            console.log("addDetail----sort----",data)
+            console.log("addDetail----sort----", data)
             data.sort(sortByField);
         }
         let dataList = deepCopyJson(subCheckMenuList);
@@ -1051,7 +1116,6 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const updateDetailMd5 = (detailMd5Str) => {
-        console.log("---", detailMd5Str)
         setDetailMd5(detailMd5Str)
         let data = get_detail_from_ori(detailMd5Str)
         if (data) {
@@ -1094,9 +1158,9 @@ export const MainContextProvider = function ({ children }) {
             subCheckMenuList, checkHistory, saveDataToHistory,
             addDetail, get_m3u_body, get_m3u8_info_by_m3u_ori_data,
             m3uObjectToM3uBody, m3uObjectToTxtBody, webSaveFile,
-            detailList, detailQuery, detailMenu, 
+            detailList, detailQuery, detailMenu,
             detailOriginal, updateDetailMd5, delDetailData,
-            detailMd5
+            detailMd5, configInfo, showNewVersion
         }}>
             {children}
         </MainContext.Provider>

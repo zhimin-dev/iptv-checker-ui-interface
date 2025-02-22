@@ -6,9 +6,6 @@ import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
 import LoadingButton from '@mui/lab/LoadingButton';
 import FormLabel from '@mui/material/FormLabel';
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import Snackbar from '@mui/material/Snackbar';
@@ -16,6 +13,9 @@ import { useTranslation, initReactI18next } from "react-i18next";
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 function AddSourceDialog(props) {
     const { t } = useTranslation();
@@ -113,6 +113,10 @@ export default function Settings() {
         }
     }
 
+    const handleShowSponsorQrcode = () => {
+
+    }
+
     const doSaveConfigSettings = () => {
         _mainContext.onChangeSettings({
             httpRequestTimeout: httpRequestTimeout,
@@ -171,13 +175,13 @@ export default function Settings() {
                 message={dialogMsg}
                 onClose={handleCloseDialogMsg}
             />
-            <Box sx={{
+            <Box>
+                <Box sx={{
                 display: 'flex',
                 flexDirection: 'column',
                 padding: '20px',
                 width: '300px'
             }}>
-
                 <FormControl  sx={{ marginBottom: '20px' }}>
                     <InputLabel id="demo-row-radio-buttons-group-label">{t('语言')}</InputLabel>
                     <Select
@@ -261,6 +265,7 @@ export default function Settings() {
                 >
                     {t('保存')}
                 </LoadingButton>
+                </Box>
             </Box>
         </Box>
     )
