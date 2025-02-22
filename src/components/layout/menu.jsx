@@ -3,6 +3,9 @@ import { useEffect, useState, useContext } from "react"
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Outlet } from "react-router-dom";
 import './menu.css'
+import DialogTitle from '@mui/material/DialogTitle';
+import Dialog from '@mui/material/Dialog';
+import LoadingButton from '@mui/lab/LoadingButton';
 import { MainContext } from './../../context/main';
 import icon from './../../assets/icon.png';
 import Box from '@mui/material/Box';
@@ -22,8 +25,6 @@ import { useTranslation, initReactI18next } from "react-i18next";
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import Divider from '@mui/material/Divider';
-import Collapse from '@mui/material/Collapse';
-import StarBorder from '@mui/icons-material/StarBorder';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import Drawer from '@mui/material/Drawer';
@@ -32,6 +33,11 @@ import DehazeIcon from '@mui/icons-material/Dehaze';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import CssBaseline from '@mui/material/CssBaseline';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
 
 let menuList = [{
     "name": "快速检测",
@@ -79,6 +85,9 @@ export default function Layout() {
     const [openSubCheckedMenu, setOpenSubCheckedMenu] = useState(false)
     const [nowSelectedCheckedMenu, setNowSelectedCheckedMenu] = useState(null)
     const [openDrawer, setOpenDrawer] = useState(true);
+    const [showSponsor, setShowSponsor] = useState(false);
+    const [nowSelectSponsor, setNowSelectSponsor] = useState('')
+    const [sponsorInfo, setSponsorInfo] = useState(null)
 
     useEffect(() => {
         if (location.pathname == detailUri) {
@@ -117,8 +126,26 @@ export default function Layout() {
         setOpenDrawer(newOpen);
     };
 
-    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+    const handleShowSponsor = () => {
+        setShowSponsor(true)
+        let data = null
+        for (let i = 0; i < _mainContext.configInfo.sponsor.length; i++) {
+            if (_mainContext.configInfo.sponsor[i].name === nowSelectSponsor) {
+                data = _mainContext.configInfo.sponsor[i]
+            }
+        }
+        setSponsorInfo(data)
+    }
 
+    const handleCloseSponsor = () => {
+        setShowSponsor(false)
+    }
+
+    const changeSponsorType = (e) => {
+        setNowSelectSponsor(e.target.value)
+    }
+
+    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
     const theme = React.useMemo(
         () =>
@@ -137,10 +164,15 @@ export default function Layout() {
     const DrawerList = (
         <Box className="side-bar" style={{ backgroundColor: theme.palette.sideBarBgColor[prefersDarkMode ? 'dark' : 'light'] }} sx={{ width: drawerWidth }} role="presentation">
             <List>
-                <div className="side-bar-logo" onClick={() => goToGithub} title='帮忙点个star!!!'>
+                <div className="side-bar-logo" onClick={goToGithub} title='帮忙点个star!!!'>
                     <div className='side-bar-logo-item'>
                         <img src={icon} height="60"></img>
                         <div className='go-github'>iptv-checker@{nowVersion}</div>
+                        {
+                            _mainContext.showNewVersion ? (
+                                <div style={{ color: 'red' }}>有新版本:{_mainContext.configInfo.version}</div>
+                            ) : ''
+                        }
                     </div>
                 </div>
                 {
@@ -199,6 +231,41 @@ export default function Layout() {
                         ) : ''
                     ))}
             </List>
+            {
+                _mainContext.configInfo.sponsor.length > 0 ? (
+                    <FormControl sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        paddingTop: '20px'
+                    }}>
+                        <FormLabel id="demo-radio-buttons-group-label">{t('请开发者喝杯咖啡☕️')}</FormLabel>
+                        <RadioGroup
+                            aria-labelledby="demo-radio-buttons-group-label"
+                            name="radio-buttons-group"
+                            onChange={changeSponsorType}
+                            value={nowSelectSponsor}
+                        >
+                            {
+                                _mainContext.configInfo.sponsor.map((value, index) => (
+                                    <FormControlLabel key={index} value={value.name} control={<Radio />} label={value.name} />
+                                ))
+                            }
+                        </RadioGroup>
+                        {
+                            nowSelectSponsor !== '' ? (
+                                <LoadingButton
+                                    onClick={handleShowSponsor}
+                                    variant="outlined"
+                                >
+                                    {t('点击赞助')}
+                                </LoadingButton>
+                            ) : ''
+                        }
+                    </FormControl>
+                ) : ''
+            }
+
         </Box>
     );
 
@@ -218,6 +285,11 @@ export default function Layout() {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
+            <SimpleDialog
+                open={showSponsor}
+                sponsorInfo={sponsorInfo}
+                onClose={handleCloseSponsor}
+            />
             <div className="layout">
                 <Drawer open={openDrawer} anchor="left" variant={openDrawer ? "permanent" : 'temporary'}>
                     {DrawerList}
@@ -286,4 +358,28 @@ export default function Layout() {
             </div>
         </ThemeProvider>
     )
+}
+
+function SimpleDialog(props) {
+    const { onClose, sponsorInfo, open } = props;
+
+    const handleClose = () => {
+        onClose();
+    }
+
+    return (
+        <Dialog onClose={handleClose} open={open}>
+            <DialogTitle>支持开发者开发继续维护该项目</DialogTitle>
+            {
+                sponsorInfo !== null && sponsorInfo.url !== '' ? (
+                    <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'center'
+                    }}>
+                        <img src={sponsorInfo.url} height="400" />
+                    </Box>
+                ) : ''
+            }
+        </Dialog>
+    );
 }
