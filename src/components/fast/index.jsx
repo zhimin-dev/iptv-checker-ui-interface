@@ -16,7 +16,6 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import UploadIcon from '@mui/icons-material/Upload';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation, initReactI18next } from "react-i18next";
-import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import Input from '@mui/material/Input';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -353,10 +352,10 @@ export default function Fast() {
                     {
                         nowStatus >= 3 ? (
                             <Box>
-                                <div>总：{total}条记录</div>
+                                <div>{t('总')}：{total} {t('条记录')}</div>
                                 {
                                     needCheck === 'true' ? (
-                                        <div>正在检查: 成功{successCount}条记录 / 失败{failedCount}条记录</div>
+                                        <div>{t('正在检查')}: {t('成功')}{successCount}{t('条记录')} / {t('失败')}{failedCount}{t('条记录')}</div>
                                     ) : ''
                                 }
                             </Box>
@@ -366,7 +365,7 @@ export default function Fast() {
                         nowStatus === 0 || nowStatus === 1 || nowStatus === 2 ? (
                             <>
                                 <FormControl fullWidth>
-                                    <FormLabel id="demo-controlled-radio-buttons-group">检测类型</FormLabel>
+                                    <FormLabel id="demo-controlled-radio-buttons-group">{t('文件类型')}</FormLabel>
                                     <RadioGroup
                                         aria-labelledby="demo-controlled-radio-buttons-group"
                                         name="controlled-radio-buttons-group"
@@ -374,8 +373,8 @@ export default function Fast() {
                                         row
                                         onChange={handleSelectedType}
                                     >
-                                        <FormControlLabel value={0} control={<Radio />} label="本地" />
-                                        <FormControlLabel value={1} control={<Radio />} label="网络" />
+                                        <FormControlLabel value={0} control={<Radio />} label={t('本地')} />
+                                        <FormControlLabel value={1} control={<Radio />} label={t('网络')} />
                                     </RadioGroup>
                                 </FormControl>
                                 {
@@ -386,7 +385,7 @@ export default function Fast() {
                                                     {t('请选择检测文件')}
                                                     <input hidden accept=".m3u,.txt" multiple type="file" onChange={handleFileUpload} />
                                                 </Button>
-                                                <span>(仅支持<b>.m3u</b>以及<b>.txt</b>文件格式)</span>
+                                                <span>({t('仅支持')} <b>.m3u</b> {t('以及')} <b>.txt</b> {t('文件格式')})</span>
                                             </FormControl>
                                             <div>
                                                 {
@@ -428,7 +427,7 @@ export default function Fast() {
                                                     key={10000000000}
                                                     id="standard-adornment-input"
                                                     onChange={changeOneUri}
-                                                    placeholder='请输入链接,仅支持.m3u以及.txt后缀链接'
+                                                    placeholder={t('请输入链接,仅支持.m3u以及.txt后缀链接')}
                                                     endAdornment={
                                                         <InputAdornment position="end">
                                                             <IconButton
@@ -607,7 +606,7 @@ export default function Fast() {
                 {
                     _mainContext.checkHistory.length > 0 ? (
                         <Box style={{ margin: '30px 0 20px 0' }}>
-                            检测历史：
+                            {t('检测历史')}：
                             <Box style={{ display: 'flex' }}>
                                 {
                                     _mainContext.checkHistory.map((value, index) => (
@@ -620,7 +619,7 @@ export default function Fast() {
                                                 }
                                             </CardContent>
                                             <CardActions>
-                                                <Button size="small" onClick={() => fillThisData(value)}>再次检测</Button>
+                                                <Button size="small" onClick={() => fillThisData(value)}>{t('再次检测')}</Button>
                                             </CardActions>
                                         </Card>
                                     ))
@@ -630,7 +629,7 @@ export default function Fast() {
                     ) : ''
                 }
                 <Box style={{ margin: '10px 0 20px 0' }}>
-                    公共源+自定义网络源：
+                    {t('公共源')}+{t('自定义网络源')}：
                     <Box style={{ display: 'flex' }}>
                         {
                             CountryJson.map((value, index) => (
@@ -643,7 +642,7 @@ export default function Fast() {
                                         }
                                     </CardContent>
                                     <CardActions>
-                                        <Button size="small" onClick={() => fillThisData({ "urls": value.url })}>检测</Button>
+                                        <Button size="small" onClick={() => fillThisData({ "urls": value.url })}>{t('检测')}</Button>
                                     </CardActions>
                                 </Card>
                             ))
