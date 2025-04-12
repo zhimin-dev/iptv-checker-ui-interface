@@ -5,6 +5,7 @@ import { Outlet } from "react-router-dom";
 import './menu.css'
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
+import LaptopIcon from '@mui/icons-material/Laptop';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { MainContext } from './../../context/main';
 import icon from './../../assets/icon.png';
@@ -40,9 +41,9 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 
 let menuList = [{
-    "name": "快速检测",
+    "name": "本地检查",
     "uri": "/",
-    "icon": "BoltIcon",
+    "icon": "LaptopIcon",
     'showMod': [0, 1],
     'showHeader': true
 }, {
@@ -61,12 +62,6 @@ let menuList = [{
     "name": "定时检查任务",
     "uri": "/task",
     "icon": "CloudQueueIcon",
-    'showMod': [0, 1],
-    'showHeader': true
-}, {
-    "name": "系统设置",
-    "uri": "/settings",
-    "icon": "SettingsIcon",
     'showMod': [0, 1],
     'showHeader': true
 }]
@@ -184,6 +179,9 @@ export default function Layout() {
                                         <ListItem key={index} disablePadding onClick={() => changePath(value)}>
                                             <ListItemButton>
                                                 <ListItemIcon>
+                                                    {
+                                                        value.icon === 'LaptopIcon' ? <LaptopIcon />:''
+                                                    }
                                                     {
                                                         value.icon === 'SettingsIcon' ? <SettingsIcon /> : ''
                                                     }
@@ -361,6 +359,7 @@ export default function Layout() {
 }
 
 function SimpleDialog(props) {
+    const { t } = useTranslation();
     const { onClose, sponsorInfo, open } = props;
 
     const handleClose = () => {
@@ -369,7 +368,7 @@ function SimpleDialog(props) {
 
     return (
         <Dialog onClose={handleClose} open={open}>
-            <DialogTitle>支持开发者开发继续维护该项目</DialogTitle>
+            <DialogTitle>{t('支持开发者开发继续维护该项目')}</DialogTitle>
             {
                 sponsorInfo !== null && sponsorInfo.url !== '' ? (
                     <Box sx={{

@@ -28,6 +28,7 @@ export const MainContextProvider = function ({ children }) {
     const [showWindowsTopBar, setShowWindowsTopBar] = useState(true)
     const [checkHistory, setCheckHistory] = useState([])// 检测历史
     const [showNewVersion, setShowNewVersion] = useState(false)//是否显示新版本
+    const [ffmepgCheck, setFffmepgCheck] = useState(0)// 是否可以ffmepeg检查
     const [configInfo, setConfigInfo] = useState({
         "version": "",
         "sponsor": [],
@@ -191,7 +192,9 @@ export const MainContextProvider = function ({ children }) {
             } else {
                 console.log("FFmpeg is not installed");
             }
-        });
+        }).catch(e => {
+            console.log("invoke error",e)
+        })
     }
 
     const initControlBar = (appWindow, pageLabel) => {
@@ -277,7 +280,7 @@ export const MainContextProvider = function ({ children }) {
                 setNowPlatform(os_type)
             }
         }).catch(e => {
-            console.log(e)
+            console.log("invoke---",e)
         })
         let setting = localStorage.getItem('settings') ?? ''
         if (setting !== '') {
@@ -1158,7 +1161,7 @@ export const MainContextProvider = function ({ children }) {
             subCheckMenuList, checkHistory, saveDataToHistory,
             addDetail, get_m3u_body, get_m3u8_info_by_m3u_ori_data,
             m3uObjectToM3uBody, m3uObjectToTxtBody, webSaveFile,
-            detailList, detailQuery, detailMenu,
+            detailList, detailQuery, detailMenu, ffmepgCheck,
             detailOriginal, updateDetailMd5, delDetailData,
             detailMd5, configInfo, showNewVersion
         }}>

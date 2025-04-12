@@ -12,32 +12,25 @@ import Watch from './components/watch'
 import Menu from './components/layout/menu'
 import Settings from './components/settings';
 import Task from './components/task';
+import LTask from './components/ltask';
 import Check from './components/check';
 import Fast from './components/fast';
 import Public from './components/public';
 import WatchSingle from './components/watch/single'
 import './utils/i18n';
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: "/",
     element: <Menu />,
     children: [
       {
         path: "/",
-        element: <Fast />,
+        element: <LTask />,
       },
       {
         path: "/detail",
         element: <Detail />,
-      },
-      {
-        path: "/public",
-        element: <Public />,
-      },
-      {
-        path: "/check",
-        element: <Check />,
       },
       {
         path: "/watch",
@@ -46,11 +39,7 @@ const router = createBrowserRouter([
       {
         path: "/task",
         element: <Task />,
-      },
-      {
-        path: "/settings",
-        element: <Settings />,
-      },
+      }
     ],
   },{
     path: "/watch/single",

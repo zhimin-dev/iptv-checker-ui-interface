@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { useEffect, useContext, useRef } from "react"
-import { MainContext } from './../../context/main';
+import { MainContext } from '../../context/main';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import Box from '@mui/material/Box';
+import { TaskProvider,useTasks } from '../../context/tasker';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
@@ -487,39 +488,6 @@ function TaskForm(props) {
                                                 <input hidden accept="*" multiple type="file" onChange={handleFileUpload} />
                                             </Button>
                                         </FormControl>
-                                        <FormControl fullWidth style={{
-                                            margin: "0 0 20px",
-                                        }}>
-                                            <InputLabel id="demo-simple-select-standard-label">{t('定时检查时间')}</InputLabel>
-                                            <Select
-                                                labelId="demo-simple-select-standard-label"
-                                                id="demo-simple-select-standard"
-                                                value={task.original.run_type}
-                                                label={t('定时检查时间')}
-                                                onChange={handleChangeRunType}
-                                            >
-                                                {
-                                                    run_type_list.map((value, index) => (
-                                                        <MenuItem value={value.value} key={index}>{value.name}</MenuItem>
-                                                    ))
-                                                }
-                                            </Select>
-                                        </FormControl>
-                                        <FormControl fullWidth style={{
-                                            margin: "20px 0 20px",
-                                        }}>
-                                            <InputLabel htmlFor="outlined-adornment-amount">{t('结果文件名')}</InputLabel>
-                                            <OutlinedInput
-                                                style={{ width: '100%' }}
-                                                name="resultName"
-                                                endAdornment={<InputAdornment position="end">{output_extenion}</InputAdornment>}
-                                                startAdornment={<InputAdornment position="start">{output_folder}</InputAdornment>}
-                                                aria-describedby="outlined-weight-helper-text"
-                                                label={t('结果文件名')}
-                                                value={task.original.result_name}
-                                                onChange={changeResultName}
-                                            />
-                                        </FormControl>
                                     </div>
                                 ) : ''
                             }
@@ -803,10 +771,10 @@ function Row(props) {
                                 {
                                     !row.original.ffmpeg_check ? (
                                         <div>{t('如果非http链接则跳过')}：{row.original.not_http_skip ? t('是') : t('否')} </div>
-                                    ):''
+                                    ) : ''
                                 }
                             </>
-                        ):''
+                        ) : ''
                     }
                     <div>{t('是否需要排序')}：{row.original.sort ? t('是') : t('否')} </div>
                     <div>{t('是否需要去掉频道多余字符')}：{row.original.rename ? t('是') : t('否')} </div>
@@ -816,7 +784,7 @@ function Row(props) {
                     <div>{t('任务创建时间')}：{row.create_time > 0 ? (new Date(row.create_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
                     <div>{t('最后运行时间')}：{row.task_info.last_run_time > 0 ? (new Date(row.task_info.last_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
                     <div>{t('下一次运行时间')}：{row.task_info.next_run_time > 0 ? (new Date(row.task_info.next_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
-                    <div>{t('运行时间')}：{row.task_info.run_type === 'EveryHour'?t('每小时一次'):t('每天一次')} </div>
+                    <div>{t('运行时间')}：{row.task_info.run_type === 'EveryHour' ? t('每小时一次') : t('每天一次')} </div>
                 </TableCell>
             </TableRow>
             <TableRow>
@@ -998,7 +966,25 @@ function ExportDialog(props) {
     )
 }
 
-export default function TaskList(props) {
+const TaskList = () => {
+    const { tasks,prepareTaskData } = useTasks();
+
+    return (
+        <>
+        <button onClick={() => prepareTaskData()}>1111</button>
+        
+        <ul>
+            {tasks.map((task,index) => (
+                <li key={task.id}>
+                    Task {task.id}: {task.status} {task.result !== null && `- Result: ${task.result}`}
+                </li>
+            ))}
+        </ul>
+        </>
+    );
+};
+
+export default function LocalTaskList(props) {
     const _mainContext = useContext(MainContext);
 
     const privateHostRef = useRef("")
@@ -1010,14 +996,14 @@ export default function TaskList(props) {
                 if (config.privateHost !== '') {
                     setPrivateHost(config.privateHost)
                     privateHostRef.current = config.privateHost
-                    get_task_list()
+                    // get_task_list()
                 }
             }
         }
     }, [_mainContext])
 
     useEffect(() => {
-        get_task_list()
+        // get_task_list()
     }, [])
 
     const [formDialog, setFormDialog] = React.useState(false);
@@ -1195,115 +1181,106 @@ export default function TaskList(props) {
     }
 
     return (
+        <TaskProvider>
         <Box style={{ padding: '0 20px' }}>
+            <Box style={{
+                marginBottom: '10px',
+                display: 'flex',
+                justifyContent: 'space-between'
+            }}>
+                <div>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => handleClickOpen(null)}
+                        style={{ marginRight: '10px' }}
+                    >
+                        {t('新增')}
+                    </Button>
+                </div>
+                <div>
+                    <Button
+                        variant="outlined"
+                        startIcon={<PublishIcon />}
+                        style={{ marginRight: '10px' }}
+                        onClick={() => handleImportDialog(true)}
+                    >
+                        {t('任务导入')}
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        startIcon={<GetAppIcon />}
+                        onClick={() => handleExportDialog(true)}
+                    >
+                        {t('全部任务导出')}
+                    </Button>
+                </div>
+            </Box>
+            <Snackbar
+                open={openAlertBar}
+                autoHideDuration={6000}
+                onClose={handleCloseAlertBar}
+                message={alertBarMsg}
+            />
+            <TaskForm
+                formValue={JSON.parse(JSON.stringify(formValue))}
+                open={formDialog}
+                onClose={handleClose}
+                handleSave={handleSave}
+                handleDelete={handleDelete}
+            />
+            <DownloadDialog
+                formValue={downloadBody}
+                open={openDownloadBody}
+                onClose={() => handleDownloadClose(false)}
+            />
+            <ImportDialog
+                open={showImportDialog}
+                onClose={() => handleImportDialog(false)}
+                onSave={handleSaveImportData}
+            ></ImportDialog>
+            <ExportDialog
+                open={showExportDialog}
+                formValue={exportBody}
+                onClose={() => handleExportDialog(false)}
+            ></ExportDialog>
             {
-                privateHost || _mainContext.nowMod === 0 ? (
-                    <>
-                        <Box style={{
-                            marginBottom: '10px',
-                            display: 'flex',
-                            justifyContent: 'space-between'
-                        }}>
-                            <div>
-                                <Button
-                                    variant="contained"
-                                    startIcon={<AddIcon />}
-                                    onClick={() => handleClickOpen(null)}
-                                    style={{ marginRight: '10px' }}
-                                >
-                                    {t('新增')}
-                                </Button>
-                                <Button
-                                    variant="outlined"
-                                    startIcon={<RefreshIcon />}
-                                    onClick={() => refreshList()}
-                                >
-                                    {t('刷新列表')}
-                                </Button>
-                            </div>
-                            <div>
-                                <Button
-                                    variant="outlined"
-                                    startIcon={<PublishIcon />}
-                                    style={{ marginRight: '10px' }}
-                                    onClick={() => handleImportDialog(true)}
-                                >
-                                    {t('任务导入')}
-                                </Button>
-                                <Button
-                                    variant="outlined"
-                                    startIcon={<GetAppIcon />}
-                                    onClick={() => handleExportDialog(true)}
-                                >
-                                    {t('全部任务导出')}
-                                </Button>
-                            </div>
-                        </Box>
-                        <Snackbar
-                            open={openAlertBar}
-                            autoHideDuration={6000}
-                            onClose={handleCloseAlertBar}
-                            message={alertBarMsg}
-                        />
-                        <TaskForm
-                            formValue={JSON.parse(JSON.stringify(formValue))}
-                            open={formDialog}
-                            onClose={handleClose}
-                            handleSave={handleSave}
-                            handleDelete={handleDelete}
-                        />
-                        <DownloadDialog
-                            formValue={downloadBody}
-                            open={openDownloadBody}
-                            onClose={() => handleDownloadClose(false)}
-                        />
-                        <ImportDialog
-                            open={showImportDialog}
-                            onClose={() => handleImportDialog(false)}
-                            onSave={handleSaveImportData}
-                        ></ImportDialog>
-                        <ExportDialog
-                            open={showExportDialog}
-                            formValue={exportBody}
-                            onClose={() => handleExportDialog(false)}
-                        ></ExportDialog>
-                        {
-                            _mainContext.nowMod === 1 ? (
-                                <div>{t('当前设置的【后台检查server域名】为')}：{privateHost}</div>
-                            ) : ''
-                        }
-                        <Paper sx={{ width: '1240px', overflow: 'hidden' }}>
-                            <TableContainer>
-                                <Table aria-label="simple table">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell></TableCell>
-                                            <TableCell>{t('任务id')}</TableCell>
-                                            <TableCell>{t('输出文件')}</TableCell>
-                                            <TableCell>{t('任务信息')}</TableCell>
-                                            <TableCell align="right">{t('运行时间')}</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {
-                                            taskList.map((row) => (
-                                                <Row
-                                                    key={row.id}
-                                                    row={row}
-                                                    doTaskRightNow={doTaskRightNow}
-                                                    showDownloadDialog={getDownloadBody}
-                                                    clickTask={() => handleClickOpen(row)}
-                                                />
-                                            ))
-                                        }
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        </Paper>
-                    </>
-                ) : (
-                    <Box>{t('对不起，您没有设置【后台检查server域名】，请至设置页面操作后再来查看')}</Box>
-                )}
+                _mainContext.nowMod === 1 ? (
+                    <div>{t('当前设置的【后台检查server域名】为')}：{privateHost}</div>
+                ) : ''
+            }
+            <Paper sx={{ width: '1240px', overflow: 'hidden' }}>
+                <TableContainer>
+                    <Table aria-label="simple table">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell></TableCell>
+                                <TableCell>{t('任务id')}</TableCell>
+                                <TableCell>{t('输出文件')}</TableCell>
+                                <TableCell>{t('任务信息')}</TableCell>
+                                <TableCell align="right">{t('运行时间')}</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {
+                                taskList.map((row) => (
+                                    <Row
+                                        key={row.id}
+                                        row={row}
+                                        doTaskRightNow={doTaskRightNow}
+                                        showDownloadDialog={getDownloadBody}
+                                        clickTask={() => handleClickOpen(row)}
+                                    />
+                                ))
+                            }
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Paper>
+
+
+        <TaskList></TaskList>
         </Box>
+        </TaskProvider>
     );
 }

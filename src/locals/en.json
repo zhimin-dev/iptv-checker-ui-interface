@@ -1,5 +1,11 @@
 {
     "translation": {
+      "ffmpeg慢速检查":"ffmpeg check",
+      "支持开发者开发继续维护该项目":"Support developers to develop and continue to maintain the project",
+      "运行时间":"Run Time Info",
+      "任务信息":"Task Info",
+      "输出文件":"Output files",
+      "点击赞助":"donate", 
       "下载结果.txt格式":"Download the results .txt format",
       "下载结果.m3u格式":"Download the results .m3u format",
       "去编辑":"edit data",

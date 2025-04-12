@@ -49,11 +49,14 @@ export default function Fast() {
     const [failedCount, setFailedCount] = useState(0)
     const [urls, setUrls] = useState([])
     const [needCheck, setNeedCheck] = useState('true')
+    const [needFfmpeg, setNeedFfmpeg] = useState('false')
     const [needFastestOne, setNeedFastestOne] = useState('false')
     const [oneUri, setOneUri] = useState('')
     const [selectedType, setSelectedType] = useState(0)// 选择类型 0本地 1网络
     const [checkData, setCheckData] = useState([])
     const [showBody, setShowBody] = useState('')
+    const [checkConcurrent, setCheckConcurrent] = useState(1)//并发数
+    const [checkTimeout, setCheckTimeout] = useState(1)//超时
 
     const urlsRef = useRef([])//当前操作类型
 
@@ -213,6 +216,10 @@ export default function Fast() {
 
     const handleChangeNeedCheck = (e) => {
         setNeedCheck(e.target.value)
+    }
+
+    const handleChangeNeedFfmpeg = (e) => {
+        setNeedFfmpeg(e.target.value)
     }
 
     const handleChangeNeedFastestOne = (e) => {
@@ -490,6 +497,21 @@ export default function Fast() {
                                         name="row-radio-buttons-group"
                                         value={needCheck}
                                         onChange={handleChangeNeedCheck}
+                                    >
+                                        <FormControlLabel value="false" control={<Radio />} label={t('否')} />
+                                        <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormControl fullWidth style={{
+                                    margin: "10px 0 10px",
+                                }}>
+                                    <FormLabel id="demo-row-radio-buttons-group-label">{t('ffmpeg慢速检查')}</FormLabel>
+                                    <RadioGroup
+                                        row
+                                        aria-labelledby="demo-row-radio-buttons-group-label"
+                                        name="row-radio-buttons-group"
+                                        value={needFfmpeg}
+                                        onChange={handleChangeNeedFfmpeg}
                                     >
                                         <FormControlLabel value="false" control={<Radio />} label={t('否')} />
                                         <FormControlLabel value="true" control={<Radio />} label={t('是')} />
