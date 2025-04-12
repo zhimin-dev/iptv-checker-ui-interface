@@ -18,7 +18,7 @@ import Fast from './components/fast';
 import Public from './components/public';
 import WatchSingle from './components/watch/single'
 import './utils/i18n';
-
+import { TaskProvider,useTasks } from './context/tasker';
 const router = createHashRouter([
   {
     path: "/",
@@ -50,7 +50,9 @@ const router = createHashRouter([
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <MainContextProvider>
-      <RouterProvider router={router} />
+      <TaskProvider>
+        <RouterProvider router={router} />
+      </TaskProvider>
     </MainContextProvider>
   </React.StrictMode>
 )

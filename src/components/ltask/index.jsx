@@ -967,11 +967,12 @@ function ExportDialog(props) {
 }
 
 const TaskList = () => {
-    const { tasks,prepareTaskData } = useTasks();
+    const { tasks,prepareTaskData,printData } = useTasks();
 
     return (
         <>
         <button onClick={() => prepareTaskData()}>1111</button>
+        <button onClick={() => printData()}>printTask</button>
         
         <ul>
             {tasks.map((task,index) => (
@@ -1181,7 +1182,6 @@ export default function LocalTaskList(props) {
     }
 
     return (
-        <TaskProvider>
         <Box style={{ padding: '0 20px' }}>
             <Box style={{
                 marginBottom: '10px',
@@ -1281,6 +1281,5 @@ export default function LocalTaskList(props) {
 
         <TaskList></TaskList>
         </Box>
-        </TaskProvider>
     );
 }
