@@ -745,24 +745,27 @@ function Row(props) {
                     >
                         {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                     </IconButton>
-                    {
+                    {/* {
                         row.task_info.next_run_time > 0 && row.task_info.next_run_time - new Date().getTime() / 1000 >= 180
                             && row.task_info.last_run_time > 0 && new Date().getTime() / 1000 - row.task_info.last_run_time >= 180 ? (
                             <Button onClick={() => handleTaskRightNow(row.id)}>{t('立即执行')}</Button>
                         ) : ''
-                    }
+                    } */}
                 </TableCell>
                 <TableCell component="th" scope="row" onClick={() => clickTask()}>
                     {row.id}
                 </TableCell>
-                <TableCell>
+                <TableCell component="th" scope="row" onClick={() => clickTask()}>
+                    {row.status}
+                </TableCell>
+                {/* <TableCell>
                     <Tooltip title={row.original.result_name}>
                         <div onClick={() => openDownloadDialog(row.id)}>
                             {row.original.result_name}
                         </div>
                     </Tooltip>
-                </TableCell>
-                <TableCell component="th" scope="row">
+                </TableCell> */}
+                {/* <TableCell component="th" scope="row">
                     <div>{t('是否需要检查')}：{!row.original.no_check ? t('是') : t('否')}</div>
                     {
                         !row.original.no_check ? (
@@ -785,7 +788,7 @@ function Row(props) {
                     <div>{t('最后运行时间')}：{row.task_info.last_run_time > 0 ? (new Date(row.task_info.last_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
                     <div>{t('下一次运行时间')}：{row.task_info.next_run_time > 0 ? (new Date(row.task_info.next_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''} </div>
                     <div>{t('运行时间')}：{row.task_info.run_type === 'EveryHour' ? t('每小时一次') : t('每天一次')} </div>
-                </TableCell>
+                </TableCell> */}
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
@@ -988,6 +991,7 @@ const TaskList = () => {
 
 export default function LocalTaskList(props) {
     const _mainContext = useContext(MainContext);
+    const { tasks,prepareTaskData,printData,addTask } = useTasks();
 
     const privateHostRef = useRef("")
     const { t } = useTranslation();
@@ -1258,13 +1262,13 @@ export default function LocalTaskList(props) {
                                 <TableCell></TableCell>
                                 <TableCell>{t('任务id')}</TableCell>
                                 <TableCell>{t('输出文件')}</TableCell>
-                                <TableCell>{t('任务信息')}</TableCell>
-                                <TableCell align="right">{t('运行时间')}</TableCell>
+                                {/* <TableCell>{t('任务信息')}</TableCell>
+                                <TableCell align="right">{t('运行时间')}</TableCell> */}
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {
-                                taskList.map((row) => (
+                                tasks.map((row) => (
                                     <Row
                                         key={row.id}
                                         row={row}
@@ -1278,9 +1282,6 @@ export default function LocalTaskList(props) {
                     </Table>
                 </TableContainer>
             </Paper>
-
-
-        <TaskList></TaskList>
         </Box>
     );
 }
