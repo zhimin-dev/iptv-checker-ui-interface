@@ -967,17 +967,18 @@ function ExportDialog(props) {
 }
 
 const TaskList = () => {
-    const { tasks,prepareTaskData,printData } = useTasks();
+    const { tasks,prepareTaskData,printData,addTask } = useTasks();
 
     return (
         <>
         <button onClick={() => prepareTaskData()}>1111</button>
         <button onClick={() => printData()}>printTask</button>
+        <button onClick={() => addTask()}>addTask</button>
         
         <ul>
             {tasks.map((task,index) => (
                 <li key={task.id}>
-                    Task {task.id}: {task.status} {task.result !== null && `- Result: ${task.result}`}
+                    Task {task.id}: {task.status}
                 </li>
             ))}
         </ul>

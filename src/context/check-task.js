@@ -1,15 +1,18 @@
-self.onmessage = function (e) {
-    const { taskId, data } = e.data;
-    const result = performTask(data); // 假设performTask是你的任务逻辑
-    self.postMessage({ taskId, result });
+self.onmessage = async function (e) {
+    const { index, nowMod, task } = e.data;
+    let result = null
+    if(nowMod === 0) {
+        result =await checkByWeb(index, task)
+    }else if(nowMod === 1) {
+        result =await checkByCmd(index, task)
+    }
+    self.postMessage({ index, task, result });
 };
 
-function performTask(data) {
-    // 在这里执行任务的逻辑
-    // let sum = 0;
-    // for (let i = 0; i < data; i++) {
-    //     sum += i;
-    //     console.log("----",new Date())
-    // }
-    return 2; // 返回结果
+async function checkByWeb(index, task) {
+    return {'status':200, "audio": null, "video": null}
+}
+
+async function checkByCmd(index, task) {
+    return {'status':200, "audio": null, "video": null}
 }
