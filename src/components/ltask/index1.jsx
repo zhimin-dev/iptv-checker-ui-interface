@@ -4,6 +4,8 @@ import { MainContext } from '../../context/main';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import Box from '@mui/material/Box';
+import Input from '@mui/material/Input';
+import InputAdornment from '@mui/material/InputAdornment';
 import { TaskProvider,useTasks } from '../../context/tasker';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
@@ -21,13 +23,7 @@ import Dialog from '@mui/material/Dialog';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import Tooltip from '@mui/material/Tooltip';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputAdornment from '@mui/material/InputAdornment';
 import Snackbar from '@mui/material/Snackbar';
 import PublicIcon from '@mui/icons-material/Public';
 import UploadIcon from '@mui/icons-material/Upload';
@@ -42,23 +38,17 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
-import RefreshIcon from '@mui/icons-material/Refresh';
 import { useTranslation, initReactI18next } from "react-i18next";
 import GetAppIcon from '@mui/icons-material/GetApp';
 import PublishIcon from '@mui/icons-material/Publish';
 import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
-const run_type_list = [{ "value": "EveryDay", "name": "每天" }, { "value": "EveryHour", "name": "每小时" }]
-const output_folder = "static/output/"
 const output_extenion = ".m3u"
 
 const defaultValue = {
     "original": {
         "urls": [],
-        "result_name": "",
         "md5": "",
         "run_type": "EveryDay",
         "keyword_dislike": [],
@@ -75,21 +65,42 @@ const defaultValue = {
     },
     "id": "",
     "create_time": 0,
-    "task_info": {
-        "run_type": "EveryDay",
-        "last_run_time": 0,
-        "next_run_time": 0,
-        "is_running": false,
-        "task_status": "Pending"
-    }
+    "list": [],
+    "status": "prepare",// prepare now pending completed
+    "total": 0,// 总任务数
+    "checkCount": 0,// 已检查
+    "success": 0,// 成功
+    "failed": 0,// 失败
 }
 
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 function TaskForm(props) {
     const { t } = useTranslation();
     const { onClose, formValue, open, onSave, handleSave, handleDelete } = props;
     const [task, setTask] = React.useState(defaultValue);
     const [filterKeyword, setFilterKeyword] = React.useState('')
+    const [selectedType, setSelectedType] = React.useState(0)
+    const [selectFileNames, setSelectFileNames] =  React.useState([])
+    const [oneUri, setOneUri] = React.useState('')
+
+    const changeOneUri = (e) => {
+        setOneUri(e.target.value)
+    }
+
+    const urlsRef = useRef([])//当前操作类型
+
+    const handleClickUriAdd = (e) => {
+        const newUrls = [...urls]; // 创建urls数组的副本
+        newUrls.push({
+            "body": "",
+            "url": oneUri,
+            "status": 0,
+        }); // 在指定索引处设置新的值
+        setUrls(newUrls)
+        urlsRef.current = newUrls
+        setOneUri("")
+    }
 
     const [tabIndex, setTabIndex] = React.useState(0)
 
@@ -130,7 +141,6 @@ function TaskForm(props) {
     useEffect(() => {
         setActiveStep(0)
         if (formValue !== null) {
-            formValue.original.result_name = formValue.original.result_name.replace(output_folder, "").replace(output_extenion, "")
             formValue.original.http_timeout = formValue.original.http_timeout ?? 0;
             formValue.original.check_timeout = formValue.original.check_timeout ?? 0;
             formValue.original.concurrent = formValue.original.concurrent ?? 0;
@@ -426,6 +436,24 @@ function TaskForm(props) {
         setDelOpen(false);
     };
 
+    const handleClickFilesDelete = (i) => {
+        let kw = [...selectFileNames]
+        kw.splice(i, 1)
+        setSelectFileNames(kw);
+    }
+
+    const handleClickOpen = (body) => () => {
+        setOpen(true);
+        setScroll('paper');
+        setShowBody(body)
+    };
+
+
+    const handleSelectedType = (e) => {
+        let selectType = parseInt(e.target.value, 10);
+        setSelectedType(selectType);
+    }
+
     return (
         <>
             <Dialog
@@ -458,37 +486,123 @@ function TaskForm(props) {
                             {
                                 activeStep === 0 ? (
                                     <div>
-                                        {
-                                            task.original.urls.length > 0 ? (
-                                                <FormControl fullWidth style={{
-                                                    padding: "0 0 20px",
-                                                }}>
-                                                    <div id="demo-simple-select-standard-label">{t('检查文件列表')}</div>
-                                                    {
-                                                        task.original.urls.map((value, index) => (
-                                                            <div style={{ display: 'flex' }} key={index}>
-                                                                <TextField style={{ width: '100%' }} disabled={value.startsWith("static")} id="standard-basic" variant="standard" name={"url-" + index} value={value} onChange={changeUrls} />
-                                                                <IconButton aria-label="delete" onClick={() => handleDelRow(index)}>
-                                                                    <DeleteIcon />
-                                                                </IconButton>
-                                                            </div>
-                                                        ))
-                                                    }
-                                                </FormControl>
-                                            ) : ''
-                                        }
-                                        <FormControl fullWidth style={{
-                                            padding: "20px 0 20px", display: 'flex',
-                                            flexDirection: 'row',
-                                            justifyContent: 'space-between'
-                                        }}>
-                                            <Button variant="outlined" onClick={() => addNewM3uLink()} startIcon={<PublicIcon />}>{t('添加在线链接')}</Button>
-                                            <Button variant="contained" component="label" startIcon={<UploadIcon />}>
-                                                {t('本地上传m3u文件')}
-                                                <input hidden accept="*" multiple type="file" onChange={handleFileUpload} />
-                                            </Button>
+                                        <FormControl fullWidth>
+                                            <FormLabel id="demo-controlled-radio-buttons-group">{t('文件类型')}</FormLabel>
+                                            <RadioGroup
+                                                aria-labelledby="demo-controlled-radio-buttons-group"
+                                                name="controlled-radio-buttons-group"
+                                                value={selectedType}
+                                                row
+                                                onChange={handleSelectedType}
+                                            >
+                                                <FormControlLabel value={0} control={<Radio />} label={t('本地')} />
+                                                <FormControlLabel value={1} control={<Radio />} label={t('网络')} />
+                                            </RadioGroup>
                                         </FormControl>
-                                    </div>
+                                        {
+                                            selectedType === 0 ? (
+                                                <>
+                                                    <FormControl fullWidth style={{ width: '400px' }}>
+                                                        <Button variant="outlined" component="label" startIcon={<UploadIcon />}>
+                                                            {t('请选择检测文件')}
+                                                            <input hidden accept=".m3u,.txt" multiple type="file" onChange={handleFileUpload} />
+                                                        </Button>
+                                                        <span>({t('仅支持')} <b>.m3u</b> {t('以及')} <b>.txt</b> {t('文件格式')})</span>
+                                                    </FormControl>
+                                                    <div>
+                                                        {
+                                                            selectFileNames.map((value, index) => (
+                                                                <FormControl fullWidth style={{ width: '400px' }} key={"files" + index}>
+                                                                    <div style={{ display: 'flex', width: '600px' }}>
+                                                                        <Input
+                                                                            disabled
+                                                                            style={{ width: '400px' }}
+                                                                            value={value.url}
+                                                                            endAdornment={
+                                                                                <InputAdornment position="end">
+                                                                                    <IconButton
+                                                                                        onClick={() => handleClickFilesDelete(index)}
+                                                                                    >
+                                                                                        <DeleteIcon />
+                                                                                    </IconButton>
+                                                                                </InputAdornment>
+                                                                            }
+                                                                        />
+                                                                        {
+                                                                            value.status === 200 ? (
+                                                                                <IconButton aria-label="delete" onClick={handleClickOpen(value.body)} color="primary">
+                                                                                    <CheckCircleIcon />
+                                                                                </IconButton>
+                                                                            ) : ''
+                                                                        }
+                                                                    </div>
+                                                                </FormControl>
+                                                            ))
+                                                        }
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <FormControl fullWidth style={{ width: '400px' }}>
+                                                        <Input
+                                                            value={oneUri}
+                                                            key={10000000000}
+                                                            id="standard-adornment-input"
+                                                            onChange={changeOneUri}
+                                                            placeholder={t('请输入链接,仅支持.m3u以及.txt后缀链接')}
+                                                            endAdornment={
+                                                                <InputAdornment position="end">
+                                                                    <IconButton
+                                                                        onClick={handleClickUriAdd}
+                                                                    >
+                                                                        <AddCircleOutlineIcon />
+                                                                    </IconButton>
+                                                                </InputAdornment>
+                                                            }
+                                                        />
+                                                    </FormControl>
+                                                    <div style={{ marginTop: '20px' }}>
+                                                        {
+                                                            urlsRef.current.map((value, index) => (
+                                                                <FormControl fullWidth key={"urls" + index}>
+                                                                    <div style={{ display: 'flex', width: '600px' }}>
+                                                                        <Input
+                                                                            disabled
+                                                                            value={value.url}
+                                                                            style={{ width: '400px' }}
+                                                                            endAdornment={
+                                                                                <InputAdornment position="end">
+                                                                                    <IconButton
+                                                                                        onClick={() => handleClickUriDelete(index)}
+                                                                                    >
+                                                                                        <DeleteIcon />
+                                                                                    </IconButton>
+                                                                                </InputAdornment>
+                                                                            }
+                                                                        />
+                                                                        {
+                                                                            value.status === 200 ? (
+                                                                                <IconButton aria-label="delete" onClick={handleClickOpen(value.body)} color="primary">
+                                                                                    <CheckCircleIcon />
+                                                                                </IconButton>
+                                                                            ) : ''
+                                                                        }
+                                                                        {
+                                                                            value.status === 500 ? (
+                                                                                <IconButton aria-label="delete" onClick={handleClickOpen(value.body)} color="error">
+                                                                                    <ErrorIcon />
+                                                                                </IconButton>
+                                                                            ) : ''
+                                                                        }
+                                                                    </div>
+                                                                </FormControl>
+                                                            ))
+                                                        }
+                                                    </div>
+                                                 </>
+                                            )
+                                        }
+                                        </div>
                                 ) : ''
                             }
                             {
@@ -1047,7 +1161,6 @@ export default function LocalTaskList(props) {
     const getTaskSaveData = (value) => {
         return {
             "urls": value.original.urls,
-            "result_name": output_folder + value.original.result_name + output_extenion,
             "md5": "",
             "run_type": value.original.run_type,
             "keyword_dislike": value.original.keyword_dislike,
