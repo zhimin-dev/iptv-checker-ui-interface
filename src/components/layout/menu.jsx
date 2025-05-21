@@ -159,21 +159,21 @@ export default function Layout() {
     const DrawerList = (
         <Box className="side-bar" style={{ backgroundColor: theme.palette.sideBarBgColor[prefersDarkMode ? 'dark' : 'light'] }} sx={{ width: drawerWidth }} role="presentation">
             <List>
-                <div className="side-bar-logo" onClick={goToGithub} title='帮忙点个star!!!'>
-                    <div className='side-bar-logo-item'>
+                <Box className="side-bar-logo" onClick={goToGithub} title='帮忙点个star!!!'>
+                    <Box className='side-bar-logo-item'>
                         <img src={icon} height="60"></img>
-                        <div className='go-github'>iptv-checker@{nowVersion}</div>
+                        <Box className='go-github'>iptv-checker@{nowVersion}</Box>
                         {
                             _mainContext.showNewVersion ? (
-                                <div style={{ color: 'red' }}>有新版本:{_mainContext.configInfo.version}</div>
+                                <Box style={{ color: 'red' }}>有新版本:{_mainContext.configInfo.version}</Box>
                             ) : ''
                         }
-                    </div>
-                </div>
+                    </Box>
+                </Box>
                 {
                     menuList.map((value, index) => (
                         value.showMod.includes(_mainContext.nowMod) ? (
-                            <div key={index}>
+                            <Box key={index}>
                                 {
                                     value.uri !== detailUri || (value.uri === detailUri && _mainContext.subCheckMenuList.length > 0) ? (
                                         <ListItem key={index} disablePadding onClick={() => changePath(value)}>
@@ -225,7 +225,7 @@ export default function Layout() {
                                         </List>
                                     ) : ''
                                 }
-                            </div>
+                            </Box>
                         ) : ''
                     ))}
             </List>
@@ -288,22 +288,22 @@ export default function Layout() {
                 sponsorInfo={sponsorInfo}
                 onClose={handleCloseSponsor}
             />
-            <div className="layout">
+            <Box className="layout">
                 <Drawer open={openDrawer} anchor="left" variant={openDrawer ? "permanent" : 'temporary'}>
                     {DrawerList}
                 </Drawer>
                 <Box className="container-inner" style={{
                     marginLeft: openDrawer ? drawerWidth + "px" : '',
                 }}>
-                    <div data-tauri-drag-region style={{ width: '100%', height: '20px' }}></div>
+                    <Box data-tauri-drag-region style={{ width: '100%', height: '20px' }}></Box>
                     {
-                        <div style={{
+                        <Box style={{
                             padding: '0 20px',
                             display: 'flex',
                             justifyContent: 'space-between',
                             height: '60px',
                         }}>
-                            <div style={{
+                            <Box style={{
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 height: '60px',
@@ -331,29 +331,29 @@ export default function Layout() {
                                         ) : ''
                                     }
                                 </Box>
-                                <div data-tauri-drag-region style={{
+                                <Box data-tauri-drag-region style={{
                                     display: _mainContext.nowMod === 1 ? 'flex' : 'none',
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                 }}>
-                                    <div className="titlebar-button" id="titlebar-minimize">
+                                    <Box className="titlebar-button" id="titlebar-minimize">
                                         <img
                                             src="https://api.iconify.design/mdi:window-minimize.svg"
                                             alt="minimize"
                                         />
-                                    </div>
-                                    <div className="titlebar-button" id="titlebar-close">
+                                    </Box>
+                                    <Box className="titlebar-button" id="titlebar-close">
                                         <img src="https://api.iconify.design/mdi:close.svg" alt="close" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                                    </Box>
+                                </Box>
+                            </Box>
+                        </Box>
                     }
-                    <div style={{ width: '100%', height: '20px' }}></div>
+                    <Box style={{ width: '100%', height: '20px' }}></Box>
                     <Divider style={{ marginBottom: '10px' }} />
                     <Outlet />
                 </Box>
-            </div>
+            </Box>
         </ThemeProvider>
     )
 }

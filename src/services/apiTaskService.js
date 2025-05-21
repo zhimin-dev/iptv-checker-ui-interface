@@ -1,0 +1,66 @@
+import axios from 'axios';
+
+export class ApiTaskService {
+    constructor(baseUrl = '') {
+        this.baseUrl = baseUrl;
+    }
+
+    async getTaskList() {
+        const response = await axios.get(`${this.baseUrl}/tasks/list?page=1`);
+        return response.data.list;
+    }
+
+    async uploadFile(formData) {
+        const response = await axios.post(`${this.baseUrl}/media/upload`, formData,{
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        console.log("response---", response.data);
+        return response.data;
+    }
+
+    async addTask(taskData) {
+        const response = await axios.post(`${this.baseUrl}/tasks/add`, taskData);
+        if (response.data.code !== "200") {
+            throw new Error(response.data.msg);
+        }
+        return response.data;
+    }
+
+    async updateTask(taskId, taskData) {
+        const response = await axios.post(`${this.baseUrl}/tasks/update?task_id=${taskId}`, taskData);
+        if (response.data.code !== "200") {
+            throw new Error(response.data.msg);
+        }
+        return response.data;
+    }
+
+    async deleteTask(taskId) {
+        const response = await axios.delete(`${this.baseUrl}/tasks/delete/${taskId}`);
+        if (response.data.code !== "200") {
+            throw new Error(response.data.msg);
+        }
+        return response.data;
+    }
+
+    async runTask(taskId) {
+        const response = await axios.get(`${this.baseUrl}/tasks/run?task_id=${taskId}`);
+        return response.data;
+    }
+
+    async getDownloadBody(taskId) {
+        const response = await axios.get(`${this.baseUrl}/tasks/get-download-body?task_id=${taskId}`);
+        return response.data;
+    }
+
+    async exportTasks() {
+        const response = await axios.get(`${this.baseUrl}/system/tasks/export`);
+        return response.data;
+    }
+
+    async importTasks(tasksData) {
+        const response = await axios.post(`${this.baseUrl}/system/tasks/import`, tasksData);
+        return response.data;
+    }
+} 

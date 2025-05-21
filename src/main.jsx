@@ -13,7 +13,7 @@ import Task from './components/task';
 import LTask from './components/ltask';
 import WatchSingle from './components/watch/single'
 import './utils/i18n';
-import { TaskProvider,useTasks } from './context/tasker';
+import { TaskProvider, useTask } from './context/tasker';
 const router = createHashRouter([
   {
     path: "/",

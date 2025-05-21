@@ -1,7 +1,17 @@
-import React, { createContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect,useRef } from 'react';
 import axios from "axios"
 import ParseM3u from '../utils/utils'
+import { TaskStorageService } from '../services/taskStorageService';
+
 const TaskContext = createContext();
+
+export const useTask = () => {
+    const context = useContext(TaskContext);
+    if (!context) {
+        throw new Error('useTask must be used within a TaskProvider');
+    }
+    return context;
+};
 
 export const TaskProvider = ({ children }) => {
     const [nowMod, setNowMod] = useState(0);// 当前运行模式 0服务端模式 1客户端模式
@@ -10,11 +20,7 @@ export const TaskProvider = ({ children }) => {
     const [taskList, setTaskList] = useState([])// 正在执行的任务列表
 
     const [tasks, setTasks] = useState([]);
-    // "status": "pending",// prepare now pending completed
-    // "total": 0,// 总任务数
-    // "checkCount": 0,// 已检查
-    // "success": 0,// 成功
-    // "failed": 0,// 失败
+    const [runningTasks, setRunningTasks] = useState(new Set());
 
     const workersRef = useRef([]);
     const tasksCompletedRef = useRef(0);
@@ -254,15 +260,15 @@ export const TaskProvider = ({ children }) => {
         workersRef.current.forEach(worker => worker.terminate());
     }
 
-    useEffect(() => {
-        loadFromLocalStorage()
-        // 开启worker
-        startTask();
-        // 清理 Worker
-        return () => {
-            stopTask()
-        };
-    }, []);
+    // useEffect(() => {
+    //     loadFromLocalStorage()
+    //     // 开启worker
+    //     startTask();
+    //     // 清理 Worker
+    //     return () => {
+    //         stopTask()
+    //     };
+    // }, []);
 
     const updateTaskListResult = (index, passTask, result) => {
         setTaskList(prevTasks => {
@@ -302,147 +308,284 @@ export const TaskProvider = ({ children }) => {
         });
     }
 
-    const prepareTaskData = async () => {
-        console.log("------prepare")
-        tasksRef.current.forEach(async (task) => {
-            if (task.status === 'prepare') {
-                let result = await get_m3u_body(task.original.urls)
-                updateTaskOriginalUrls(task.id, result)
-                updateTaskStatus(task.id, "pending")
+    // const prepareTaskData = async () => {
+    //     console.log("------prepare")
+    //     tasksRef.current.forEach(async (task) => {
+    //         if (task.status === 'prepare') {
+    //             let result = await get_m3u_body(task.original.urls)
+    //             updateTaskOriginalUrls(task.id, result)
+    //             updateTaskStatus(task.id, "pending")
+    //         }
+    //     });
+    // }
+
+    // const getM3uBody = (url, timeout) => {
+    //     if (nowMod === 1) {
+    //         return url
+    //     }
+    //     let _timeout = parseInt(timeout, 10)
+    //     return '/fetch/m3u-body?url=' + url + "&timeout=" + (isNaN(_timeout) ? '-1' : _timeout)
+    // }
+
+    // const get_m3u_body = async (data) => {
+    //     let allRequest = [];
+    //     for (let i = 0; i < data.length; i++) {
+    //         let _url = getM3uBody(data[i].url)
+    //         allRequest.push(axios.get(_url, { timeout: 2000 }))
+    //     }
+    //     const results = await Promise.allSettled(allRequest);
+    //     results.forEach((result, index) => {
+    //         let isError = true
+    //         let body = ""
+    //         if (result.status === 'fulfilled') {
+    //             const response = result.value.data;
+    //             if (valid_m3u_file(response)) {
+    //                 isError = false
+    //                 body = response
+    //             } else {
+    //                 isError = true
+    //                 body = response
+    //             }
+    //         } else {
+    //             isError = true
+    //             body = result.reason.message
+    //         }
+    //         if (isError) {
+    //             data[index].status = 500
+    //         } else {
+    //             data[index].status = 200
+    //         }
+    //         data[index].body = body
+    //     })
+    //     return data
+    // }
+
+    // const printData = () => {
+    //     console.log(tasks)
+
+    //     console.log(taskList)
+    // }
+
+    // const addTask = () => {
+    //     let data = {
+    //         "original": {
+    //             "urls": [
+    //                 {
+    //                     "url": "https://freetv.fun/test_channels_taiwan_new.m3u",
+    //                     "status": 200,
+    //                     "body": `#EXTM3U
+    // #EXTINF:-1 tvg-name="CCTV5(backup)" tvg-id="378823" tvg-country="中国大陆" tvg-language="国语" tvg-logo="https://epg.pw/media/images/channel/2025/01/25/large/20250125001815951580_60.jpg" group-title="运动",cctv5-体育
+    // https://stream1.freetv.fun/8c0a0439191a3ba401897378bc2226a7edda1e571cb356ac7c7f4c15f6a2f380.m3u8
+    // #EXTINF:-1 tvg-name="CCTV5+" tvg-id="378824" tvg-country="中国大陆" tvg-language="国语" tvg-logo="https://epg.pw/media/images/channel/2025/01/25/large/20250125001757126121_81.png" group-title="运动",cctv5 plus
+    // https://stream1.freetv.fun/0f7997a9c1542d6a120fa0b438502b1d74023e88e38b3555ab20aaa0bf0b591d.m3u8
+    // #EXTINF:-1 tvg-name="CCTV5+(backup)" tvg-id="378824" tvg-country="中国大陆" tvg-language="国语" tvg-logo="https://epg.pw/media/images/channel/2025/01/25/large/20250125001746078420_25.png" group-title="运动",cctv5 plus
+    // https://stream1.freetv.fun/5f45303a6d77de9385fd1a97574caa4f005439d3887012b4adf9712be6e8f7e2.m3u8
+    // #EXTINF:-1 tvg-name="CCTV1" tvg-id="378819" tvg-country="中国大陆" tvg-language="国语" tvg-logo="https://epg.pw/media/images/channel/2025/01/25/large/20250125001359645907_15.png" group-title="综合",cctv1
+    // https://stream1.freetv.fun/bfec4bae052420b2dd966a77fe7a85446ba81c0436e1582b0bf1fd1a08d4dae6.m3u8
+    // #EXTINF:-1 tvg-name="CCTV3" tvg-id="378821" tvg-country="中国大陆" tvg-language="国语" tvg-logo="https://epg.pw/media/images/channel/2025/01/25/large/20250125001936710108_56.png" group-title="综艺",cctv3
+    // https://stream1.freetv.fun/f6e760220823c23e76064af294c797e6a5f5219d492314b02f28a8da361057b4.m3u8
+    // #EXTINF:-1 tvg-name="CCTV4 FHD" tvg-id="378822" tvg-country="中国大陆" tvg-language="国语" tvg-logo="https://epg.pw/media/images/channel/2025/01/25/large/20250125001917639668_91.png" group-title="新闻",cctv4
+    // https://stream1.freetv.fun/ce75cb26c3c92bd5f97e003c8bb34c3c3b81be5bfd2e9261d854a5b0f3bbb61a.m3u8`,
+    //                 },
+    //                 {
+    //                     "url": "https://freetv.fun/test_channels_hong_kong_new.m3u",
+    //                     "status": 500,
+    //                     "body": "error",
+    //                 },
+    //                 {
+    //                     "url": "https://freetv.fun/test_channels_china_new.m3u",
+    //                     "status": 500,
+    //                     "body": "error",
+    //                 },
+    //                 {
+    //                     "url": "https://freetv.fun/test_channels_macau_new.m3u",
+    //                     "status": 500,
+    //                     "body": "error",
+    //                 },
+    //                 {
+    //                     "url": "https://freetv.fun/test_channels_singapore_new.m3u",
+    //                     "status": 500,
+    //                     "body": "error",
+    //                 },
+    //             ],
+    //             "keyword_like": [],
+    //             "keyword_dislike": [],
+    //             "http_timeout": 2000,
+    //             "check_timeout": 2000,
+    //             "concurrent": 10,
+    //             "sort": true,
+    //             "no_check": false,
+    //             "rename": true,
+    //             "ffmpeg_check": true,
+    //             "same_save_num": 2,
+    //             "not_http_skip": true
+    //         },
+    //         "id": "6371bc77-373b-4621-83ee-d17330f16be22",
+    //         "create_time": 1743318803,
+    //         "list": [],
+    //         "status": "pending",// prepare now pending completed
+    //         "total": 0,// 总任务数
+    //         "checkCount": 0,// 已检查
+    //         "success": 0,// 成功
+    //         "failed": 0,// 失败
+    //     }
+
+    //     setTasks(prevItems => {
+    //         let updates = [...prevItems, data]
+    //         saveToLocalStorage(updates, localCahceTasksKey)
+    //         tasksRef.current = updates
+    //         return updates
+    //     });
+    // }
+
+    // 初始化时加载所有任务
+    useEffect(() => {
+        const loadTasks = () => {
+            const storedTasks = TaskStorageService.getTasks();
+            setTasks(storedTasks);
+        };
+        loadTasks();
+    }, []);
+
+    // 监听 localStorage 变化
+    useEffect(() => {
+        const handleStorageChange = (e) => {
+            if (e.key === TaskStorageService.STORAGE_KEY) {
+                const storedTasks = TaskStorageService.getTasks();
+                setTasks(storedTasks);
             }
-        });
-    }
+        };
 
-    const getM3uBody = (url, timeout) => {
-        if (nowMod === 1) {
-            return url
-        }
-        let _timeout = parseInt(timeout, 10)
-        return '/fetch/m3u-body?url=' + url + "&timeout=" + (isNaN(_timeout) ? '-1' : _timeout)
-    }
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
 
-    const get_m3u_body = async (data) => {
-        let allRequest = [];
-        for (let i = 0; i < data.length; i++) {
-            let _url = getM3uBody(data[i].url)
-            allRequest.push(axios.get(_url, { timeout: 2000 }))
+    // 检查单个任务
+    const checkTask = async (taskId) => {
+        if (runningTasks.has(taskId)) {
+            console.log(`Task ${taskId} is already running`);
+            return;
         }
-        const results = await Promise.allSettled(allRequest);
-        results.forEach((result, index) => {
-            let isError = true
-            let body = ""
-            if (result.status === 'fulfilled') {
-                const response = result.value.data;
-                if (valid_m3u_file(response)) {
-                    isError = false
-                    body = response
-                } else {
-                    isError = true
-                    body = response
+
+        try {
+            // 标记任务为运行中
+            setRunningTasks(prev => new Set([...prev, taskId]));
+            
+            // 更新任务状态
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) {
+                throw new Error('Task not found');
+            }
+
+            // 更新任务信息
+            const updatedTask = {
+                ...task,
+                task_info: {
+                    ...task.task_info,
+                    is_running: true,
+                    task_status: "Running",
+                    last_run_time: Date.now()
                 }
-            } else {
-                isError = true
-                body = result.reason.message
-            }
-            if (isError) {
-                data[index].status = 500
-            } else {
-                data[index].status = 200
-            }
-            data[index].body = body
-        })
-        return data
-    }
+            };
 
-    const printData = () => {
-        console.log(tasks)
+            // 保存更新后的任务
+            TaskStorageService.updateTask(taskId, updatedTask);
+            setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
 
-        console.log(taskList)
-    }
+            // 执行任务检查逻辑
+            await performTaskCheck(task);
 
-    const addTask = () => {
-        let data = {
-            "original": {
-                "urls": [
-                    {
-                        "url": "https://freetv.fun/test_channels_taiwan_new.m3u",
-                        "status": 200,
-                        "body": `#EXTM3U
-    #EXTINF:-1 tvg-name="CCTV5(backup)" tvg-id="378823" tvg-country="中国大陆" tvg-language="国语" tvg-logo="https://epg.pw/media/images/channel/2025/01/25/large/20250125001815951580_60.jpg" group-title="运动",cctv5-体育
-    https://stream1.freetv.fun/8c0a0439191a3ba401897378bc2226a7edda1e571cb356ac7c7f4c15f6a2f380.m3u8
-    #EXTINF:-1 tvg-name="CCTV5+" tvg-id="378824" tvg-country="中国大陆" tvg-language="国语" tvg-logo="https://epg.pw/media/images/channel/2025/01/25/large/20250125001757126121_81.png" group-title="运动",cctv5 plus
-    https://stream1.freetv.fun/0f7997a9c1542d6a120fa0b438502b1d74023e88e38b3555ab20aaa0bf0b591d.m3u8
-    #EXTINF:-1 tvg-name="CCTV5+(backup)" tvg-id="378824" tvg-country="中国大陆" tvg-language="国语" tvg-logo="https://epg.pw/media/images/channel/2025/01/25/large/20250125001746078420_25.png" group-title="运动",cctv5 plus
-    https://stream1.freetv.fun/5f45303a6d77de9385fd1a97574caa4f005439d3887012b4adf9712be6e8f7e2.m3u8
-    #EXTINF:-1 tvg-name="CCTV1" tvg-id="378819" tvg-country="中国大陆" tvg-language="国语" tvg-logo="https://epg.pw/media/images/channel/2025/01/25/large/20250125001359645907_15.png" group-title="综合",cctv1
-    https://stream1.freetv.fun/bfec4bae052420b2dd966a77fe7a85446ba81c0436e1582b0bf1fd1a08d4dae6.m3u8
-    #EXTINF:-1 tvg-name="CCTV3" tvg-id="378821" tvg-country="中国大陆" tvg-language="国语" tvg-logo="https://epg.pw/media/images/channel/2025/01/25/large/20250125001936710108_56.png" group-title="综艺",cctv3
-    https://stream1.freetv.fun/f6e760220823c23e76064af294c797e6a5f5219d492314b02f28a8da361057b4.m3u8
-    #EXTINF:-1 tvg-name="CCTV4 FHD" tvg-id="378822" tvg-country="中国大陆" tvg-language="国语" tvg-logo="https://epg.pw/media/images/channel/2025/01/25/large/20250125001917639668_91.png" group-title="新闻",cctv4
-    https://stream1.freetv.fun/ce75cb26c3c92bd5f97e003c8bb34c3c3b81be5bfd2e9261d854a5b0f3bbb61a.m3u8`,
-                    },
-                    {
-                        "url": "https://freetv.fun/test_channels_hong_kong_new.m3u",
-                        "status": 500,
-                        "body": "error",
-                    },
-                    {
-                        "url": "https://freetv.fun/test_channels_china_new.m3u",
-                        "status": 500,
-                        "body": "error",
-                    },
-                    {
-                        "url": "https://freetv.fun/test_channels_macau_new.m3u",
-                        "status": 500,
-                        "body": "error",
-                    },
-                    {
-                        "url": "https://freetv.fun/test_channels_singapore_new.m3u",
-                        "status": 500,
-                        "body": "error",
-                    },
-                ],
-                "keyword_like": [],
-                "keyword_dislike": [],
-                "http_timeout": 2000,
-                "check_timeout": 2000,
-                "concurrent": 10,
-                "sort": true,
-                "no_check": false,
-                "rename": true,
-                "ffmpeg_check": true,
-                "same_save_num": 2,
-                "not_http_skip": true
-            },
-            "id": "6371bc77-373b-4621-83ee-d17330f16be22",
-            "create_time": 1743318803,
-            "list": [],
-            "status": "pending",// prepare now pending completed
-            "total": 0,// 总任务数
-            "checkCount": 0,// 已检查
-            "success": 0,// 成功
-            "failed": 0,// 失败
+            // 更新任务完成状态
+            const completedTask = {
+                ...updatedTask,
+                task_info: {
+                    ...updatedTask.task_info,
+                    is_running: false,
+                    task_status: "Completed",
+                    next_run_time: 0
+                }
+            };
+
+            TaskStorageService.updateTask(taskId, completedTask);
+            setTasks(prev => prev.map(t => t.id === taskId ? completedTask : t));
+        } catch (error) {
+            console.error(`Error checking task ${taskId}:`, error);
+            
+            // 更新任务错误状态
+            const failedTask = {
+                ...task,
+                task_info: {
+                    ...task.task_info,
+                    is_running: false,
+                    task_status: "Failed"
+                }
+            };
+
+            TaskStorageService.updateTask(taskId, failedTask);
+            setTasks(prev => prev.map(t => t.id === taskId ? failedTask : t));
+        } finally {
+            // 移除运行中标记
+            setRunningTasks(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(taskId);
+                return newSet;
+            });
         }
+    };
 
-        setTasks(prevItems => {
-            let updates = [...prevItems, data]
-            saveToLocalStorage(updates, localCahceTasksKey)
-            tasksRef.current = updates
-            return updates
+    // 执行任务检查的具体逻辑
+    const performTaskCheck = async (task) => {
+        // TODO: 实现具体的任务检查逻辑
+        // 这里可以添加检查URL、处理文件等具体实现
+        return new Promise((resolve) => {
+            console.log("performTaskCheck", task)
+            setTimeout(resolve, 2000); // 模拟检查过程
         });
-    }
+    };
+
+    // 计算下次运行时间
+    const calculateNextRunTime = (runType) => {
+        const now = Date.now();
+        return now
+        // switch (runType) {
+        //     case 'EveryHour':
+        //         return now + 60 * 60 * 1000; // 1小时后
+        //     case 'EveryDay':
+        //         return now + 24 * 60 * 60 * 1000; // 24小时后
+        //     default:
+        //         return now;
+        // }
+    };
+
+    // 检查所有需要运行的任务
+    const checkAllTasks = async () => {
+        const now = Date.now();
+        const tasksToRun = tasks.filter(task => 
+            !task.task_info.is_running && 
+            task.task_info.next_run_time <= now
+        );
+
+        for (const task of tasksToRun) {
+            await checkTask(task.id);
+        }
+    };
+
+    // 定期检查任务
+    useEffect(() => {
+        const interval = setInterval(checkAllTasks, 60000); // 每分钟检查一次
+        return () => clearInterval(interval);
+    }, [tasks]);
+
+    const value = {
+        tasks,
+        runningTasks,
+        checkTask,
+        checkAllTasks
+    };
 
     return (
-        <TaskContext.Provider value={{ tasks, prepareTaskData, printData,addTask }}>
+        <TaskContext.Provider value={value}>
             {children}
         </TaskContext.Provider>
     );
-};
-
-export const useTasks = () => {
-    const context = React.useContext(TaskContext);
-    if (!context) {
-        throw new Error('useTasks must be used within a TaskProvider');
-    }
-    return context;
 };
