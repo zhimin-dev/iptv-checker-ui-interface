@@ -713,7 +713,13 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                     <Button onClick={handleDeleteClick}>Yes</Button>
                 </DialogActions>
             </Dialog>
-            <Dialog onClose={onClose} open={open}>
+            <Dialog 
+                onClose={onClose} 
+                open={open}
+                disableEnforceFocus
+                disableAutoFocus
+                disableRestoreFocus
+            >
                 <Box sx={{ width: '100%', padding: '40px' }}>
                     <Stepper activeStep={activeStep}>
                         {steps.map((label) => (
