@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState,useContext } from 'react';
+import { MainContext } from './../../context/main';
 import { useTranslation } from "react-i18next";
 import {
     TableRow,
@@ -15,6 +16,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog }) => {
+    const _mainContext = useContext(MainContext);
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
 
@@ -37,12 +39,12 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog }) 
                     >
                         {open ? <KeyboardArrowUpIcon /> : <ArrowDownwardIcon />}
                     </IconButton>
-                    {row.task_info.next_run_time > 0 && 
-                     row.task_info.next_run_time - new Date().getTime() / 1000 >= 180 &&
-                     row.task_info.last_run_time > 0 && 
-                     new Date().getTime() / 1000 - row.task_info.last_run_time >= 180 && (
-                        <Button onClick={() => handleTaskRightNow(row.id)}>{t('立即执行')}</Button>
-                    )}
+                    {row.task_info.next_run_time > 0 &&
+                        row.task_info.next_run_time - new Date().getTime() / 1000 >= 180 &&
+                        row.task_info.last_run_time > 0 &&
+                        new Date().getTime() / 1000 - row.task_info.last_run_time >= 180 && (
+                            <Button onClick={() => handleTaskRightNow(row.id)}>{t('立即执行')}</Button>
+                        )}
                 </TableCell>
                 <TableCell component="th" scope="row" onClick={() => clickTask()}>
                     {row.id}
@@ -71,8 +73,17 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog }) 
                 <TableCell align="right">
                     <div>{t('任务创建时间')}：{row.create_time > 0 ? (new Date(row.create_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''}</div>
                     <div>{t('最后运行时间')}：{row.task_info.last_run_time > 0 ? (new Date(row.task_info.last_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''}</div>
-                    <div>{t('下一次运行时间')}：{row.task_info.next_run_time > 0 ? (new Date(row.task_info.next_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''}</div>
-                    <div>{t('运行时间')}：{row.task_info.run_type === 'EveryHour' ? t('每小时一次') : t('每天一次')}</div>
+                    <div>{t('当前状态')}：{row.task_info.task_status}</div>
+                    {
+                        _mainContext.nowMod === 0 ?(
+                            <div>{t('下一次运行时间')}：{row.task_info.next_run_time > 0 ? (new Date(row.task_info.next_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''}</div>
+                        ):''
+                    }
+                    {
+                        _mainContext.nowMod === 0 ?(
+                            <div>{t('运行时间')}：{row.task_info.run_type === 'EveryHour' ? t('每小时一次') : t('每天一次')}</div>
+                        ):''
+                    }
                 </TableCell>
             </TableRow>
             <TableRow>

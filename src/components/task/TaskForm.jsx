@@ -580,7 +580,6 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
             case 2:
                 return (
                     <Box sx={{ mt: 2 }}>
-
                         <FormControl fullWidth style={{
                             margin: "20px 0 20px",
                         }}>
