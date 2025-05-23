@@ -3,7 +3,7 @@ import axios from "axios"
 import ParseM3u from '../utils/utils'
 import { TaskStorageService } from '../services/taskStorageService';
 
-const TaskContext = createContext();
+export const TaskContext = createContext();
 
 export const useTask = () => {
     const context = useContext(TaskContext);
@@ -39,10 +39,8 @@ export const TaskProvider = ({ children }) => {
 
     // 从localstorage加载数据
     const loadFromLocalStorage = () => {
-        let tasks = TaskStorageService.getTasks();
-        tasksRef.current = tasks;
-        updateTasks(tasks);
-
+      
+        freshTaskList()
         const nowTaskId = localStorage.getItem(localCahceNowTaskId);
         if (nowTaskId !== '') {
             updateNowTaskId(nowTaskId, false);
@@ -56,10 +54,16 @@ export const TaskProvider = ({ children }) => {
         } else {
             updateTaskList([]);
         }
-
-        // 组装list字段
-        fulfilled_data(tasks)
     };
+
+    const freshTaskList = () => {
+        let tasks = TaskStorageService.getTasks();
+        tasksRef.current = tasks;
+        updateTasks(tasks);
+
+        fulfilled_data(tasks)
+        return tasks
+    }
 
     const m3u8BodyToStructList = (body) => {
         try {
@@ -97,7 +101,6 @@ https://stream1.freetv.fun/8c0a0439191a3ba401897378bc2226a7edda1e571cb356ac7c7f4
                     }
                 }
             }
-            console.log("fulfilled_data---", list)
             updateTaskInfo(tList[i].id, list)
         }
     }
@@ -105,7 +108,10 @@ https://stream1.freetv.fun/8c0a0439191a3ba401897378bc2226a7edda1e571cb356ac7c7f4
     const taskHasComplate = (taskId) => {
         setTasks(prevTasks => {
             const updatedTasks = prevTasks.map(task =>
-                task.id === taskId ? { ...task, status: "completed" } : task
+                task.id === taskId ? { ...task, task_info: {
+                    ...task.task_info,
+                    task_status: "Completed"
+                } } : task
             )
             saveToLocalStorage(updatedTasks, localCahceTasksKey)
             tasksRef.current = updatedTasks
@@ -267,7 +273,6 @@ https://stream1.freetv.fun/8c0a0439191a3ba401897378bc2226a7edda1e571cb356ac7c7f4
     }, []);
 
     const updateTaskListResult = (index, passTask, result) => {
-        console.log("updateTaskListResult---", index, passTask, result)
         setTaskList(prevTasks => {
             const updatedTasks = prevTasks.map(task =>
                 task.index === index ? { 
@@ -308,57 +313,57 @@ https://stream1.freetv.fun/8c0a0439191a3ba401897378bc2226a7edda1e571cb356ac7c7f4
         });
     }
 
-    // const prepareTaskData = async () => {
-    //     console.log("------prepare")
-    //     tasksRef.current.forEach(async (task) => {
-    //         if (task.status === 'prepare') {
-    //             let result = await get_m3u_body(task.original.urls)
-    //             updateTaskOriginalUrls(task.id, result)
-    //             updateTaskStatus(task.id, "pending")
-    //         }
-    //     });
-    // }
+    const prepareTaskData = async () => {
+        console.log("------prepare")
+        tasksRef.current.forEach(async (task) => {
+            if (task.status === 'prepare') {
+                let result = await get_m3u_body(task.original.urls)
+                updateTaskOriginalUrls(task.id, result)
+                updateTaskStatus(task.id, "pending")
+            }
+        });
+    }
 
-    // const getM3uBody = (url, timeout) => {
-    //     if (nowMod === 1) {
-    //         return url
-    //     }
-    //     let _timeout = parseInt(timeout, 10)
-    //     return '/fetch/m3u-body?url=' + url + "&timeout=" + (isNaN(_timeout) ? '-1' : _timeout)
-    // }
+    const getM3uBody = (url, timeout) => {
+        if (nowMod === 1) {
+            return url
+        }
+        let _timeout = parseInt(timeout, 10)
+        return '/fetch/m3u-body?url=' + url + "&timeout=" + (isNaN(_timeout) ? '-1' : _timeout)
+    }
 
-    // const get_m3u_body = async (data) => {
-    //     let allRequest = [];
-    //     for (let i = 0; i < data.length; i++) {
-    //         let _url = getM3uBody(data[i].url)
-    //         allRequest.push(axios.get(_url, { timeout: 2000 }))
-    //     }
-    //     const results = await Promise.allSettled(allRequest);
-    //     results.forEach((result, index) => {
-    //         let isError = true
-    //         let body = ""
-    //         if (result.status === 'fulfilled') {
-    //             const response = result.value.data;
-    //             if (valid_m3u_file(response)) {
-    //                 isError = false
-    //                 body = response
-    //             } else {
-    //                 isError = true
-    //                 body = response
-    //             }
-    //         } else {
-    //             isError = true
-    //             body = result.reason.message
-    //         }
-    //         if (isError) {
-    //             data[index].status = 500
-    //         } else {
-    //             data[index].status = 200
-    //         }
-    //         data[index].body = body
-    //     })
-    //     return data
-    // }
+    const get_m3u_body = async (data) => {
+        let allRequest = [];
+        for (let i = 0; i < data.length; i++) {
+            let _url = getM3uBody(data[i].url)
+            allRequest.push(axios.get(_url, { timeout: 2000 }))
+        }
+        const results = await Promise.allSettled(allRequest);
+        results.forEach((result, index) => {
+            let isError = true
+            let body = ""
+            if (result.status === 'fulfilled') {
+                const response = result.value.data;
+                if (valid_m3u_file(response)) {
+                    isError = false
+                    body = response
+                } else {
+                    isError = true
+                    body = response
+                }
+            } else {
+                isError = true
+                body = result.reason.message
+            }
+            if (isError) {
+                data[index].status = 500
+            } else {
+                data[index].status = 200
+            }
+            data[index].body = body
+        })
+        return data
+    }
 
     // const printData = () => {
     //     console.log(tasks)
@@ -367,93 +372,83 @@ https://stream1.freetv.fun/8c0a0439191a3ba401897378bc2226a7edda1e571cb356ac7c7f4
     // }
 
     // 检查单个任务
-    const checkTask = async (taskId) => {
-        console.log("checkTask", taskId);
-        if (runningTasks.has(taskId)) {
-            console.log(`Task ${taskId} is already running`);
-            return;
-        }
+    // const checkTask = async (taskId) => {
+    //     console.log("checkTask", taskId);
+    //     if (runningTasks.has(taskId)) {
+    //         console.log(`Task ${taskId} is already running`);
+    //         return;
+    //     }
 
-        try {
-            // 标记任务为运行中
-            setRunningTasks(prev => new Set([...prev, taskId]));
+    //     try {
+    //         // 标记任务为运行中
+    //         setRunningTasks(prev => new Set([...prev, taskId]));
             
-            // 更新任务状态
-            const task = tasks.find(t => t.id === taskId);
-            if (!task) {
-                throw new Error('Task not found');
-            }
+    //         // 更新任务状态
+    //         const task = tasks.find(t => t.id === taskId);
+    //         if (!task) {
+    //             throw new Error('Task not found');
+    //         }
 
-            // 更新任务信息
-            const updatedTask = {
-                ...task,
-                task_info: {
-                    ...task.task_info,
-                    is_running: true,
-                    task_status: "Running",
-                    last_run_time: Date.now()
-                }
-            };
+    //         // 更新任务信息
+    //         const updatedTask = {
+    //             ...task,
+    //             task_info: {
+    //                 ...task.task_info,
+    //                 is_running: true,
+    //                 task_status: "Running",
+    //                 last_run_time: Date.now()
+    //             }
+    //         };
 
-            // 保存更新后的任务
-            TaskStorageService.updateTask(taskId, updatedTask);
-            setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
+    //         // 保存更新后的任务
+    //         TaskStorageService.updateTask(taskId, updatedTask);
+    //         setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
 
-            // 执行任务检查逻辑
-            await performTaskCheck(task);
+    //         // 执行任务检查逻辑
+    //         await performTaskCheck(task);
 
-            // 更新任务完成状态
-            const completedTask = {
-                ...updatedTask,
-                task_info: {
-                    ...updatedTask.task_info,
-                    is_running: false,
-                    task_status: "Completed",
-                    next_run_time: 0
-                }
-            };
+    //         // 更新任务完成状态
+    //         const completedTask = {
+    //             ...updatedTask,
+    //             task_info: {
+    //                 ...updatedTask.task_info,
+    //                 is_running: false,
+    //                 task_status: "Completed",
+    //                 next_run_time: 0
+    //             }
+    //         };
 
-            TaskStorageService.updateTask(taskId, completedTask);
-            setTasks(prev => prev.map(t => t.id === taskId ? completedTask : t));
-        } catch (error) {
-            console.error(`Error checking task ${taskId}:`, error);
+    //         TaskStorageService.updateTask(taskId, completedTask);
+    //         setTasks(prev => prev.map(t => t.id === taskId ? completedTask : t));
+    //     } catch (error) {
+    //         console.error(`Error checking task ${taskId}:`, error);
             
-            // 更新任务错误状态
-            const failedTask = {
-                ...task,
-                task_info: {
-                    ...task.task_info,
-                    is_running: false,
-                    task_status: "Failed"
-                }
-            };
+    //         // 更新任务错误状态
+    //         const failedTask = {
+    //             ...task,
+    //             task_info: {
+    //                 ...task.task_info,
+    //                 is_running: false,
+    //                 task_status: "Failed"
+    //             }
+    //         };
 
-            TaskStorageService.updateTask(taskId, failedTask);
-            setTasks(prev => prev.map(t => t.id === taskId ? failedTask : t));
-        } finally {
-            // 移除运行中标记
-            setRunningTasks(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(taskId);
-                return newSet;
-            });
-        }
-    };
-
-    // 执行任务检查的具体逻辑
-    const performTaskCheck = async (task) => {
-        // TODO: 实现具体的任务检查逻辑
-        // 这里可以添加检查URL、处理文件等具体实现
-        return new Promise((resolve) => {
-            console.log("performTaskCheck", task)
-            setTimeout(resolve, 2000); // 模拟检查过程
-        });
-    };
+    //         TaskStorageService.updateTask(taskId, failedTask);
+    //         setTasks(prev => prev.map(t => t.id === taskId ? failedTask : t));
+    //     } finally {
+    //         // 移除运行中标记
+    //         setRunningTasks(prev => {
+    //             const newSet = new Set(prev);
+    //             newSet.delete(taskId);
+    //             return newSet;
+    //         });
+    //     }
+    // };
 
     const value = {
         tasks,
         runningTasks,
-        checkTask
+        freshTaskList
     };
 
     return (

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useEffect, useContext, useRef, useState } from "react"
 import { MainContext } from './../../context/main';
+import { TaskContext } from './../../context/tasker';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import Box from '@mui/material/Box';
@@ -24,6 +25,7 @@ import { ImportDialog, ExportDialog } from '../task/ImportExportDialog';
 
 export default function LTaskList() {
     const _mainContext = useContext(MainContext);
+    const _taskerContext = useContext(TaskContext);
     const { t } = useTranslation();
     const [taskService] = useState(() => new WebTaskService());
 
@@ -37,10 +39,6 @@ export default function LTaskList() {
     const [showImportDialog, setShowImportDialog] = useState(false);
     const [showExportDialog, setShowExportDialog] = useState(false);
     const [exportBody, setExportBody] = useState('');
-
-    useEffect(() => {
-        get_task_list();
-    }, []);
 
     const handleClickOpen = (value) => {
         setFormValue(value);
@@ -59,7 +57,7 @@ export default function LTaskList() {
             } else {
                 await taskService.updateTask(value.id, value);
             }
-            get_task_list();
+            _taskerContext.freshTaskList()
         } catch (e) {
             handleOpenAlertBar(e.message);
         }
@@ -68,19 +66,8 @@ export default function LTaskList() {
     const handleDelete = async (value) => {
         try {
             await taskService.deleteTask(value.id);
-            get_task_list();
         } catch (e) {
             handleOpenAlertBar(e.message);
-        }
-    };
-
-    const get_task_list = async () => {
-        try {
-            const data = await taskService.getTaskList();
-            setTaskList(data.list);
-        } catch (e) {
-            setTaskList([]);
-            handleOpenAlertBar(t('获取任务失败，请检查服务是否正常启动'));
         }
     };
 
@@ -97,7 +84,6 @@ export default function LTaskList() {
     const doTaskRightNow = async (id) => {
         try {
             await taskService.runTask(id);
-            get_task_list();
         } catch (e) {
             handleOpenAlertBar(t('操作失败'));
         }
@@ -115,11 +101,6 @@ export default function LTaskList() {
 
     const handleDownloadClose = (val) => {
         setOpenDownloadBody(val);
-    };
-
-    const refreshList = () => {
-        setTaskList([]);
-        get_task_list();
     };
 
     const handleImportDialog = (val) => {
@@ -145,7 +126,6 @@ export default function LTaskList() {
             const data = JSON.parse(val);
             await taskService.importTasks(data);
             setShowImportDialog(false);
-            refreshList();
         } catch (e) {
             handleOpenAlertBar(t('保存失败'));
         }
@@ -168,15 +148,8 @@ export default function LTaskList() {
                         >
                             {t('新增')}
                         </Button>
-                        <Button
-                            variant="outlined"
-                            startIcon={<RefreshIcon />}
-                            onClick={refreshList}
-                        >
-                            {t('刷新列表')}
-                        </Button>
                     </Box>
-                    <Box>
+                    {/* <Box>
                         <Button
                             variant="outlined"
                             startIcon={<PublishIcon />}
@@ -192,7 +165,7 @@ export default function LTaskList() {
                         >
                             {t('全部任务导出')}
                         </Button>
-                    </Box>
+                    </Box> */}
                 </Box>
                 <Snackbar
                     open={openAlertBar}
@@ -238,7 +211,7 @@ export default function LTaskList() {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {taskList.map((row) => (
+                                {_taskerContext.tasks.map((row) => (
                                     <TaskRow
                                         key={row.id}
                                         row={row}

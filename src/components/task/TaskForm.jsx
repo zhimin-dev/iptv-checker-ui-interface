@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, useContext,useState } from "react";
+import { useEffect, useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MainContext } from './../../context/main';
 import {
@@ -436,7 +436,6 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
             case 0:
                 return (
                     <Box sx={{ mt: 2 }}>
-
                         {
                             task.original.urls.length > 0 ? (
                                 <FormControl fullWidth style={{
@@ -630,7 +629,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                             onChange={handleChangeFfmepgCheck}
                                         >
                                             <FormControlLabel value="false" control={<Radio />} label={t('http快速检查')} />
-                                            <FormControlLabel value="true" disabled={_mainContext.ffmepgCheck==0&&_mainContext.nowMod===1} control={<Radio />} label={t('ffmpeg慢速检查')} />
+                                            <FormControlLabel value="true" disabled={_mainContext.ffmepgCheck == 0 && _mainContext.nowMod === 1} control={<Radio />} label={t('ffmpeg慢速检查')} />
                                         </RadioGroup>
                                     </FormControl>
                                     {
@@ -712,8 +711,8 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                     <Button onClick={handleDeleteClick}>Yes</Button>
                 </DialogActions>
             </Dialog>
-            <Dialog 
-                onClose={onClose} 
+            <Dialog
+                onClose={onClose}
                 open={open}
                 disableEnforceFocus
                 disableAutoFocus
@@ -751,9 +750,11 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                             )}
                             <Box sx={{ flex: '1 1 auto' }} />
                             {activeStep === steps.length - 1 ? (
-                                <Button onClick={handleSaveClick}>
-                                    保存
-                                </Button>
+                                checkType === 'server' ? (
+                                    <Button onClick={handleSaveClick}>
+                                        保存
+                                    </Button>
+                                ) : ''
                             ) : (
                                 <Button onClick={handleNext}>
                                     下一页
