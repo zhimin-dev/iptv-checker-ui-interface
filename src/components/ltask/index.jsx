@@ -24,14 +24,12 @@ import { DownloadDialog } from '../task/DownloadDialog';
 import { ImportDialog, ExportDialog } from '../task/ImportExportDialog';
 
 export default function LTaskList() {
-    const _mainContext = useContext(MainContext);
     const _taskerContext = useContext(TaskContext);
     const { t } = useTranslation();
     const [taskService] = useState(() => new WebTaskService());
 
     const [formDialog, setFormDialog] = useState(false);
     const [formValue, setFormValue] = useState(null);
-    const [taskList, setTaskList] = useState([]);
     const [openAlertBar, setOpenAlertBar] = useState(false);
     const [alertBarMsg, setAlertBarMsg] = useState("");
     const [openDownloadBody, setOpenDownloadBody] = useState(false);
@@ -66,6 +64,7 @@ export default function LTaskList() {
     const handleDelete = async (value) => {
         try {
             await taskService.deleteTask(value.id);
+            _taskerContext.freshTaskList()
         } catch (e) {
             handleOpenAlertBar(e.message);
         }

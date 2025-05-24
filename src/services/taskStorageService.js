@@ -32,7 +32,7 @@ export class TaskStorageService {
                     last_run_time: 0,
                     next_run_time: 0,
                     is_running: false,
-                    task_status: "Pending"
+                    task_status: "Prepare"
                 }
             };
             tasks.push(newTask);

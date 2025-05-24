@@ -750,7 +750,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                             )}
                             <Box sx={{ flex: '1 1 auto' }} />
                             {activeStep === steps.length - 1 ? (
-                                checkType === 'server' ? (
+                                checkType === 'server' || task.id === '' ? (
                                     <Button onClick={handleSaveClick}>
                                         保存
                                     </Button>

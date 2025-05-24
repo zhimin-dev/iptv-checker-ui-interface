@@ -36,6 +36,64 @@ const ParseM3u = {
         }
         return []
     },
+    parseM3uBody:(body) => {
+        if (!body) {
+            return [];
+        }
+
+        let lines = body.split('\n');
+        let result = [];
+        let currentItem = null;
+        let index = 1;
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
+            
+            if (line.startsWith('#EXTINF:')) {
+                // Start of a new item
+                if (currentItem) {
+                    result.push(currentItem);
+                }
+                currentItem = ParseM3u.buildM3uBaseObject();
+                currentItem.index = index;
+                // Parse EXTINF line
+                currentItem.name = ParseM3u.parseName(line);
+                currentItem.tvgId = ParseM3u.pregValue(line, "tvg-id");
+                currentItem.groupTitle = ParseM3u.pregValue(line, "group-title");
+                currentItem.tvgLogo = ParseM3u.pregValue(line, "tvg-logo");
+                currentItem.tvgLanguage = ParseM3u.pregValue(line, "tvg-language");
+                currentItem.tvgCountry = ParseM3u.pregValue(line, "tvg-country");
+            } else if (line.startsWith('#EXTVLCOPT:')) {
+                // Handle VLCOPT lines
+                if (currentItem) {
+                    let opt = line.replace("#EXTVLCOPT:", "").split('=');
+                    if (opt.length >= 2) {
+                        currentItem.copt.push({
+                            key: opt[0],
+                            value: opt.slice(1).join('=')
+                        });
+                    }
+                }
+            } else if (line.startsWith('http')) {
+                // URL line
+                if (currentItem) {
+                    currentItem.url = line;
+                    currentItem.exist = true;
+                    result.push(currentItem);
+                    index++;
+                    currentItem = null;
+                }
+            }
+        }
+
+        // Add final item if exists
+        if (currentItem && currentItem.url) {
+            result.push(currentItem);
+        }
+        console.log("parseM3uBody", result)
+
+        return result;
+    },
     parseOriginalBodyToList: (originalM3uBody, videoInfoMap) => {
         const regex = /#EXTINF:(.*)\n(#EXTVLCOPT:.*\n)*(http[s]*)(.*)/gm;
         let rows = [];
@@ -112,6 +170,9 @@ const ParseM3u = {
         return rows
     },
     buildM3uBaseObject(index, url, groupTitle, tvgLogo, tvgLanguage, tvgCountry, tvgId, name, originalData, raw) {
+        if (name === undefined || name === null) {
+            name = ""
+        }
         return {
             index: index,
             url: url,
