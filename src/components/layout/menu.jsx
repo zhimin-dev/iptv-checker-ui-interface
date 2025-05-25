@@ -47,12 +47,6 @@ let menuList = [{
     'showMod': [0, 1],
     'showHeader': true
 }, {
-    "name": "已检测源",
-    "uri": "/detail",
-    "icon": "AdjustIcon",
-    'showMod': [0, 1],
-    'showHeader': true
-}, {
     "name": "在线观看",
     "uri": "/watch",
     "icon": "RemoveRedEyeIcon",
@@ -62,7 +56,7 @@ let menuList = [{
     "name": "定时检查任务",
     "uri": "/task",
     "icon": "CloudQueueIcon",
-    'showMod': [0, 1],
+    'showMod': [0],
     'showHeader': true
 }]
 
@@ -323,13 +317,13 @@ export default function Layout() {
                                         nowSelectedMenu.name !== null && nowSelectedMenu.name !== undefined ?
                                             t(nowSelectedMenu.name) : _mainContext.detailMd5
                                     }</Box>
-                                    {
+                                    {/* {
                                         _mainContext.detailMd5 !== '' ? (
                                             <IconButton aria-label="delete" color='error' size="small" onClick={() => remove_detail(_mainContext.detailMd5)}>
                                                 <HighlightOffIcon />
                                             </IconButton>
                                         ) : ''
-                                    }
+                                    } */}
                                 </Box>
                                 <Box data-tauri-drag-region style={{
                                     display: _mainContext.nowMod === 1 ? 'flex' : 'none',

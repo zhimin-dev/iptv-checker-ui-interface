@@ -13,7 +13,7 @@ async function checkByWeb(index, task) {
     try {
         // Create AbortController to handle timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000);
+        const timeoutId = setTimeout(() => controller.abort(), task.original.check_timeout);
         const response = await fetch(task.url, {
             method: 'HEAD',
             signal: controller.signal

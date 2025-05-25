@@ -39,8 +39,8 @@ export const TaskProvider = ({ children }) => {
 
     // 从localstorage加载数据
     const loadFromLocalStorage = () => {
-        freshOneTaskList()
         freshTaskList()
+        freshOneTaskList()
         const nowTaskId = localStorage.getItem(localCahceNowTaskId);
         if (nowTaskId !== '') {
             updateNowTaskId(nowTaskId, false);
@@ -51,9 +51,7 @@ export const TaskProvider = ({ children }) => {
 
     const freshTaskList = () => {
         let tasks = TaskStorageService.getTasks();
-        tasksRef.current = tasks;
         updateTasks(tasks);
-        return tasks
     }
 
     const freshOneTaskList = () => {
@@ -92,15 +90,24 @@ export const TaskProvider = ({ children }) => {
     // }
 
     const taskHasComplate = (taskId, subTaskList) => {
+        console.log("pass subTask start ")
+        console.log(subTaskList)
+        console.log(tasks)
+        console.log(tasksRef.current)
+        console.log("pass subTask end ")
         setTasks(prevTasks => {
             const updatedTasks = prevTasks.map(task =>
-                task.id === taskId ? { ...task, task_info: {
-                    ...task.task_info,
-                    task_status: "Completed",
+                task.id === taskId ? { 
+                    ...task, 
+                    task_info: {
+                        ...task.task_info,
+                        task_status: "Completed",
+                    },
                     list: subTaskList
-                } } : task
+                } : task
             )
             saveToLocalStorage(updatedTasks, localCahceTasksKey)
+            console.log("updatedTasks", updatedTasks)
             tasksRef.current = updatedTasks
             return updatedTasks
         });
@@ -110,7 +117,6 @@ export const TaskProvider = ({ children }) => {
 
     const updateTasks = (list) => {
         setTasks(list);
-        saveToLocalStorage(list, localCahceTasksKey);
         tasksRef.current = list;
     };
 
@@ -145,20 +151,8 @@ export const TaskProvider = ({ children }) => {
         }
     }
 
-    // Helper function to check if a task list has any pending tasks
-    const hasPendingTasks = (taskList) => {
-        return taskList.some(task => task.status === 0);
-    }
-
-    // Helper function to find next pending task
-    const findNextPendingTask = (tasks, excludeId) => {
-        return tasks.find(task => 
-            task.task_info.task_status.toLowerCase() === 'pending' && 
-            task.id !== excludeId
-        );
-    }
-
     const checkTaskIsChecking = async () => {
+        console.log("--checkTaskIsChecking---task", tasks)
         // 先准备数据
         await prepareTaskData()
         let needStartWorker = false
@@ -189,16 +183,17 @@ export const TaskProvider = ({ children }) => {
                 }
             }
             if (noTask) {
-                console.log(nowTaskIdRef.current,"task is complated,----")
+                console.log('--- no-task ---1111')
+                console.log(tasks)
                 tempNowTaskId = nowTaskIdRef.current
-                taskHasComplate(tempNowTaskId,taskListRef.current)
+                taskHasComplate(tempNowTaskId, taskListRef.current)
             }else{
                 needStartWorker = true
             }
         }
         if (needStartWorker) {
             if (workersRef.current === null || workersRef.current.length === 0) {
-                console.log("now start worker", taskListRef.current )
+                console.log("now task start worker", taskListRef.current )
                 startWorker()
             }
         }
@@ -248,6 +243,7 @@ export const TaskProvider = ({ children }) => {
 
     useEffect(() => {
         loadFromLocalStorage()
+        console.log("-----task start--", tasks)
         // 开启worker
         startTask();
         // 清理 Worker
@@ -271,7 +267,7 @@ export const TaskProvider = ({ children }) => {
     };
 
     const updateTaskStatus = (taskId, status) => {
-
+        console.log("-----updateTaskStatus", taskId, status)
         setTasks(prevTasks => {
             const updatedTasks = prevTasks.map(task =>{
                 if(task.id === taskId) {
@@ -389,8 +385,7 @@ export const TaskProvider = ({ children }) => {
             let _url = data[i];
             if (_url.startsWith('localstorage/')) {
                 // 从 localStorage 读取数据
-                const key = _url.replace('localstorage/', '');
-                const storedData = localStorage.getItem(key);
+                const storedData = localStorage.getItem(_url);
                 if (storedData) {
                     let _body = {
                         status: 200,

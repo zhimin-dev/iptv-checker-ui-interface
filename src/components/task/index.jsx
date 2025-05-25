@@ -283,7 +283,7 @@ export default function TaskList() {
                     {_mainContext.nowMod === 1 && (
                         <Box>{t('当前设置的【后台检查server域名】为')}：{privateHost}</Box>
                     )}
-                    <Paper sx={{ width: '1240px', overflow: 'hidden' }}>
+                    <Paper sx={{ width: '768px', overflow: 'hidden' }}>
                         <TableContainer>
                             <Table aria-label="simple table">
                                 <TableHead>

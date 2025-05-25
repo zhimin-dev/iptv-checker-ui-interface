@@ -58,6 +58,7 @@ const ParseM3u = {
                 currentItem.index = index;
                 // Parse EXTINF line
                 currentItem.name = ParseM3u.parseName(line);
+                currentItem.tvgName = ParseM3u.pregValue(line, "tvg-name");
                 currentItem.tvgId = ParseM3u.pregValue(line, "tvg-id");
                 currentItem.groupTitle = ParseM3u.pregValue(line, "group-title");
                 currentItem.tvgLogo = ParseM3u.pregValue(line, "tvg-logo");
@@ -177,6 +178,7 @@ const ParseM3u = {
             url: url,
             groupTitle: groupTitle,
             tvgLogo: tvgLogo,
+            tvgName: name,
             tvgLanguage: tvgLanguage,
             tvgCountry: tvgCountry,
             tvgId: tvgId,
@@ -288,6 +290,8 @@ const ParseM3u = {
             regex = /tvg-country="(.*)"/gm;
         } else if (name === "tvg-id") {
             regex = /tvg-id="(.*)"/gm;
+        }else if (name === "tvg-name") {
+            regex = /tvg-name="(.*)"/gm;
         }
         let m;
         let value = "";

@@ -12,6 +12,8 @@ import {
     Box,
     Table,
 } from '@mui/material';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
@@ -43,9 +45,27 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog, ch
         checkTaskAgain(id)
     }
 
+    const downloadFile = (id,extention) => {
+        let saveData = [];
+        if(!row.original.no_check) {
+            for(let i = 0;i<row.list.length;i++) {
+                if(row.list[i].status === 200) {
+                    saveData.push(row.list[i])
+                }
+            }
+        }else{
+            saveData = checkData
+        }
+        if (_mainContext.nowMod === 1) {
+            _mainContext.clientSaveFile(saveData, extention === 'txt' ? 'txt' : 'm3u')
+        } else {
+            _mainContext.webSaveFile(saveData, extention === 'txt' ? 'txt' : 'm3u')
+        }
+    }
+
     return (
         <React.Fragment>
-            <TableRow sx={{ minWidth: 1240 }}>
+            <TableRow sx={{ maxWidth: 300 }}>
                 <TableCell>
                     {row.task_info.next_run_time > 0 &&
                         row.task_info.next_run_time - new Date().getTime() / 1000 >= 180 &&
@@ -58,11 +78,26 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog, ch
                     {row.id}
                 </TableCell>
                 <TableCell>
-                    <Tooltip title={row.original.result_name}>
-                        <div onClick={() => openDownloadDialog(row.id)}>
-                            {row.original.result_name}
-                        </div>
-                    </Tooltip>
+                    {
+                        _mainContext.nowMod === 0 ? (
+                            <Tooltip title={row.original.result_name}>
+                                <div onClick={() => openDownloadDialog(row.id)}>
+                                    {row.original.result_name}
+                                </div>
+                            </Tooltip>
+                        ) : (
+                            row.task_info.task_status === "Completed" ? (
+                                <Box>
+                                    <Button variant="outlined" size="small" startIcon={<FileDownloadIcon />} onClick={() => downloadFile(row.id, 'm3u')}>
+                                        .m3u
+                                    </Button>
+                                    <Button variant="outlined" size="small" startIcon={<FileDownloadIcon />} onClick={() => downloadFile(row.id, 'txt')}>
+                                        .txt
+                                    </Button>
+                                </Box>
+                            ) : ''
+                        )
+                    }
                 </TableCell>
                 <TableCell component="th" scope="row">
                     <div>{t('是否需要检查')}：{!row.original.no_check ? t('是') : t('否')}</div>
@@ -89,18 +124,18 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog, ch
                         {t('当前状态')}：{row.task_info.task_status}
                         {
                             row.task_info.task_status === "FetchDataError" ? (
-                                <span onClick={() => handleTaskRefetch(row.id)} style={{color: 'red'}}>{t('重新获取')}</span>
-                            ):''
+                                <span onClick={() => handleTaskRefetch(row.id)} style={{ color: 'red' }}>{t('重新获取')}</span>
+                            ) : ''
                         }
                         {
                             row.task_info.task_status === "FetchSomeDataError" ? (
-                                <span onClick={() => handleTaskContinue(row.id)} style={{color: 'orange'}}>{t('继续执行')}</span>
-                            ):''
+                                <span onClick={() => handleTaskContinue(row.id)} style={{ color: 'orange' }}>{t('继续执行')}</span>
+                            ) : ''
                         }
                         {
                             row.task_info.task_status === "Completed" ? (
-                                <span onClick={() => handleTaskAgain(row.id)} style={{color: 'green'}}>{t('再次检查')}</span>
-                            ):''
+                                <span onClick={() => handleTaskAgain(row.id)} style={{ color: 'green' }}>{t('再次检查')}</span>
+                            ) : ''
                         }
                     </div>
                     {

@@ -924,7 +924,7 @@ export const MainContextProvider = function ({ children }) {
     const _toOriginalStr = (data) => {
         let body = `#EXTM3U\n`;
         for (let i = 0; i < data.length; i += 1) {
-            body += `#EXTINF:-1 tvg-id="${data[i].tvgId}" tvg-logo="${data[i].tvgLogo}" group-title="${data[i].groupTitle}",${data[i].name}\n${data[i].url}\n`
+            body += `#EXTINF:-1 tvg-name="${data[i].tvgName}" tvg-id="${data[i].tvgId}" tvg-logo="${data[i].tvgLogo}" group-title="${data[i].groupTitle}",${data[i].name}\n${data[i].url}\n`
         }
         return body
     }
