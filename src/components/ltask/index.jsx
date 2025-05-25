@@ -88,6 +88,18 @@ export default function LTaskList() {
         }
     };
 
+    const checkTaskRefetch = async (id) => {
+        console.log("checkTaskRefetch", id);
+    };
+
+    const checkTaskContinue = async (id) => {
+        _taskerContext.updateTaskStatus(id, "Pending")
+    };
+    
+    const checkTaskAgain = async (id) => {
+        _taskerContext.updateTaskStatus(id, "Prepare")
+    };
+
     const getDownloadBody = async (id) => {
         try {
             const data = await taskService.getDownloadBody(id);
@@ -217,6 +229,9 @@ export default function LTaskList() {
                                         doTaskRightNow={doTaskRightNow}
                                         showDownloadDialog={getDownloadBody}
                                         clickTask={() => handleClickOpen(row)}
+                                        checkTaskRefetch={checkTaskRefetch}
+                                        checkTaskContinue={checkTaskContinue}
+                                        checkTaskAgain={checkTaskAgain}
                                     />
                                 ))}
                             </TableBody>

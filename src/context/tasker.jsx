@@ -80,7 +80,6 @@ export const TaskProvider = ({ children }) => {
             
             for (let j = 0; j < bodys.length; j++) {
                 if (bodys[j].status === 200) {
-                    console.log("fulfilled_data", bodys[j].body)
                     let parseDataList = m3u8BodyToStructList(bodys[j].body)
                     for (let x = 0; x < parseDataList.length; x++) {
                         list.push(parseDataList[x])
@@ -157,61 +156,6 @@ export const TaskProvider = ({ children }) => {
         );
     }
 
-    // Review of checkTaskIsChecking function reveals potential issues:
-    // 1. Race condition with async/await and state updates
-    // 2. Redundant task status checks
-    // 3. Inconsistent task status comparisons (0 vs 'pending')
-    // 4. No error handling
-    // 
-    // Suggested fixes:
-    // 1. Add error handling
-    // 2. Use consistent status checks
-    // 3. Simplify logic flow
-    // 4. Add comments for clarity
-    // 5. Consider using helper functions for readability
-    //
-    // Example improved version:
-    /*
-    const checkTaskIsChecking = async () => {
-        try {
-            await prepareTaskData();
-            
-            // Check if current task list is complete
-            if (taskListRef.current.length > 0) {
-                if (!hasPendingTasks(taskListRef.current)) {
-                    const completedTaskId = nowTaskIdRef.current;
-                    await taskHasComplate(completedTaskId);
-                    
-                    // Reset task list and find next task
-                    const nextTask = findNextPendingTask(tasksRef.current, completedTaskId);
-                    if (nextTask) {
-                        updateTaskList(nextTask.list);
-                        updateNowTaskId(nextTask.id, true);
-                        return true; // Signal worker start needed
-                    }
-                }
-            } else {
-                // No current tasks, look for new ones
-                const nextTask = findNextPendingTask(tasksRef.current, '');
-                if (nextTask) {
-                    updateTaskList(nextTask.list);
-                    updateNowTaskId(nextTask.id, true);
-                    return true; // Signal worker start needed
-                }
-            }
-            
-            // Check if workers needed for existing tasks
-            if (!workersRef.current?.length && hasPendingTasks(taskListRef.current)) {
-                return true; // Signal worker start needed
-            }
-            
-            return false;
-        } catch (error) {
-            console.error('Error in checkTaskIsChecking:', error);
-            return false;
-        }
-    }
-    */
     const checkTaskIsChecking = async () => {
         // 先准备数据
         await prepareTaskData()
@@ -246,7 +190,7 @@ export const TaskProvider = ({ children }) => {
             if (noTask) {
                 console.log(nowTaskIdRef.current,"task is complated,----")
                 tempNowTaskId = nowTaskIdRef.current
-                taskHasComplate(nowTaskIdRef.current)
+                taskHasComplate(tempNowTaskId)
             }else{
                 needStartWorker = true
             }
@@ -359,14 +303,43 @@ export const TaskProvider = ({ children }) => {
             if (task.task_info.task_status === 'Prepare') {
                 try {
                     let result = await get_m3u_body(task.original.urls)
+                    let status = "Pending"
+                    let hasError = false
+                    let hasSuccess = false
+                    for(let i = 0; i < result.length; i++) {
+                        if(result[i].status === 200) {
+                            hasSuccess = true
+                        }
+                        if(result[i].status !== 200) {
+                            hasError = true
+                        }
+                    }
+                    if(hasError && hasSuccess) {
+                        status = "FetchSomeDataError"//部分失败
+                    }
+                    if (hasError && !hasSuccess) {
+                        status = "FetchDataError"// 全部失败
+                    }
+                    if(hasSuccess) {
+                        let list = [];                        
+                        for (let j = 0; j < result.length; j++) {
+                            if (result[j].status === 200) {
+                                let parseDataList = m3u8BodyToStructList(result[j].body)
+                                for (let x = 0; x < parseDataList.length; x++) {
+                                    list.push(parseDataList[x])
+                                }
+                            }
+                        }
+                        updateTaskInfo(task.id, list)
+                    }
                     updateTaskOriginalUrls(task.id, result)
-                    updateTaskStatus(task.id, "Pending")
+                    updateTaskStatus(task.id, status)
                 } catch (error) {
                     console.error("Error preparing task:", error)
                 }
             }
         }
-        fulfilled_data(tasksRef.current)
+        // fulfilled_data(tasksRef.current)
     }
 
     const getM3uBody = (url, timeout) => {
@@ -460,7 +433,8 @@ export const TaskProvider = ({ children }) => {
     const value = {
         tasks,
         runningTasks,
-        freshTaskList
+        freshTaskList,
+        updateTaskStatus
     };
 
     return (

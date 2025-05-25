@@ -15,7 +15,7 @@ import {
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
-export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog }) => {
+export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog, checkTaskRefetch, checkTaskContinue, checkTaskAgain }) => {
     const _mainContext = useContext(MainContext);
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
@@ -27,6 +27,21 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog }) 
     const openDownloadDialog = (id) => {
         showDownloadDialog(id);
     };
+
+    const handleTaskRefetch = (id) => {
+        console.log("handleTaskRefetch", id);
+        checkTaskRefetch(id)
+    };
+
+    const handleTaskContinue = (id) => {
+        console.log("handleTaskContinue", id);
+        checkTaskContinue(id)
+    };
+
+    const handleTaskAgain = (id) => {
+        console.log("handleTaskContinue", id);
+        checkTaskAgain(id)
+    }
 
     return (
         <React.Fragment>
@@ -70,7 +85,24 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog }) 
                             <div>{t('最后运行时间')}：{(new Date(row.task_info.last_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false }))}</div>
                         ) : ''
                     }
-                    <div>{t('当前状态')}：{row.task_info.task_status}</div>
+                    <div>
+                        {t('当前状态')}：{row.task_info.task_status}
+                        {
+                            row.task_info.task_status === "FetchDataError" ? (
+                                <span onClick={() => handleTaskRefetch(row.id)} style={{color: 'red'}}>{t('重新获取')}</span>
+                            ):''
+                        }
+                        {
+                            row.task_info.task_status === "FetchSomeDataError" ? (
+                                <span onClick={() => handleTaskContinue(row.id)} style={{color: 'orange'}}>{t('继续执行')}</span>
+                            ):''
+                        }
+                        {
+                            row.task_info.task_status === "Completed" ? (
+                                <span onClick={() => handleTaskAgain(row.id)} style={{color: 'green'}}>{t('再次检查')}</span>
+                            ):''
+                        }
+                    </div>
                     {
                         _mainContext.nowMod === 0 ? (
                             <div>{t('下一次运行时间')}：{row.task_info.next_run_time > 0 ? (new Date(row.task_info.next_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''}</div>

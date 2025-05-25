@@ -90,7 +90,6 @@ const ParseM3u = {
         if (currentItem && currentItem.url) {
             result.push(currentItem);
         }
-        console.log("parseM3uBody", result)
 
         return result;
     },
@@ -185,6 +184,7 @@ const ParseM3u = {
             sName: ParseM3u.removeNameExtraInfo(name.toLowerCase()).trim(),
             originalData: originalData,
             raw: raw,
+            copt:[],
 
             status: 0,// 状态 0未检查 1成功 2失败
             checked: false,// 当前是否检查过

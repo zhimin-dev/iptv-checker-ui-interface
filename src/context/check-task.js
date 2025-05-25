@@ -14,29 +14,41 @@ async function checkByWeb(index, task) {
         // Create AbortController to handle timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 20000);
-        
         const response = await fetch(task.url, {
-            method: 'GET',
+            method: 'HEAD',
             signal: controller.signal
         });
-        
-        clearTimeout(timeoutId);
-
-        const content = await response.text();
-        
-        // Check if content matches m3u8 format
-        if (content.trim().startsWith('#EXTM3U')) {
-            // Valid m3u8 file
+        // Check if response is streaming and hasn't completed in time
+        if (!response.ok || response.bodyUsed) {
+            clearTimeout(timeoutId);
+            controller.abort(); // Force abort the ongoing request
             return {
-                'status': 200,
+                'status': 500,
                 'audio': null,
                 'video': null
             };
-        } else {
-            // Not a valid m3u8 file
+        }
+        
+        clearTimeout(timeoutId);
+
+        // Check Content-Type header
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !(
+            contentType.includes('application/vnd.apple.mpegurl') ||
+            contentType.includes('application/x-mpegurl') ||
+            contentType.includes('audio/mpegurl') ||
+            contentType.includes('audio/x-mpegurl') ||
+            contentType.includes('text/plain')
+        )) {
             return {
                 'status': 500,
-                'audio': null, 
+                'audio': null,
+                'video': null
+            };
+        }else{
+            return {
+                'status': 200,
+                'audio': null,
                 'video': null
             };
         }
