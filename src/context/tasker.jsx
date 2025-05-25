@@ -39,20 +39,13 @@ export const TaskProvider = ({ children }) => {
 
     // 从localstorage加载数据
     const loadFromLocalStorage = () => {
-      
+        freshOneTaskList()
         freshTaskList()
         const nowTaskId = localStorage.getItem(localCahceNowTaskId);
         if (nowTaskId !== '') {
             updateNowTaskId(nowTaskId, false);
         } else {
             updateNowTaskId("", false);
-        }
-
-        const taskList = localStorage.getItem(localCahceNowTaskList);
-        if (taskList) {
-            updateTaskList(JSON.parse(taskList));
-        } else {
-            updateTaskList([]);
         }
     };
 
@@ -61,6 +54,16 @@ export const TaskProvider = ({ children }) => {
         tasksRef.current = tasks;
         updateTasks(tasks);
         return tasks
+    }
+
+    const freshOneTaskList = () => {
+        const taskList = localStorage.getItem(localCahceNowTaskList);
+        if (taskList) {
+            let list = JSON.parse(taskList);
+            updateTaskList(list);
+        } else {
+            updateTaskList([]);
+        }
     }
 
     const m3u8BodyToStructList = (body) => {
@@ -72,30 +75,29 @@ export const TaskProvider = ({ children }) => {
         }
     }
 
-    const fulfilled_data = (tList) => {
-        for (let i = 0; i < tList.length; i++) {
-            
-            let list = [];
-            let bodys = tList[i].bodies
-            
-            for (let j = 0; j < bodys.length; j++) {
-                if (bodys[j].status === 200) {
-                    let parseDataList = m3u8BodyToStructList(bodys[j].body)
-                    for (let x = 0; x < parseDataList.length; x++) {
-                        list.push(parseDataList[x])
-                    }
-                }
-            }
-            updateTaskInfo(tList[i].id, list)
-        }
-    }
+    // const fulfilled_data = (tList) => {
+    //     for (let i = 0; i < tList.length; i++) {
+    //         let list = [];
+    //         let bodys = tList[i].bodies
+    //         for (let j = 0; j < bodys.length; j++) {
+    //             if (bodys[j].status === 200) {
+    //                 let parseDataList = m3u8BodyToStructList(bodys[j].body)
+    //                 for (let x = 0; x < parseDataList.length; x++) {
+    //                     list.push(parseDataList[x])
+    //                 }
+    //             }
+    //         }
+    //         updateTaskInfo(tList[i].id, list)
+    //     }
+    // }
 
-    const taskHasComplate = (taskId) => {
+    const taskHasComplate = (taskId, subTaskList) => {
         setTasks(prevTasks => {
             const updatedTasks = prevTasks.map(task =>
                 task.id === taskId ? { ...task, task_info: {
                     ...task.task_info,
-                    task_status: "Completed"
+                    task_status: "Completed",
+                    list: subTaskList
                 } } : task
             )
             saveToLocalStorage(updatedTasks, localCahceTasksKey)
@@ -166,7 +168,6 @@ export const TaskProvider = ({ children }) => {
             // 如果当前待检查列表没有数据，那么需要从待检查列表中获取数据
             let nowId = ''
             let tList = []
-            console.log("now task info---", tasksRef.current)
             for (let i = 0; i < tasksRef.current.length; i++) {
                 if (tasksRef.current[i].task_info.task_status.toLowerCase() === 'pending' && nowId === '' && tasksRef.current[i].id !== tempNowTaskId) {
                     nowId = tasksRef.current[i].id
@@ -190,14 +191,14 @@ export const TaskProvider = ({ children }) => {
             if (noTask) {
                 console.log(nowTaskIdRef.current,"task is complated,----")
                 tempNowTaskId = nowTaskIdRef.current
-                taskHasComplate(tempNowTaskId)
+                taskHasComplate(tempNowTaskId,taskListRef.current)
             }else{
                 needStartWorker = true
             }
         }
         if (needStartWorker) {
             if (workersRef.current === null || workersRef.current.length === 0) {
-                console.log("now----start worker", taskListRef.current )
+                console.log("now start worker", taskListRef.current )
                 startWorker()
             }
         }
@@ -270,13 +271,32 @@ export const TaskProvider = ({ children }) => {
     };
 
     const updateTaskStatus = (taskId, status) => {
+
         setTasks(prevTasks => {
-            const updatedTasks = prevTasks.map(task =>
-                task.id === taskId ? { ...task, task_info: {
-                    ...task.task_info,
-                    task_status: status
-                } } : task
-            )
+            const updatedTasks = prevTasks.map(task =>{
+                if(task.id === taskId) {
+                    if(status === "Prepare") {
+                        return { 
+                            ...task, 
+                            task_info: {
+                                ...task.task_info,
+                                task_status: status
+                            },
+                            list: [],
+                            bodies: []
+                        }
+                    }else{
+                        return { 
+                            ...task, 
+                            task_info: {
+                                ...task.task_info,
+                                task_status: status
+                            }
+                        }
+                    }
+                }
+                return task
+            })
             saveToLocalStorage(updatedTasks, localCahceTasksKey)
             tasksRef.current = updatedTasks
             return updatedTasks
@@ -339,7 +359,6 @@ export const TaskProvider = ({ children }) => {
                 }
             }
         }
-        // fulfilled_data(tasksRef.current)
     }
 
     const getM3uBody = (url, timeout) => {

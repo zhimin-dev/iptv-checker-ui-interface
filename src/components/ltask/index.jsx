@@ -89,7 +89,7 @@ export default function LTaskList() {
     };
 
     const checkTaskRefetch = async (id) => {
-        console.log("checkTaskRefetch", id);
+        _taskerContext.updateTaskStatus(id, "Prepare")
     };
 
     const checkTaskContinue = async (id) => {
