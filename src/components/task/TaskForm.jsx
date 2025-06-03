@@ -488,24 +488,24 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                 </FormControl>
                             ) : ''
                         }
-{
+                        {
                             checkType === 'server' ? (
-                        <FormControl fullWidth style={{
-                            margin: "20px 0 20px",
-                        }}>
-                            <InputLabel htmlFor="outlined-adornment-amount">{t('结果文件名')}</InputLabel>
-                            <OutlinedInput
-                                style={{ width: '100%' }}
-                                name="resultName"
-                                endAdornment={<InputAdornment position="end">{output_extenion}</InputAdornment>}
-                                startAdornment={<InputAdornment position="start">{output_folder}</InputAdornment>}
-                                aria-describedby="outlined-weight-helper-text"
-                                label={t('结果文件名')}
-                                value={task.original.result_name}
-                                onChange={changeResultName}
-                            />
-                        </FormControl>
-                            ):''}
+                                <FormControl fullWidth style={{
+                                    margin: "20px 0 20px",
+                                }}>
+                                    <InputLabel htmlFor="outlined-adornment-amount">{t('结果文件名')}</InputLabel>
+                                    <OutlinedInput
+                                        style={{ width: '100%' }}
+                                        name="resultName"
+                                        endAdornment={<InputAdornment position="end">{output_extenion}</InputAdornment>}
+                                        startAdornment={<InputAdornment position="start">{output_folder}</InputAdornment>}
+                                        aria-describedby="outlined-weight-helper-text"
+                                        label={t('结果文件名')}
+                                        value={task.original.result_name}
+                                        onChange={changeResultName}
+                                    />
+                                </FormControl>
+                            ) : ''}
 
                     </Box>
                 );

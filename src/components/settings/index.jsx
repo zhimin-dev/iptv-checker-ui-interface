@@ -7,6 +7,7 @@ import TextField from '@mui/material/TextField';
 import LoadingButton from '@mui/lab/LoadingButton';
 import FormLabel from '@mui/material/FormLabel';
 import Dialog from '@mui/material/Dialog';
+import _package from './../../../package';
 import DialogTitle from '@mui/material/DialogTitle';
 import Snackbar from '@mui/material/Snackbar';
 import { useTranslation, initReactI18next } from "react-i18next";
@@ -147,6 +148,8 @@ export default function Settings() {
         setShowAddSourceDialog(false)
     }
 
+    const nowVersion = _package.version;
+
     const delCustomLink = (i) => {
         setCustomLink(customLink.filter((url, index) => index !== i))
     }
@@ -176,7 +179,7 @@ export default function Settings() {
                 display: 'flex',
                 flexDirection: 'column',
                 padding: '20px',
-                width: '300px'
+                width: '500px'
             }}>
                 <FormControl  sx={{ marginBottom: '20px' }}>
                     <InputLabel id="demo-row-radio-buttons-group-label">{t('语言')}</InputLabel>
@@ -192,22 +195,6 @@ export default function Settings() {
                             ))
                         }
                     </Select>
-                </FormControl>
-                <FormControl sx={{ marginBottom: '20px' }}>
-                    <FormLabel id="demo-row-radio-buttons-group-label">{t('检测并发数')}</FormLabel>
-                    <TextField
-                        name="concurrent"
-                        value={concurrent}
-                        onChange={handleChangeConfigSettings}
-                    />
-                </FormControl>
-                <FormControl sx={{ marginBottom: '20px' }}>
-                    <FormLabel id="demo-row-radio-buttons-group-label">{t('检查超时时间（毫秒）')}</FormLabel>
-                    <TextField
-                        name="httpRequestTimeout"
-                        value={httpRequestTimeout}
-                        onChange={handleChangeConfigSettings}
-                    />
                 </FormControl>
                 {
                     _mainContext.nowMod === 1 ? (
@@ -255,12 +242,23 @@ export default function Settings() {
                         }
                     </Select>
                 </FormControl>
+                
                 <LoadingButton
                     onClick={doSaveConfigSettings}
                     variant="outlined"
                 >
                     {t('保存')}
                 </LoadingButton>
+
+                <FormControl sx={{ marginTop: '20px' }}>
+                    <Box>当前版本v{nowVersion}</Box>
+                    {
+                        _mainContext.showNewVersion ? (
+                            <Box style={{ color: 'red' }}>有新版本:{_mainContext.configInfo.version}</Box>
+                        ) : ''
+                    }
+                    <Box>github地址：{_package.homepage_url}</Box>
+                 </FormControl>
                 </Box>
             </Box>
         </Box>

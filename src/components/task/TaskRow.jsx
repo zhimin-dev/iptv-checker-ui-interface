@@ -125,17 +125,17 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, source, showDownloadDi
                         {t('当前状态')}：{row.task_info.task_status}
                         {
                             row.task_info.task_status === "FetchDataError" ? (
-                                <span onClick={() => handleTaskRefetch(row.id)} style={{ color: 'red' }}>{t('重新获取')}</span>
+                                <span onClick={() => handleTaskRefetch(row.id)} style={{ color: 'red',cursor:'pointer' }}>{t('重新获取')}</span>
                             ) : ''
                         }
                         {
                             row.task_info.task_status === "FetchSomeDataError" ? (
-                                <span onClick={() => handleTaskContinue(row.id)} style={{ color: 'orange' }}>{t('继续执行')}</span>
+                                <span onClick={() => handleTaskContinue(row.id)} style={{ color: 'orange',cursor:'pointer' }}>{t('继续执行')}</span>
                             ) : ''
                         }
                         {
                             row.task_info.task_status === "Completed" ? (
-                                <span onClick={() => handleTaskAgain(row.id)} style={{ color: 'green' }}>{t('再次检查')}</span>
+                                <span onClick={() => handleTaskAgain(row.id)} style={{ color: 'green',cursor:'pointer' }}>{t('再次检查')}</span>
                             ) : ''
                         }
                     </div>

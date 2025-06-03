@@ -6,7 +6,9 @@ import {
   RouterProvider,
   createHashRouter,
 } from "react-router-dom";
+import _package from './../package';
 import Detail from './components/detail'
+import Settings from './components/settings'
 import Watch from './components/watch'
 import Menu from './components/layout/menu'
 import Task from './components/task';
@@ -25,16 +27,16 @@ const router = createHashRouter([
         element: <LTask />,
       },
       {
-        path: "/detail",
-        element: <Detail />,
-      },
-      {
         path: "/watch",
         element: <Watch />,
       },
       {
         path: "/task",
         element: <Task />,
+      },
+      {
+        path: "/settings",
+        element: <Settings />,
       }
     ],
   },{

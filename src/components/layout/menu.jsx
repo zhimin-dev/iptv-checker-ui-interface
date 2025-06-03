@@ -58,6 +58,12 @@ let menuList = [{
     "icon": "CloudQueueIcon",
     'showMod': [0],
     'showHeader': true
+}, {
+    "name": "设置",
+    "uri": "/settings",
+    "icon": "CloudQueueIcon",
+    'showMod': [0,1],
+    'showHeader': true
 }]
 
 const detailUri = '/detail'
@@ -156,7 +162,7 @@ export default function Layout() {
                 <Box className="side-bar-logo" onClick={goToGithub} title='帮忙点个star!!!'>
                     <Box className='side-bar-logo-item'>
                         <img src={icon} height="60"></img>
-                        <Box className='go-github'>iptv-checker@{nowVersion}</Box>
+                        <Box className='go-github'>iptv-checker</Box>
                         {
                             _mainContext.showNewVersion ? (
                                 <Box style={{ color: 'red' }}>有新版本:{_mainContext.configInfo.version}</Box>
