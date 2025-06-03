@@ -113,10 +113,6 @@ export default function Settings() {
         }
     }
 
-    const handleShowSponsorQrcode = () => {
-
-    }
-
     const doSaveConfigSettings = () => {
         _mainContext.onChangeSettings({
             httpRequestTimeout: httpRequestTimeout,

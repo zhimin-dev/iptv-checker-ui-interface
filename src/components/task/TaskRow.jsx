@@ -16,8 +16,9 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import { justifyContent } from '@mui/system';
 
-export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog, checkTaskRefetch, checkTaskContinue, checkTaskAgain }) => {
+export const TaskRow = ({ row, clickTask, doTaskRightNow, source, showDownloadDialog, checkTaskRefetch, checkTaskContinue, checkTaskAgain }) => {
     const _mainContext = useContext(MainContext);
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
@@ -56,7 +57,7 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog, ch
         }else{
             saveData = checkData
         }
-        if (_mainContext.nowMod === 1) {
+        if (source === 'ltask' ) {
             _mainContext.clientSaveFile(saveData, extention === 'txt' ? 'txt' : 'm3u')
         } else {
             _mainContext.webSaveFile(saveData, extention === 'txt' ? 'txt' : 'm3u')
@@ -65,21 +66,21 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog, ch
 
     return (
         <React.Fragment>
-            <TableRow sx={{ maxWidth: 300 }}>
-                <TableCell>
-                    {row.task_info.next_run_time > 0 &&
+            <TableRow>
+                <TableCell width={100}>
+                    <Box onClick={() => clickTask()}>{row.id}</Box>
+                    <Box>
+                        {row.task_info.next_run_time > 0 &&
                         row.task_info.next_run_time - new Date().getTime() / 1000 >= 180 &&
                         row.task_info.last_run_time > 0 &&
                         new Date().getTime() / 1000 - row.task_info.last_run_time >= 180 && (
                             <Button onClick={() => handleTaskRightNow(row.id)}>{t('立即执行')}</Button>
                         )}
+                    </Box>
                 </TableCell>
-                <TableCell component="th" scope="row" onClick={() => clickTask()}>
-                    {row.id}
-                </TableCell>
-                <TableCell>
+                <TableCell width={100}>
                     {
-                        _mainContext.nowMod === 0 ? (
+                        source === 'task' ? (
                             <Tooltip title={row.original.result_name}>
                                 <div onClick={() => openDownloadDialog(row.id)}>
                                     {row.original.result_name}
@@ -87,11 +88,11 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog, ch
                             </Tooltip>
                         ) : (
                             row.task_info.task_status === "Completed" ? (
-                                <Box>
-                                    <Button variant="outlined" size="small" startIcon={<FileDownloadIcon />} onClick={() => downloadFile(row.id, 'm3u')}>
+                                <Box style={{display:"flex",justifyContent:"space-evenly"}}>
+                                    <Button size="small" startIcon={<FileDownloadIcon />} onClick={() => downloadFile(row.id, 'm3u')}>
                                         .m3u
                                     </Button>
-                                    <Button variant="outlined" size="small" startIcon={<FileDownloadIcon />} onClick={() => downloadFile(row.id, 'txt')}>
+                                    <Button size="small" startIcon={<FileDownloadIcon />} onClick={() => downloadFile(row.id, 'txt')}>
                                         .txt
                                     </Button>
                                 </Box>
@@ -99,7 +100,7 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog, ch
                         )
                     }
                 </TableCell>
-                <TableCell component="th" scope="row">
+                {/* <TableCell component="th" scope="row">
                     <div>{t('是否需要检查')}：{!row.original.no_check ? t('是') : t('否')}</div>
                     {!row.original.no_check && (
                         <>
@@ -112,8 +113,8 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog, ch
                     <div>{t('是否需要排序')}：{row.original.sort ? t('是') : t('否')}</div>
                     <div>{t('是否需要去掉频道多余字符')}：{row.original.rename ? t('是') : t('否')}</div>
                     <div>{t('相同名称保存条数')}：{row.original.same_save_num > 0 ? row.original.same_save_num : t('保存全部')}</div>
-                </TableCell>
-                <TableCell align="right">
+                </TableCell> */}
+                <TableCell align='right' width={300}>
                     <div>{t('任务创建时间')}：{row.create_time > 0 ? (new Date(row.create_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''}</div>
                     {
                         row.task_info.last_run_time > 0 ? (
@@ -139,12 +140,12 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, showDownloadDialog, ch
                         }
                     </div>
                     {
-                        _mainContext.nowMod === 0 ? (
+                        source === 'task'  ? (
                             <div>{t('下一次运行时间')}：{row.task_info.next_run_time > 0 ? (new Date(row.task_info.next_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })) : ''}</div>
                         ) : ''
                     }
                     {
-                        _mainContext.nowMod === 0 ? (
+                        source === 'task' ? (
                             <div>{t('运行时间')}：{row.task_info.run_type === 'EveryHour' ? t('每小时一次') : t('每天一次')}</div>
                         ) : ''
                     }

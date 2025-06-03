@@ -488,7 +488,8 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                 </FormControl>
                             ) : ''
                         }
-
+{
+                            checkType === 'server' ? (
                         <FormControl fullWidth style={{
                             margin: "20px 0 20px",
                         }}>
@@ -504,6 +505,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                 onChange={changeResultName}
                             />
                         </FormControl>
+                            ):''}
 
                     </Box>
                 );

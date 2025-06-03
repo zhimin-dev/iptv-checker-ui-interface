@@ -209,15 +209,13 @@ export default function LTaskList() {
                     formValue={exportBody}
                     onClose={handleExportDialog}
                 />
-                <Paper sx={{ width: '1240px', overflow: 'hidden' }}>
+                <Paper sx={{ overflow: 'hidden' }}>
                     <TableContainer>
                         <Table aria-label="simple table">
                             <TableHead>
                                 <TableRow>
-                                    <TableCell></TableCell>
                                     <TableCell>{t('任务id')}</TableCell>
                                     <TableCell>{t('输出文件')}</TableCell>
-                                    <TableCell>{t('任务信息')}</TableCell>
                                     <TableCell align="right">{t('运行时间')}</TableCell>
                                 </TableRow>
                             </TableHead>
@@ -232,6 +230,7 @@ export default function LTaskList() {
                                         checkTaskRefetch={checkTaskRefetch}
                                         checkTaskContinue={checkTaskContinue}
                                         checkTaskAgain={checkTaskAgain}
+                                        source="ltask"
                                     />
                                 ))}
                             </TableBody>

@@ -27,7 +27,8 @@ export const TaskProvider = ({ children }) => {
     const taskListRef = useRef([])// 当前正在运行的任务列表 ref
     const nowTaskIdRef = useRef("")//当前正在进行的任务id ref
     const tasksRef = useRef([]);//全部任务ref
-    const taskRef = useRef(null);//任务ref
+    const jobRef = useRef(null);//任务ref
+    const nowTaskRef = useRef(null);//当前任务ref
 
     const localCahceTasksKey = "local_tasks"
     const localCahceNowTaskId = "nowTaskId"
@@ -39,6 +40,7 @@ export const TaskProvider = ({ children }) => {
 
     // 从localstorage加载数据
     const loadFromLocalStorage = () => {
+        console.log("start load data")
         freshTaskList()
         freshOneTaskList()
         const nowTaskId = localStorage.getItem(localCahceNowTaskId);
@@ -50,8 +52,9 @@ export const TaskProvider = ({ children }) => {
     };
 
     const freshTaskList = () => {
-        let tasks = TaskStorageService.getTasks();
-        updateTasks(tasks);
+        let list = TaskStorageService.getTasks()
+        setTasks(list);
+        tasksRef.current = list;
     }
 
     const freshOneTaskList = () => {
@@ -73,52 +76,34 @@ export const TaskProvider = ({ children }) => {
         }
     }
 
-    // const fulfilled_data = (tList) => {
-    //     for (let i = 0; i < tList.length; i++) {
-    //         let list = [];
-    //         let bodys = tList[i].bodies
-    //         for (let j = 0; j < bodys.length; j++) {
-    //             if (bodys[j].status === 200) {
-    //                 let parseDataList = m3u8BodyToStructList(bodys[j].body)
-    //                 for (let x = 0; x < parseDataList.length; x++) {
-    //                     list.push(parseDataList[x])
-    //                 }
-    //             }
-    //         }
-    //         updateTaskInfo(tList[i].id, list)
-    //     }
-    // }
-
     const taskHasComplate = (taskId, subTaskList) => {
-        console.log("pass subTask start ")
-        console.log(subTaskList)
-        console.log(tasks)
-        console.log(tasksRef.current)
-        console.log("pass subTask end ")
+        console.log("taskHasComplate input:", { taskId, subTaskList });
         setTasks(prevTasks => {
-            const updatedTasks = prevTasks.map(task =>
-                task.id === taskId ? { 
-                    ...task, 
-                    task_info: {
-                        ...task.task_info,
-                        task_status: "Completed",
-                    },
-                    list: subTaskList
-                } : task
-            )
-            saveToLocalStorage(updatedTasks, localCahceTasksKey)
-            console.log("updatedTasks", updatedTasks)
-            tasksRef.current = updatedTasks
-            return updatedTasks
+            console.log("prevTasks before update:", prevTasks);
+            const updatedTasks = prevTasks.map(task => {
+                if (task.id === taskId) {
+                    const updatedTask = { 
+                        ...task, 
+                        task_info: {
+                            ...task.task_info,
+                            task_status: "Completed",
+                        },
+                        list: subTaskList
+                    };
+                    console.log("updated task:", updatedTask);
+                    return updatedTask;
+                }
+                return task;
+            });
+            console.log("updatedTasks after map:", updatedTasks);
+            saveToLocalStorage(updatedTasks, localCahceTasksKey);
+            tasksRef.current = updatedTasks;
+            return updatedTasks;
         });
-        updateTaskList([])
-        updateNowTaskId("", true)
+        console.log("taskHasComplate---save", tasksRef.current);
+        updateTaskList([]);
+        updateNowTaskId("", true);
     }
-
-    const updateTasks = (list) => {
-        setTasks(list);
-        tasksRef.current = list;
-    };
 
     const updateTaskList = (list) => {
         setTaskList(list)
@@ -129,7 +114,7 @@ export const TaskProvider = ({ children }) => {
     const updateNowTaskId = (nowTaskId, saveLocalstorage) => {
         setNowTaskId(nowTaskId)
         if(saveLocalstorage) {
-            saveToLocalStorage(nowTaskId, localCahceNowTaskId)
+            localStorage.setItem(localCahceNowTaskId, nowTaskId)
         }
         nowTaskIdRef.current = nowTaskId
     }
@@ -146,28 +131,31 @@ export const TaskProvider = ({ children }) => {
     };
 
     const startTask = () => {
-        if (!taskRef.current) {
-            taskRef.current = setInterval(checkTaskIsChecking, 10000); // 每5秒执行一次当前是否还有任务在检查
+        if (!jobRef.current) {
+            jobRef.current = setInterval(checkTaskIsChecking, 10000); // 每5秒执行一次当前是否还有任务在检查
         }
     }
 
     const checkTaskIsChecking = async () => {
-        console.log("--checkTaskIsChecking---task", tasks)
         // 先准备数据
         await prepareTaskData()
         let needStartWorker = false
         let tempNowTaskId = ""
+        console.log("----- checkTaskIsChecking---", taskListRef.current)
         // 仅当当前没有任务时，需要取其他任务获取
         if (taskListRef.current.length === 0) {
             // 如果当前待检查列表没有数据，那么需要从待检查列表中获取数据
             let nowId = ''
             let tList = []
+            let nowTask = null
             for (let i = 0; i < tasksRef.current.length; i++) {
                 if (tasksRef.current[i].task_info.task_status.toLowerCase() === 'pending' && nowId === '' && tasksRef.current[i].id !== tempNowTaskId) {
                     nowId = tasksRef.current[i].id
                     tList = tasksRef.current[i].list
+                    nowTask = tasksRef.current[i]
                 }
             }
+            nowTaskRef.current = nowTask
             console.log("----- task list reset", nowId, tList)
             updateTaskList(tList)
             updateNowTaskId(nowId, true)
@@ -183,9 +171,8 @@ export const TaskProvider = ({ children }) => {
                 }
             }
             if (noTask) {
-                console.log('--- no-task ---1111')
-                console.log(tasks)
                 tempNowTaskId = nowTaskIdRef.current
+                console.log("set task complate", tempNowTaskId, taskListRef.current)
                 taskHasComplate(tempNowTaskId, taskListRef.current)
             }else{
                 needStartWorker = true
@@ -200,9 +187,9 @@ export const TaskProvider = ({ children }) => {
     }
 
     const stopTask = () => {
-        if (taskRef.current) {
-            clearInterval(taskRef.current);
-            taskRef.current = null;
+        if (jobRef.current) {
+            clearInterval(jobRef.current);
+            jobRef.current = null;
         }
     };
 
@@ -214,7 +201,7 @@ export const TaskProvider = ({ children }) => {
                 const worker = new Worker(new URL('./check-task.js', import.meta.url));
                 worker.onmessage = (e) => {
                     const { index, task, result } = e.data;
-                    console.log("task----", index, result)
+                    console.log("task----", index, result, task)
                     updateTaskListResult(index, task, result);
                 };
                 workers.push(worker);
@@ -229,7 +216,7 @@ export const TaskProvider = ({ children }) => {
             taskListRef.current.forEach(task => {
                 if (task.status === 0) {
                     const worker = workersRef.current[tasksCompletedRef.current % workersRef.current.length];
-                    worker.postMessage({ index: task.index, nowMod, task }); // 发送任务信息
+                    worker.postMessage({ index: task.index, nowMod, task, original:nowTaskRef.current }); // 发送任务信息
                     tasksCompletedRef.current++;
                 }
             });
@@ -243,7 +230,7 @@ export const TaskProvider = ({ children }) => {
 
     useEffect(() => {
         loadFromLocalStorage()
-        console.log("-----task start--", tasks)
+        console.log("-----task start--", tasks, tasksRef.current)
         // 开启worker
         startTask();
         // 清理 Worker
@@ -267,7 +254,6 @@ export const TaskProvider = ({ children }) => {
     };
 
     const updateTaskStatus = (taskId, status) => {
-        console.log("-----updateTaskStatus", taskId, status)
         setTasks(prevTasks => {
             const updatedTasks = prevTasks.map(task =>{
                 if(task.id === taskId) {

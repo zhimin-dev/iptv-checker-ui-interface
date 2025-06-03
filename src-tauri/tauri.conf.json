@@ -42,7 +42,7 @@
   },
   "productName": "iptv-checker-desktop",
   "mainBinaryName": "iptv-checker-desktop",
-  "version": "4.1.0",
+  "version": "4.1.17",
   "identifier": "com.zhimin-dev.iptv-checker",
   "plugins": {},
   "app": {

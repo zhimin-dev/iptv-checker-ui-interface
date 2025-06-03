@@ -283,15 +283,13 @@ export default function TaskList() {
                     {_mainContext.nowMod === 1 && (
                         <Box>{t('当前设置的【后台检查server域名】为')}：{privateHost}</Box>
                     )}
-                    <Paper sx={{ width: '768px', overflow: 'hidden' }}>
+                    <Paper sx={{ overflow: 'hidden' }}>
                         <TableContainer>
                             <Table aria-label="simple table">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell></TableCell>
                                         <TableCell>{t('任务id')}</TableCell>
                                         <TableCell>{t('输出文件')}</TableCell>
-                                        <TableCell>{t('任务信息')}</TableCell>
                                         <TableCell align="right">{t('运行时间')}</TableCell>
                                     </TableRow>
                                 </TableHead>
@@ -303,6 +301,7 @@ export default function TaskList() {
                                             doTaskRightNow={doTaskRightNow}
                                             showDownloadDialog={getDownloadBody}
                                             clickTask={() => handleClickOpen(row)}
+                                            source="task"
                                         />
                                     ))}
                                 </TableBody>
