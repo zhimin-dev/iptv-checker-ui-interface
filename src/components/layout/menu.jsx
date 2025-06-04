@@ -61,7 +61,7 @@ let menuList = [{
 }, {
     "name": "设置",
     "uri": "/settings",
-    "icon": "CloudQueueIcon",
+    "icon": "SettingsIcon",
     'showMod': [0,1],
     'showHeader': true
 }]
@@ -159,15 +159,16 @@ export default function Layout() {
     const DrawerList = (
         <Box className="side-bar" style={{ backgroundColor: theme.palette.sideBarBgColor[prefersDarkMode ? 'dark' : 'light'] }} sx={{ width: drawerWidth }} role="presentation">
             <List>
-                <Box className="side-bar-logo" onClick={goToGithub} title='帮忙点个star!!!'>
+                <Box className="side-bar-logo">
                     <Box className='side-bar-logo-item'>
                         <img src={icon} height="60"></img>
-                        <Box className='go-github'>iptv-checker</Box>
+                        <Box className='go-github'>iptv-checker
                         {
                             _mainContext.showNewVersion ? (
-                                <Box style={{ color: 'red' }}>有新版本:{_mainContext.configInfo.version}</Box>
+                                <a href='/#/settings' style={{ color: 'green' }}>{t('有新版本')}</a>
                             ) : ''
                         }
+                        </Box>
                     </Box>
                 </Box>
                 {

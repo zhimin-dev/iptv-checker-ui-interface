@@ -481,7 +481,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                     >
                                         {
                                             run_type_list.map((value, index) => (
-                                                <MenuItem value={value.value} key={index}>{value.name}</MenuItem>
+                                                <MenuItem value={value.value} key={index}>{t(value.name)}</MenuItem>
                                             ))
                                         }
                                     </Select>
@@ -724,7 +724,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                     <Stepper activeStep={activeStep}>
                         {steps.map((label) => (
                             <Step key={label}>
-                                <StepLabel>{label}</StepLabel>
+                                <StepLabel>{t(label)}</StepLabel>
                             </Step>
                         ))}
                     </Stepper>
@@ -738,7 +738,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                     onClick={handleBack}
                                     sx={{ mr: 1 }}
                                 >
-                                    上一页
+                                    {t('上一页')}
                                 </Button>
                             )}
                             {activeStep === 0 && task.id !== '' && (
@@ -754,12 +754,12 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                             {activeStep === steps.length - 1 ? (
                                 checkType === 'server' || task.id === '' ? (
                                     <Button onClick={handleSaveClick}>
-                                        保存
+                                        {t('保存')}
                                     </Button>
                                 ) : ''
                             ) : (
                                 <Button onClick={handleNext}>
-                                    下一页
+                                    {t('下一页')}
                                 </Button>
                             )}
                         </Box>

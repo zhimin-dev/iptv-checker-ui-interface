@@ -42,51 +42,7 @@ export const MainContextProvider = function ({ children }) {
     })
     const [detailOriginal, setDetailOriginal] = useState(null)
     const [detailList, setDetailList] = useState([])//列表展示的数据
-    // [
-    //     {
-    //         "index": 1,
-    //         "url": "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
-    //         "groupTitle": "央视",
-    //         "tvgLogo": "https://live.fanmingming.com/tv/CCTV1.png",
-    //         "tvgLanguage": ["CN"],
-    //         "tvgCountry": "China",
-    //         "tvgId": "CCTV1",
-    //         "name": "CCTV-1",
-    //         "sName": "cctv-1",
-    //         "originalData": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
-    //         "raw": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
-    //         "status": 2,
-    //         "video": null,
-    //         "audio": null,
-    //         "videoType": "",
-    //         "delay": 0,
-
-    //         "checked": false,
-    //     }
-    // ]
     const [subCheckMenuList, setSubCheckMenuList] = useState([])//子菜单
-    // [
-    //     {
-    //         "md5": "xxxxx11",
-    //         "data": [
-    //         ],
-    //         "original": {
-    //             "urls": [
-    //                 "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8"
-    //             ],
-    //             "ffmpeg": 0,//是否使用ffmpeg
-    //             "sort": 0,//是否需要排序
-    //             "check": 0,//是否需要检查
-    //         },
-    //         "menu": {
-    //             "groups": ["央视"]
-    //         },
-    //         "query": {
-    //             "needFast": false,//是否需要选择最快的源
-    //             "searchName": ["cctv"],//搜索名称
-    //             "group": "央视",// 分组
-    //         }
-    //     }]
     const videoPlayTypes = [
         {
             "name": "mac",
