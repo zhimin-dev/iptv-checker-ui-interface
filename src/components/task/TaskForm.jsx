@@ -529,6 +529,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                     id="standard-basic"
                                     label={t('喜欢频道名称')}
                                     variant="standard"
+                                    fullWidth
                                     value={filterFavKeyword} onChange={changeFilterFavKeyword} />
                                 <Button
                                     size='small'
@@ -571,6 +572,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                     id="standard-basic"
                                     label={t('不喜欢频道名称')}
                                     variant="standard"
+                                    fullWidth
                                     value={filterDisKeyword} onChange={changeFilterDisKeyword} />
                                 <Button
                                     size='small'
