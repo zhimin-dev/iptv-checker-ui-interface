@@ -41,7 +41,7 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 
 let menuList = [{
-    "name": "本地检查",
+    "name": "本地任务",
     "uri": "/",
     "icon": "LaptopIcon",
     'showMod': [0, 1],
@@ -96,8 +96,6 @@ export default function Layout() {
             }
         }
     }, [location])
-
-    const nowVersion = _package.version;
 
     const changePath = (e) => {
         if (e.uri === detailUri) {
@@ -213,7 +211,7 @@ export default function Layout() {
                                     ) : ''
                                 }
 
-                                {
+                                {/* {
                                     value.uri === detailUri && openSubCheckedMenu ? (
                                         <List component="div" disablePadding key={detailUri + "0000"}>
                                             {
@@ -225,7 +223,7 @@ export default function Layout() {
                                             }
                                         </List>
                                     ) : ''
-                                }
+                                } */}
                             </Box>
                         ) : ''
                     ))}

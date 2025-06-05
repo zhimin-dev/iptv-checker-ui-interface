@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect,useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import axios from "axios"
 import ParseM3u from '../utils/utils'
 import { TaskStorageService } from '../services/taskStorageService';
@@ -60,8 +60,13 @@ export const TaskProvider = ({ children }) => {
     const freshOneTaskList = () => {
         const taskList = localStorage.getItem(localCahceNowTaskList);
         if (taskList) {
-            let list = JSON.parse(taskList);
-            updateTaskList(list);
+            try {
+                let list = JSON.parse(taskList);
+                updateTaskList(list);
+            } catch (e) {
+                updateTaskList([]);
+            }
+
         } else {
             updateTaskList([]);
         }
@@ -82,8 +87,8 @@ export const TaskProvider = ({ children }) => {
             console.log("prevTasks before update:", prevTasks);
             const updatedTasks = prevTasks.map(task => {
                 if (task.id === taskId) {
-                    const updatedTask = { 
-                        ...task, 
+                    const updatedTask = {
+                        ...task,
                         task_info: {
                             ...task.task_info,
                             task_status: "Completed",
@@ -113,7 +118,7 @@ export const TaskProvider = ({ children }) => {
 
     const updateNowTaskId = (nowTaskId, saveLocalstorage) => {
         setNowTaskId(nowTaskId)
-        if(saveLocalstorage) {
+        if (saveLocalstorage) {
             localStorage.setItem(localCahceNowTaskId, nowTaskId)
         }
         nowTaskIdRef.current = nowTaskId
@@ -174,13 +179,13 @@ export const TaskProvider = ({ children }) => {
                 tempNowTaskId = nowTaskIdRef.current
                 console.log("set task complate", tempNowTaskId, taskListRef.current)
                 taskHasComplate(tempNowTaskId, taskListRef.current)
-            }else{
+            } else {
                 needStartWorker = true
             }
         }
         if (needStartWorker) {
             if (workersRef.current === null || workersRef.current.length === 0) {
-                console.log("now task start worker", taskListRef.current )
+                console.log("now task start worker", taskListRef.current)
                 startWorker()
             }
         }
@@ -216,7 +221,7 @@ export const TaskProvider = ({ children }) => {
             taskListRef.current.forEach(task => {
                 if (task.status === 0) {
                     const worker = workersRef.current[tasksCompletedRef.current % workersRef.current.length];
-                    worker.postMessage({ index: task.index, nowMod, task, original:nowTaskRef.current }); // 发送任务信息
+                    worker.postMessage({ index: task.index, nowMod, task, original: nowTaskRef.current }); // 发送任务信息
                     tasksCompletedRef.current++;
                 }
             });
@@ -242,9 +247,9 @@ export const TaskProvider = ({ children }) => {
     const updateTaskListResult = (index, passTask, result) => {
         setTaskList(prevTasks => {
             const updatedTasks = prevTasks.map(task =>
-                task.index === index ? { 
-                    ...task, 
-                    status: result['status'] 
+                task.index === index ? {
+                    ...task,
+                    status: result['status']
                 } : task
             )
             taskListRef.current = updatedTasks
@@ -255,11 +260,11 @@ export const TaskProvider = ({ children }) => {
 
     const updateTaskStatus = (taskId, status) => {
         setTasks(prevTasks => {
-            const updatedTasks = prevTasks.map(task =>{
-                if(task.id === taskId) {
-                    if(status === "Prepare") {
-                        return { 
-                            ...task, 
+            const updatedTasks = prevTasks.map(task => {
+                if (task.id === taskId) {
+                    if (status === "Prepare") {
+                        return {
+                            ...task,
                             task_info: {
                                 ...task.task_info,
                                 task_status: status
@@ -267,9 +272,9 @@ export const TaskProvider = ({ children }) => {
                             list: [],
                             bodies: []
                         }
-                    }else{
-                        return { 
-                            ...task, 
+                    } else {
+                        return {
+                            ...task,
                             task_info: {
                                 ...task.task_info,
                                 task_status: status
@@ -289,7 +294,7 @@ export const TaskProvider = ({ children }) => {
         setTasks(prevTasks => {
             const updatedTasks = prevTasks.map(task =>
                 task.id === taskId ? {
-                    ...task, 
+                    ...task,
                     bodies: bodies
                 } : task
             )
@@ -308,22 +313,22 @@ export const TaskProvider = ({ children }) => {
                     let status = "Pending"
                     let hasError = false
                     let hasSuccess = false
-                    for(let i = 0; i < result.length; i++) {
-                        if(result[i].status === 200) {
+                    for (let i = 0; i < result.length; i++) {
+                        if (result[i].status === 200) {
                             hasSuccess = true
                         }
-                        if(result[i].status !== 200) {
+                        if (result[i].status !== 200) {
                             hasError = true
                         }
                     }
-                    if(hasError && hasSuccess) {
+                    if (hasError && hasSuccess) {
                         status = "FetchSomeDataError"//部分失败
                     }
                     if (hasError && !hasSuccess) {
                         status = "FetchDataError"// 全部失败
                     }
-                    if(hasSuccess) {
-                        let list = [];                        
+                    if (hasSuccess) {
+                        let list = [];
                         for (let j = 0; j < result.length; j++) {
                             if (result[j].status === 200) {
                                 let parseDataList = m3u8BodyToStructList(result[j].body)
@@ -393,7 +398,7 @@ export const TaskProvider = ({ children }) => {
         // 处理网络请求
         if (allRequest.length > 0) {
             const results = await Promise.allSettled(allRequest);
-            results.forEach((result, index) => {             
+            results.forEach((result, index) => {
                 let isError = true;
                 let body = "";
                 if (result.status === 'fulfilled') {
@@ -410,7 +415,7 @@ export const TaskProvider = ({ children }) => {
                     body = result.reason.message;
                 }
                 let _url = data[index]
-                
+
                 if (isError) {
                     bodies.push({
                         status: 500,
@@ -426,7 +431,7 @@ export const TaskProvider = ({ children }) => {
                 }
             });
         }
-        
+
         return bodies;
     }
 

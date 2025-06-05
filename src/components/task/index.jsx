@@ -217,6 +217,7 @@ export default function TaskList() {
                         <Box>
                             <Button
                                 variant="contained"
+                                size='small'
                                 startIcon={<AddIcon />}
                                 onClick={() => handleClickOpen(null)}
                                 style={{ marginRight: '10px' }}
@@ -225,6 +226,7 @@ export default function TaskList() {
                             </Button>
                             <Button
                                 variant="outlined"
+                                size='small'
                                 startIcon={<RefreshIcon />}
                                 onClick={refreshList}
                             >
@@ -234,6 +236,7 @@ export default function TaskList() {
                         <Box>
                             <Button
                                 variant="outlined"
+                                size='small'
                                 startIcon={<PublishIcon />}
                                 style={{ marginRight: '10px' }}
                                 onClick={() => handleImportDialog(true)}
@@ -242,10 +245,11 @@ export default function TaskList() {
                             </Button>
                             <Button
                                 variant="outlined"
+                                size='small'
                                 startIcon={<GetAppIcon />}
                                 onClick={() => handleExportDialog(true)}
                             >
-                                {t('全部任务导出')}
+                                {t('任务导出')}
                             </Button>
                         </Box>
                     </Box>
@@ -289,7 +293,6 @@ export default function TaskList() {
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>{t('任务id')}</TableCell>
-                                        <TableCell>{t('输出文件')}</TableCell>
                                         <TableCell align="right">{t('运行时间')}</TableCell>
                                     </TableRow>
                                 </TableHead>

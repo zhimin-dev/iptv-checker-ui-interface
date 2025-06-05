@@ -215,7 +215,6 @@ export default function LTaskList() {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>{t('任务id')}</TableCell>
-                                    <TableCell>{t('输出文件')}</TableCell>
                                     <TableCell align="right">{t('运行时间')}</TableCell>
                                 </TableRow>
                             </TableHead>

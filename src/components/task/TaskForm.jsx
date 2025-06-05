@@ -68,7 +68,8 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
     const { t } = useTranslation();
     const _mainContext = useContext(MainContext);
     const [task, setTask] = useState(defaultValue);
-    const [filterKeyword, setFilterKeyword] = useState('');
+    const [filterFavKeyword, setFilterFavKeyword] = useState('');
+    const [filterDisKeyword, setFilterDisKeyword] = useState('');
     const [activeStep, setActiveStep] = useState(0);
     const [delOpen, setDelOpen] = useState(false);
 
@@ -81,7 +82,8 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                 default_data.original.result_name = randomString(10);
             }
             setTask(default_data);
-            setFilterKeyword('');
+            setFilterDisKeyword('');
+            setFilterFavKeyword('');
             setActiveStep(0);
             setDelOpen(false);
         }
@@ -136,8 +138,13 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
     };
 
     const handleSaveClick = () => {
-        handleSave(task);
-        onClose();
+        if(task.original.urls.length === 0) {
+            let msg = t('基础配置为空')
+            alert(msg)
+        } else{
+            handleSave(task);
+            onClose();
+        }
     };
 
     const handleDeleteClick = () => {
@@ -173,18 +180,18 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
         setDelOpen(false);
     };
 
-    const handleAddUrl = () => {
-        if (filterKeyword.trim() !== '') {
-            setTask(prev => ({
-                ...prev,
-                original: {
-                    ...prev.original,
-                    urls: [...prev.original.urls, filterKeyword.trim()]
-                }
-            }));
-            setFilterKeyword('');
-        }
-    };
+    // const handleAddUrl = () => {
+    //     if (filterKeyword.trim() !== '') {
+    //         setTask(prev => ({
+    //             ...prev,
+    //             original: {
+    //                 ...prev.original,
+    //                 urls: [...prev.original.urls, filterKeyword.trim()]
+    //             }
+    //         }));
+    //         setFilterKeyword('');
+    //     }
+    // };
 
     const handleDeleteUrl = (index) => {
         setTask(prev => ({
@@ -196,18 +203,18 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
         }));
     };
 
-    const handleAddKeyword = (type) => {
-        if (filterKeyword.trim() !== '') {
-            setTask(prev => ({
-                ...prev,
-                original: {
-                    ...prev.original,
-                    [type]: [...prev.original[type], filterKeyword.trim()]
-                }
-            }));
-            setFilterKeyword('');
-        }
-    };
+    // const handleAddKeyword = (type) => {
+    //     if (filterKeyword.trim() !== '') {
+    //         setTask(prev => ({
+    //             ...prev,
+    //             original: {
+    //                 ...prev.original,
+    //                 [type]: [...prev.original[type], filterKeyword.trim()]
+    //             }
+    //         }));
+    //         setFilterKeyword('');
+    //     }
+    // };
 
     const changeCheckTimeout = (e) => {
         setTask({
@@ -247,12 +254,9 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
     }
 
     const addKeyword = (type) => {
-        if (filterKeyword === '') {
-            return
-        }
-        if (type === 1) {
+        if (type === 1 && filterFavKeyword != '') {
             let kw = task.original.keyword_like ?? [];
-            kw.push(filterKeyword)
+            kw.push(filterFavKeyword)
             setTask({
                 ...task,
                 original: {
@@ -260,9 +264,10 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                     keyword_like: uniqueArr(kw)
                 }
             });
-        } else if (type === 2) {
+            setFilterFavKeyword('')
+        } else if (type === 2 && filterDisKeyword != '') {
             let kw = task.original.keyword_dislike ?? [];
-            kw.push(filterKeyword)
+            kw.push(filterDisKeyword)
             setTask({
                 ...task,
                 original: {
@@ -270,16 +275,20 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                     keyword_dislike: uniqueArr(kw)
                 }
             });
+            setFilterDisKeyword('')
         }
-        setFilterKeyword("")
     }
 
     const uniqueArr = (array) => {
         return array.filter((item, index) => array.indexOf(item) === index)
     }
 
-    const changeFilterKeyword = (e) => {
-        setFilterKeyword(e.target.value)
+    const changeFilterFavKeyword = (e) => {
+        setFilterFavKeyword(e.target.value)
+    }
+
+    const changeFilterDisKeyword = (e) => {
+        setFilterDisKeyword(e.target.value)
     }
 
     const changeUrls = (e) => {
@@ -460,9 +469,9 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                             flexDirection: 'row',
                             justifyContent: 'space-between'
                         }}>
-                            <Button variant="outlined" onClick={() => addNewM3uLink()} startIcon={<PublicIcon />}>{t('添加在线链接')}</Button>
+                            <Button variant="outlined" onClick={() => addNewM3uLink()} startIcon={<PublicIcon />}>{t('在线链接')}</Button>
                             <Button variant="contained" component="label" startIcon={<UploadIcon />}>
-                                {t('本地上传m3u文件')}
+                                {t('本地文件')}
                                 <input hidden accept="*" multiple type="file" onChange={handleFileUpload} />
                             </Button>
                         </FormControl>
@@ -512,13 +521,33 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
             case 1:
                 return (
                     <Box sx={{ mt: 2 }}>
+                        <FormControl fullWidth style={{
+                            margin: "10px 0 20px",
+                        }}>
+                            <Stack direction="row" spacing={2}>
+                                <TextField
+                                    id="standard-basic"
+                                    label={t('喜欢频道名称')}
+                                    variant="standard"
+                                    value={filterFavKeyword} onChange={changeFilterFavKeyword} />
+                                <Button
+                                    size='small'
+                                    variant="outlined"
+                                    onClick={() => addKeyword(1)}
+                                    startIcon={<InsertEmoticonIcon />}
+                                >{t('添加')}</Button>
+                            </Stack>
+                        </FormControl>
                         {
                             task.original.keyword_like !== null && task.original.keyword_like.length > 0 ? (
                                 <FormControl fullWidth style={{
                                     padding: "0 0 20px",
                                 }}>
                                     <Typography variant="subtitle1" component="div">{t('只看频道关键词')}</Typography>
-                                    <Stack direction="row" spacing={1}>
+                                    <Stack direction="row" spacing={1} style={{
+                                        display: "flex",
+                                        flexWrap: "wrap"
+                                    }}>
                                         {
                                             task.original.keyword_like !== null && task.original.keyword_like.map((value, i) => (
                                                 <Chip
@@ -526,27 +555,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                                     onDelete={() => deleteThisLikeKw(i)}
                                                     variant="outlined"
                                                     key={i}
-                                                />
-                                            ))
-                                        }
-                                    </Stack>
-                                </FormControl>
-                            ) : ''
-                        }
-                        {
-                            task.original.keyword_dislike !== null && task.original.keyword_dislike.length > 0 ? (
-                                <FormControl fullWidth style={{
-                                    padding: "0 0 10px",
-                                }}>
-                                    <Typography variant="subtitle1" component="div">{t('不看频道关键词')}</Typography>
-                                    <Stack direction="row" spacing={1}>
-                                        {
-                                            task.original.keyword_dislike.map((value, i) => (
-                                                <Chip
-                                                    label={value}
-                                                    variant="outlined"
-                                                    onDelete={() => deleteThisDislikeKw(i)}
-                                                    key={i}
+                                                    style={{ margin: '5px' }}
                                                 />
                                             ))
                                         }
@@ -557,25 +566,44 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                         <FormControl fullWidth style={{
                             margin: "10px 0 20px",
                         }}>
-                            <Stack direction="row" spacing={1}>
+                            <Stack direction="row" spacing={2}>
                                 <TextField
                                     id="standard-basic"
-                                    label={t('添加关键词')}
+                                    label={t('不喜欢频道名称')}
                                     variant="standard"
-                                    value={filterKeyword} onChange={changeFilterKeyword} />
-                                <Button
-                                    size='small'
-                                    variant="outlined"
-                                    onClick={() => addKeyword(1)}
-                                    startIcon={<InsertEmoticonIcon />}
-                                >{t('添加只看')}</Button>
+                                    value={filterDisKeyword} onChange={changeFilterDisKeyword} />
                                 <Button
                                     size='small'
                                     variant="outlined"
                                     onClick={() => addKeyword(2)}
-                                    startIcon={<MoodBadIcon />}>{t('添加不看')}</Button>
+                                    startIcon={<MoodBadIcon />}>{t('添加')}</Button>
                             </Stack>
                         </FormControl>
+                        {
+                            task.original.keyword_dislike !== null && task.original.keyword_dislike.length > 0 ? (
+                                <FormControl fullWidth style={{
+                                    padding: "0 0 10px",
+                                }}>
+                                    <Typography variant="subtitle1" component="div">{t('不看频道关键词')}</Typography>
+                                    <Stack direction="row" spacing={1} style={{
+                                        display: "flex",
+                                        flexWrap: "wrap"
+                                    }}>
+                                        {
+                                            task.original.keyword_dislike.map((value, i) => (
+                                                <Chip
+                                                    label={value}
+                                                    variant="outlined"
+                                                    onDelete={() => deleteThisDislikeKw(i)}
+                                                    key={i}
+                                                    style={{ margin: '5px' }}
+                                                />
+                                            ))
+                                        }
+                                    </Stack>
+                                </FormControl>
+                            ) : ''
+                        }
                     </Box>
                 );
             case 2:
