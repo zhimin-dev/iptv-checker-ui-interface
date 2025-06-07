@@ -41,12 +41,6 @@ export const TaskProvider = ({ children }) => {
 
     // 从localstorage加载数据
     const loadFromLocalStorage = () => {
-        // invoke("get_video_info",{url:"https://mediaserver.abnvideos.com/streams/abnchina.m3u8"}).then((result) => {
-        //     console.log("check_ffmpeg",result)
-        // }).catch(e => {
-        //     console.log("invoke get_video_info error",e)
-        // })
-        // let data = await checkUrlByCmd(0, {url: "https://mediaserver.abnvideos.com/streams/abnchina.m3u8"}, {no_check: true})
         console.log("start load data")
         freshTaskList()
         freshOneTaskList()
