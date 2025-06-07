@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import axios from "axios"
 import ParseM3u from '../utils/utils'
+import { invoke } from '@tauri-apps/api/core'
 import { TaskStorageService } from '../services/taskStorageService';
 
 export const TaskContext = createContext();
@@ -40,6 +41,12 @@ export const TaskProvider = ({ children }) => {
 
     // 从localstorage加载数据
     const loadFromLocalStorage = () => {
+        // invoke("get_video_info",{url:"https://mediaserver.abnvideos.com/streams/abnchina.m3u8"}).then((result) => {
+        //     console.log("check_ffmpeg",result)
+        // }).catch(e => {
+        //     console.log("invoke get_video_info error",e)
+        // })
+        // let data = await checkUrlByCmd(0, {url: "https://mediaserver.abnvideos.com/streams/abnchina.m3u8"}, {no_check: true})
         console.log("start load data")
         freshTaskList()
         freshOneTaskList()
@@ -134,6 +141,236 @@ export const TaskProvider = ({ children }) => {
         if (!jobRef.current) {
             jobRef.current = setInterval(checkTaskIsChecking, 10000); // 每5秒执行一次当前是否还有任务在检查
         }
+    }
+
+    const checkUrl = async (index, task, originalData) => {
+        console.log(`Checking URL: ${task.url}`);
+        let need_returen = false;
+        if(originalData.no_check) {
+            need_returen = true
+        }
+        let result = null;
+        if (need_returen) {
+            result = {
+                'status': 300,
+                'audio': null,
+                'video': null,
+                'error': ''
+            };
+        }else{
+            if(nowMod === 1) {
+                result = checkUrlByCmd(index, task, originalData) 
+            }else {
+                result = checkUrlByWeb(index, task, originalData) 
+            }
+        }
+        console.log("checkUrl result",result)
+        return result;
+    }
+
+    const checkUrlByCmd = async (index, task, originalData) => {
+        try{
+            let result = await invoke("get_video_info",{url:task.url})
+            console.log("checkUrlByCmd",result)
+            if(result?.streams?.length > 0) {
+                let videos = []
+                let audios = []
+                for(let i = 0; i < result.streams.length; i++) {
+                    if(result.streams[i].codec_type === 'video') {
+                        videos.push(result.streams[i])
+                    }
+                }
+                for(let i = 0; i < result.streams.length; i++) {
+                    if(result.streams[i].codec_type === 'audio') {
+                        audios.push(result.streams[i])
+                    }
+                }
+                return {
+                    'status': 200,
+                    'audio': audios,
+                    'video': videos,
+                    'error': ''
+                };
+            }else{
+                console.log("checkUrlByCmd error empty")
+                return {
+                    'status': 500,
+                    'audio': null,
+                    'video': null,
+                    'error': "empty data",
+                }; 
+            }
+        }catch(err){
+            console.log("checkUrlByCmd error",err)
+            return {
+                'status': 500,
+                'audio': null,
+                'video': null,
+                'error': err,
+            };
+        }
+    }
+
+    const checkUrlByWeb = async (index, task, originalData) => {
+        try {
+            let need_returen = false;
+            // Check if URL starts with http:// or https://
+            if (!task.url.startsWith('http://') && !task.url.startsWith('https://')) {
+                need_returen = true
+            }
+            if (need_returen) {
+                return {
+                    'status': 300,
+                    'audio': null,
+                    'video': null,
+                    'error': ''
+                };
+            }
+            // Create AbortController to handle timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), originalData.http_timeout);
+            
+            const response = await fetch(task.url, {
+                method: 'HEAD',
+                signal: controller.signal,
+            });
+            // Check if response is streaming and hasn't completed in time
+            if (!response.ok || response.bodyUsed) {
+                console.log(`Request failed for ${task.url}:`, { ok: response.ok, bodyUsed: response.bodyUsed });
+                clearTimeout(timeoutId);
+                controller.abort(); // Force abort the ongoing request
+                return {
+                    'status': 500,
+                    'audio': null,
+                    'video': null
+                };
+            }
+            
+            clearTimeout(timeoutId);
+    
+            // Check Content-Type header
+            const contentType = response.headers.get('content-type');
+            console.log(`Content-Type for ${task.url}:`, contentType);
+            if (!contentType || !(
+                contentType.includes('application/vnd.apple.mpegurl') ||
+                contentType.includes('application/x-mpegurl') ||
+                contentType.includes('audio/mpegurl') ||
+                contentType.includes('audio/x-mpegurl') ||
+                contentType.includes('text/plain') ||
+                contentType.includes('application/x-mpegURL') ||
+                contentType.includes('application/vnd.apple.mpegURL')
+            )) {
+                return {
+                    'status': 500,
+                    'audio': null,
+                    'video': null,
+                    'contentType': contentType
+                };
+            }else{
+                return {
+                    'status': 200,
+                    'audio': null,
+                    'video': null,
+                    'contentType': contentType
+                };
+            }
+        } catch (error) {
+            console.log(`Error checking ${task.url}:`, error);
+            // Request failed
+            return {
+                'status': 500,
+                'audio': null,
+                'video': null,
+                'contentType': ""
+            };
+        }
+    }
+
+    const startJobWorker = (workerCount) => {
+        // 创建3个worker来处理任务
+        const workers = [];
+        for (let i = 0; i < workerCount; i++) {
+            workers.push(createJobWorker());
+        }
+        workersRef.current = workers;
+    }
+
+    const startWorkers = () => {
+        // 启动所有worker开始处理任务
+        workersRef.current.forEach(worker => {
+            if (!worker.isRunning) {
+                worker.process();
+            }
+        });
+    }
+
+    const stopWorkers = () => {
+        // 停止所有worker
+        workersRef.current.forEach(worker => {
+            worker.isRunning = false;
+        });
+        workersRef.current = [];
+    }
+
+    const restartWorkers = () => {
+        // 重启workers
+        stopWorkers();
+        startJobWorker();
+        startWorkers();
+    }
+
+    const createJobWorker = () => {
+        const worker = {
+            isRunning: false,
+            process: async () => {
+                if (worker.isRunning) return;
+                
+                worker.isRunning = true;
+                
+                while (true) {
+                    // 查找未处理的任务
+                    let taskToProcess = null;
+                    for (let task of taskListRef.current) {
+                        if (task.status === 0) { // 状态0表示未处理
+                            taskToProcess = task;
+                            break;
+                        }
+                    }
+
+                    if (!taskToProcess) {
+                        break; // 没有未处理的任务了
+                    }
+
+                    // 更新任务状态为处理中
+                    taskToProcess.status = 1;
+                    setTaskList([...taskListRef.current]);
+
+                    try {
+                        // 检查URL
+                        const result = await checkUrl(taskToProcess);
+                        
+                        // 更新任务状态和结果
+                        taskToProcess.status = 2; // 已完成
+                        taskToProcess.result = result;
+                        
+                    } catch (error) {
+                        console.error("Task processing error:", error);
+                        taskToProcess.status = 3; // 失败
+                        taskToProcess.error = error.message;
+                    }
+
+                    // 更新任务列表
+                    setTaskList([...taskListRef.current]);
+                }
+                
+                worker.isRunning = false;
+            }
+        };
+
+        // 立即开始处理任务
+        worker.process();
+        
+        return worker;
     }
 
     const checkTaskIsChecking = async () => {
