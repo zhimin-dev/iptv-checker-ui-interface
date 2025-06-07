@@ -82,9 +82,7 @@ export const TaskProvider = ({ children }) => {
     }
 
     const taskHasComplate = (taskId, subTaskList) => {
-        console.log("taskHasComplate input:", { taskId, subTaskList });
         setTasks(prevTasks => {
-            console.log("prevTasks before update:", prevTasks);
             const updatedTasks = prevTasks.map(task => {
                 if (task.id === taskId) {
                     const updatedTask = {
@@ -95,17 +93,14 @@ export const TaskProvider = ({ children }) => {
                         },
                         list: subTaskList
                     };
-                    console.log("updated task:", updatedTask);
                     return updatedTask;
                 }
                 return task;
             });
-            console.log("updatedTasks after map:", updatedTasks);
             saveToLocalStorage(updatedTasks, localCahceTasksKey);
             tasksRef.current = updatedTasks;
             return updatedTasks;
         });
-        console.log("taskHasComplate---save", tasksRef.current);
         updateTaskList([]);
         updateNowTaskId("", true);
     }
@@ -146,7 +141,6 @@ export const TaskProvider = ({ children }) => {
         await prepareTaskData()
         let needStartWorker = false
         let tempNowTaskId = ""
-        console.log("----- checkTaskIsChecking---", taskListRef.current)
         // 仅当当前没有任务时，需要取其他任务获取
         if (taskListRef.current.length === 0) {
             // 如果当前待检查列表没有数据，那么需要从待检查列表中获取数据
@@ -191,13 +185,6 @@ export const TaskProvider = ({ children }) => {
         }
     }
 
-    const stopTask = () => {
-        if (jobRef.current) {
-            clearInterval(jobRef.current);
-            jobRef.current = null;
-        }
-    };
-
     const startWorker = () => {
         // 创建一组 Web Workers
         const createWorkers = (count) => {
@@ -206,8 +193,11 @@ export const TaskProvider = ({ children }) => {
                 const worker = new Worker(new URL('./check-task.js', import.meta.url));
                 worker.onmessage = (e) => {
                     const { index, task, result } = e.data;
-                    console.log("task----", index, result, task)
+                    console.log("Worker message received:", { index, task, result });
                     updateTaskListResult(index, task, result);
+                };
+                worker.onerror = (error) => {
+                    console.error("Worker error:", error);
                 };
                 workers.push(worker);
             }
@@ -228,6 +218,14 @@ export const TaskProvider = ({ children }) => {
         };
         processTasks();
     }
+
+    const stopTask = () => {
+        clearWorker()
+        if (jobRef.current) {
+            clearInterval(jobRef.current);
+            jobRef.current = null;
+        }
+    };
 
     const clearWorker = () => {
         workersRef.current.forEach(worker => worker.terminate());
@@ -331,12 +329,16 @@ export const TaskProvider = ({ children }) => {
                         let list = [];
                         for (let j = 0; j < result.length; j++) {
                             if (result[j].status === 200) {
-                                let parseDataList = m3u8BodyToStructList(result[j].body)
+                                let parseDataList = m3u8BodyToStructList(result[j].body,task.original.rename)
                                 for (let x = 0; x < parseDataList.length; x++) {
                                     list.push(parseDataList[x])
                                 }
                             }
                         }
+                        // Remove duplicates based on URL
+                        list = list.filter((item, index, self) =>
+                            index === self.findIndex((t) => t.url === item.url)
+                        );
                         updateTaskInfo(task.id, list)
                     }
                     updateTaskOriginalUrls(task.id, result)

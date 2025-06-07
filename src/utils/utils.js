@@ -36,7 +36,7 @@ const ParseM3u = {
         }
         return []
     },
-    parseM3uBody:(body) => {
+    parseM3uBody:(body, removeNameUselessChar = false) => {
         if (!body) {
             return [];
         }
@@ -56,8 +56,14 @@ const ParseM3u = {
                 }
                 currentItem = ParseM3u.buildM3uBaseObject();
                 currentItem.index = index;
+                let name = ParseM3u.parseName(line);
+                if(removeNameUselessChar) {
+                    // Remove text within square brackets (both regular and full-width)
+                    name = name.replace(/[\[【].*?[\]】]/g, '').trim();
+                }
                 // Parse EXTINF line
-                currentItem.name = ParseM3u.parseName(line);
+                currentItem.name = name;
+                
                 currentItem.tvgName = ParseM3u.pregValue(line, "tvg-name");
                 currentItem.tvgId = ParseM3u.pregValue(line, "tvg-id");
                 currentItem.groupTitle = ParseM3u.pregValue(line, "group-title");

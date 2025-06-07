@@ -49,16 +49,28 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, source, showDownloadDi
 
     const downloadFile = (id, extention) => {
         let saveData = [];
-        if (!row.original.no_check) {
-            for (let i = 0; i < row.list.length; i++) {
-                if (row.list[i].status === 200) {
-                    saveData.push(row.list[i])
-                }
+        let saveSameNum = row.original.same_save_num;
+        for (let i = 0; i < row.list.length; i++) {
+            if (row.list[i].status === 200) {
+                saveData.push(row.list[i])
             }
-        } else {
-            saveData = checkData
         }
-        if (source === 'ltask') {
+        // saveSameNum >0，相同名称保留saveSameNum个，其他删除
+        if (saveSameNum > 0) {
+            const nameGroups = {};
+            saveData.forEach(item => {
+                if (!nameGroups[item.name]) {
+                    nameGroups[item.name] = [];
+                }
+                nameGroups[item.name].push(item);
+            });
+
+            // Keep only saveSameNum items per name group
+            saveData = Object.values(nameGroups).flatMap(group => 
+                group.slice(0, saveSameNum)
+            );
+        }
+        if (source === 'ltask' && _mainContext.nowMod === 1) {
             _mainContext.clientSaveFile(saveData, extention === 'txt' ? 'txt' : 'm3u')
         } else {
             _mainContext.webSaveFile(saveData, extention === 'txt' ? 'txt' : 'm3u')
