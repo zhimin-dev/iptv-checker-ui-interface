@@ -46,6 +46,11 @@ export const TaskProvider = ({ children }) => {
         freshOneTaskList()
         const nowTaskId = localStorage.getItem(localCahceNowTaskId);
         if (nowTaskId !== '') {
+            for(let i = 0; i < tasksRef.current.length; i++) {
+                if(tasksRef.current[i].id === nowTaskId) {
+                    nowTaskRef.current = tasksRef.current[i]
+                }
+            }
             updateNowTaskId(nowTaskId, false);
         } else {
             updateNowTaskId("", false);
@@ -137,7 +142,7 @@ export const TaskProvider = ({ children }) => {
         }
     }
 
-    const checkUrl = async (index, task, originalData) => {
+    const checkUrl = async (task, originalData) => {
         console.log(`Checking URL: ${task.url}`);
         let need_returen = false;
         if(originalData.no_check) {
@@ -153,16 +158,16 @@ export const TaskProvider = ({ children }) => {
             };
         }else{
             if(nowMod === 1) {
-                result = checkUrlByCmd(index, task, originalData) 
+                result = await checkUrlByCmd(task, originalData) 
             }else {
-                result = checkUrlByWeb(index, task, originalData) 
+                result = await checkUrlByWeb(task, originalData) 
             }
         }
         console.log("checkUrl result",result)
         return result;
     }
 
-    const checkUrlByCmd = async (index, task, originalData) => {
+    const checkUrlByCmd = async (task, originalData) => {
         try{
             let result = await invoke("get_video_info",{url:task.url})
             console.log("checkUrlByCmd",result)
@@ -205,7 +210,7 @@ export const TaskProvider = ({ children }) => {
         }
     }
 
-    const checkUrlByWeb = async (index, task, originalData) => {
+    const checkUrlByWeb = async (task, originalData) => {
         try {
             let need_returen = false;
             // Check if URL starts with http:// or https://
@@ -280,91 +285,68 @@ export const TaskProvider = ({ children }) => {
         }
     }
 
-    const startJobWorker = (workerCount) => {
-        // 创建3个worker来处理任务
-        const workers = [];
-        for (let i = 0; i < workerCount; i++) {
-            workers.push(createJobWorker());
-        }
-        workersRef.current = workers;
-    }
-
-    const startWorkers = () => {
-        // 启动所有worker开始处理任务
-        workersRef.current.forEach(worker => {
-            if (!worker.isRunning) {
-                worker.process();
-            }
-        });
-    }
-
-    const stopWorkers = () => {
-        // 停止所有worker
-        workersRef.current.forEach(worker => {
-            worker.isRunning = false;
-        });
-        workersRef.current = [];
-    }
-
-    const restartWorkers = () => {
-        // 重启workers
-        stopWorkers();
-        startJobWorker();
-        startWorkers();
-    }
-
-    const createJobWorker = () => {
-        const worker = {
-            isRunning: false,
-            process: async () => {
-                if (worker.isRunning) return;
-                
-                worker.isRunning = true;
-                
-                while (true) {
-                    // 查找未处理的任务
-                    let taskToProcess = null;
-                    for (let task of taskListRef.current) {
-                        if (task.status === 0) { // 状态0表示未处理
-                            taskToProcess = task;
-                            break;
-                        }
-                    }
-
-                    if (!taskToProcess) {
-                        break; // 没有未处理的任务了
-                    }
-
-                    // 更新任务状态为处理中
-                    taskToProcess.status = 1;
-                    setTaskList([...taskListRef.current]);
-
-                    try {
-                        // 检查URL
-                        const result = await checkUrl(taskToProcess);
-                        
-                        // 更新任务状态和结果
-                        taskToProcess.status = 2; // 已完成
-                        taskToProcess.result = result;
-                        
-                    } catch (error) {
-                        console.error("Task processing error:", error);
-                        taskToProcess.status = 3; // 失败
-                        taskToProcess.error = error.message;
-                    }
-
-                    // 更新任务列表
-                    setTaskList([...taskListRef.current]);
+    // 创建并行任务处理器
+    const createTaskProcessor = async (taskIndex) => {
+        while (true) {
+            console.log("createTaskProcessor, nowIndex:", taskIndex)
+            // 获取待处理的任务
+            let taskToProcess = null;
+            for (let i = 0; i < taskListRef.current.length; i++) {
+                if (taskListRef.current[i].status === 0) {
+                    taskToProcess = taskListRef.current[i];
+                    break;
                 }
-                
-                worker.isRunning = false;
             }
-        };
 
-        // 立即开始处理任务
-        worker.process();
-        
-        return worker;
+            if (!taskToProcess) {
+                break; // 没有待处理的任务了
+            }
+            let result = {
+                'status': 1,
+                'audio': null,
+                'video': null,
+                'error': ''
+            }
+            updateTaskListResult(taskToProcess.index, taskToProcess, result)
+
+            try {
+                // 检查URL
+                const result = await checkUrl(taskToProcess, nowTaskRef.current.original);
+                console.log("checkUrl result",result)
+                console.log("finalTaskList",finalTaskList,result['status'])
+                updateTaskListResult(taskToProcess.index, taskToProcess, result)
+
+            } catch (error) {
+                console.error(`Task processor ${taskIndex} error:`, error);
+                let result = {
+                    'status': 500,
+                    'audio': null,
+                    'video': null,
+                    'error': ''
+                }
+                updateTaskListResult(taskToProcess.index, taskToProcess, result)
+            }
+        }
+    };
+
+    const startJobWorker = () => {
+        // 启动多个并行任务处理器
+        const processors = [];
+        console.log("startJobWorker, nowTaskRef.current", nowTaskRef.current)
+        if(nowTaskRef.current !== null) {
+            for (let i = 0; i < nowTaskRef.current.original.concurrent; i++) {
+                processors.push(createTaskProcessor(i));
+            }
+            
+            // 等待所有处理器完成
+            Promise.all(processors).then(() => {
+                console.log("All task processors completed");
+                workersRef.current = [];
+            }).catch(error => {
+                console.error("Task processor error:", error);
+                workersRef.current = [];
+            });
+        }
     }
 
     const checkTaskIsChecking = async () => {
@@ -409,10 +391,11 @@ export const TaskProvider = ({ children }) => {
             }
         }
         if (needStartWorker) {
-            if (workersRef.current === null || workersRef.current.length === 0) {
-                console.log("now task start worker", taskListRef.current)
-                startWorker()
-            }
+            startJobWorker()
+            // if (workersRef.current === null || workersRef.current.length === 0) {
+            //     console.log("now task start worker", taskListRef.current)
+            //     startWorker()
+            // }
         }
     }
 
