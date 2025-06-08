@@ -1,28 +1,56 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use std::process::Command;
+use std::sync::Mutex;
+use tauri::State;
+
+struct AppState {
+    ffmpeg_path: Mutex<String>,
+    ffprobe_path: Mutex<String>,
+}
 
 #[tauri::command]
 fn now_mod() -> i32 {
     1
 }
+
+fn find_ffmpeg_path() -> Result<(String, String), String> {
+    // Try to find ffmpeg and ffprobe in PATH
+    let ffmpeg_output = Command::new("which")
+        .arg("ffmpeg")
+        .output()
+        .map_err(|e| format!("Error finding ffmpeg: {}", e))?;
+
+    let ffprobe_output = Command::new("which")
+        .arg("ffprobe")
+        .output()
+        .map_err(|e| format!("Error finding ffprobe: {}", e))?;
+
+    if !ffmpeg_output.status.success() || !ffprobe_output.status.success() {
+        return Err("FFmpeg or FFprobe not found in PATH".to_string());
+    }
+
+    let ffmpeg_path = String::from_utf8_lossy(&ffmpeg_output.stdout).trim().to_string();
+    let ffprobe_path = String::from_utf8_lossy(&ffprobe_output.stdout).trim().to_string();
+
+    Ok((ffmpeg_path, ffprobe_path))
+}
+
 #[tauri::command]
-fn check_ffmpeg() -> Result<bool, String> {
-    let output = Command::new("ffmpeg")
+fn check_ffmpeg(state: State<AppState>) -> Result<bool, String> {
+    let ffmpeg_path = state.ffmpeg_path.lock().unwrap();
+    let output = Command::new(&*ffmpeg_path)
         .arg("-version")
         .output()
         .map_err(|e| format!("Error executing FFmpeg command: {}", e))?;
 
-    if output.status.success() {
-        Ok(true)
-    } else {
-        Ok(false)
-    }
+    Ok(output.status.success())
 }
 
 #[tauri::command]
-fn get_video_info(url: String) -> Result<serde_json::Value, String> {
-    let output = Command::new("ffprobe")
+fn get_video_info(url: String, state: State<AppState>) -> Result<serde_json::Value, String> {
+    let ffprobe_path = state.ffprobe_path.lock().unwrap();
+    let output = Command::new(&*ffprobe_path)
         .args(&[
             "-v", "quiet",
             "-print_format", "json",
@@ -45,14 +73,23 @@ fn get_video_info(url: String) -> Result<serde_json::Value, String> {
     }
 }
 
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Initialize FFmpeg paths
+    let (ffmpeg_path, ffprobe_path) = find_ffmpeg_path()
+        .expect("Failed to find FFmpeg installation");
+
+    let app_state = AppState {
+        ffmpeg_path: Mutex::new(ffmpeg_path),
+        ffprobe_path: Mutex::new(ffprobe_path),
+    };
+
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_dialog::init())
+        .manage(app_state)
         .invoke_handler(tauri::generate_handler![now_mod, check_ffmpeg, get_video_info])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
