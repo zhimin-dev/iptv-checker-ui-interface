@@ -376,6 +376,21 @@ export const TaskProvider = ({ children }) => {
         await prepareTaskData()
         let needStartWorker = false
         let tempNowTaskId = ""
+        // 检查nowTaskIdRef.current 数据是否正确
+        if((nowTaskIdRef.current !== "" && taskListRef.current.length > 0 )|| 
+        (nowTaskIdRef.current === "" && taskListRef.current.length > 0)) {
+            let exist = false
+            for(let i = 0; i < tasksRef.current.length; i++) {
+                if(tasksRef.current[i].id === nowTaskIdRef.current) {
+                    exist = true
+                }
+            }
+            // 如果任务id不存在或者任务id为空，都认为这个数据有问题，暂时清理掉
+            if(!exist || nowTaskIdRef.current === "") {
+                updateNowTaskId("", true)
+                updateTaskList([])
+            }
+        }
         // 仅当当前没有任务时，需要取其他任务获取
         if (taskListRef.current.length === 0) {
             // 如果当前待检查列表没有数据，那么需要从待检查列表中获取数据
@@ -412,7 +427,16 @@ export const TaskProvider = ({ children }) => {
                 needStartWorker = true
             }
         }
+        console.log("nowTaskIdRef.current", nowTaskIdRef.current)
+        if(nowTaskIdRef.current !== "" && nowTaskRef.current !== null) {
+            for(let i = 0; i < tasksRef.current.length; i++) {
+                if(tasksRef.current[i].id === nowTaskIdRef.current) {
+                    nowTaskRef.current = tasksRef.current[i]
+                }
+            }
+        }
         if (needStartWorker && nowJobRef.current === 0) {
+            console.log("startJobWorker")
             startJobWorker()
             // if (workersRef.current === null || workersRef.current.length === 0) {
             //     console.log("now task start worker", taskListRef.current)
