@@ -144,9 +144,8 @@ export const MainContextProvider = function ({ children }) {
     const checkFFmpeg = () => {
         invoke("check_ffmpeg").then((result) => {
             if (result) {
+                setFffmepgCheck(1)
                 console.log("FFmpeg is installed");
-            } else {
-                console.log("FFmpeg is not installed");
             }
         }).catch(e => {
             console.log("invoke error",e)

@@ -30,6 +30,7 @@ export const TaskProvider = ({ children }) => {
     const tasksRef = useRef([]);//全部任务ref
     const jobRef = useRef(null);//任务ref
     const nowTaskRef = useRef(null);//当前任务ref
+    const nowJobRef = useRef(0);//当前任务ref
 
     const localCahceTasksKey = "local_tasks"
     const localCahceNowTaskId = "nowTaskId"
@@ -157,7 +158,7 @@ export const TaskProvider = ({ children }) => {
                 'error': ''
             };
         }else{
-            if(nowMod === 1) {
+            if(originalData.ffmpeg_check) {
                 result = await checkUrlByCmd(task, originalData) 
             }else {
                 result = await checkUrlByWeb(task, originalData) 
@@ -225,6 +226,7 @@ export const TaskProvider = ({ children }) => {
                     'error': ''
                 };
             }
+            console.log("checkUrlByWeb, task timout ", originalData.http_timeout)
             // Create AbortController to handle timeout
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), originalData.http_timeout);
@@ -301,30 +303,47 @@ export const TaskProvider = ({ children }) => {
             if (!taskToProcess) {
                 break; // 没有待处理的任务了
             }
-            let result = {
-                'status': 1,
-                'audio': null,
-                'video': null,
-                'error': ''
-            }
-            updateTaskListResult(taskToProcess.index, taskToProcess, result)
+            taskListRef.current = taskListRef.current.map(task => {
+                if(task.index === taskToProcess.index) {
+                    return {
+                        ...task,
+                        status: 1//正在处理
+                    }
+                }
+                return task
+            })
+            updateTaskListResultWithoutRef(taskListRef.current)
 
             try {
                 // 检查URL
                 const result = await checkUrl(taskToProcess, nowTaskRef.current.original);
                 console.log("checkUrl result",result)
-                console.log("finalTaskList",finalTaskList,result['status'])
-                updateTaskListResult(taskToProcess.index, taskToProcess, result)
+                console.log(result['status'])
+                taskListRef.current = taskListRef.current.map(task => {
+                    if(task.index === taskToProcess.index) {
+                        return {
+                            ...task,
+                            status: result['status'],
+                            audio: result['audio'],
+                            video: result['video'],
+                        }
+                    }
+                    return task
+                })
+                updateTaskListResultWithoutRef(taskListRef.current)
 
             } catch (error) {
                 console.error(`Task processor ${taskIndex} error:`, error);
-                let result = {
-                    'status': 500,
-                    'audio': null,
-                    'video': null,
-                    'error': ''
-                }
-                updateTaskListResult(taskToProcess.index, taskToProcess, result)
+                taskListRef.current = taskListRef.current.map(task => {
+                    if(task.index === taskToProcess.index) {
+                        return {
+                            ...task,
+                            status: 500//处理失败
+                        }
+                    }
+                    return task
+                })
+                updateTaskListResultWithoutRef(taskListRef.current)
             }
         }
     };
@@ -334,15 +353,18 @@ export const TaskProvider = ({ children }) => {
         const processors = [];
         console.log("startJobWorker, nowTaskRef.current", nowTaskRef.current)
         if(nowTaskRef.current !== null) {
+            nowJobRef.current = 1
             for (let i = 0; i < nowTaskRef.current.original.concurrent; i++) {
                 processors.push(createTaskProcessor(i));
             }
             
             // 等待所有处理器完成
             Promise.all(processors).then(() => {
+                nowJobRef.current = 0
                 console.log("All task processors completed");
                 workersRef.current = [];
             }).catch(error => {
+                nowJobRef.current = 0
                 console.error("Task processor error:", error);
                 workersRef.current = [];
             });
@@ -390,7 +412,7 @@ export const TaskProvider = ({ children }) => {
                 needStartWorker = true
             }
         }
-        if (needStartWorker) {
+        if (needStartWorker && nowJobRef.current === 0) {
             startJobWorker()
             // if (workersRef.current === null || workersRef.current.length === 0) {
             //     console.log("now task start worker", taskListRef.current)
@@ -455,6 +477,11 @@ export const TaskProvider = ({ children }) => {
             stopTask()
         };
     }, []);
+
+    const updateTaskListResultWithoutRef = (list) => {
+        setTaskList(list);
+        saveToLocalStorage(list, localCahceNowTaskList)
+    }
 
     const updateTaskListResult = (index, passTask, result) => {
         setTaskList(prevTasks => {
