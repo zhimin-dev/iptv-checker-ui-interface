@@ -5,6 +5,7 @@ import { Outlet } from "react-router-dom";
 import './menu.css'
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
+import LaptopIcon from '@mui/icons-material/Laptop';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { MainContext } from './../../context/main';
 import icon from './../../assets/icon.png';
@@ -40,15 +41,9 @@ import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 
 let menuList = [{
-    "name": "快速检测",
+    "name": "本地任务",
     "uri": "/",
-    "icon": "BoltIcon",
-    'showMod': [0, 1],
-    'showHeader': true
-}, {
-    "name": "已检测源",
-    "uri": "/detail",
-    "icon": "AdjustIcon",
+    "icon": "LaptopIcon",
     'showMod': [0, 1],
     'showHeader': true
 }, {
@@ -61,13 +56,13 @@ let menuList = [{
     "name": "定时检查任务",
     "uri": "/task",
     "icon": "CloudQueueIcon",
-    'showMod': [0, 1],
+    'showMod': [0],
     'showHeader': true
 }, {
-    "name": "系统设置",
+    "name": "设置",
     "uri": "/settings",
     "icon": "SettingsIcon",
-    'showMod': [0, 1],
+    'showMod': [0,1],
     'showHeader': true
 }]
 
@@ -101,8 +96,6 @@ export default function Layout() {
             }
         }
     }, [location])
-
-    const nowVersion = _package.version;
 
     const changePath = (e) => {
         if (e.uri === detailUri) {
@@ -164,26 +157,30 @@ export default function Layout() {
     const DrawerList = (
         <Box className="side-bar" style={{ backgroundColor: theme.palette.sideBarBgColor[prefersDarkMode ? 'dark' : 'light'] }} sx={{ width: drawerWidth }} role="presentation">
             <List>
-                <div className="side-bar-logo" onClick={goToGithub} title='帮忙点个star!!!'>
-                    <div className='side-bar-logo-item'>
+                <Box className="side-bar-logo">
+                    <Box className='side-bar-logo-item'>
                         <img src={icon} height="60"></img>
-                        <div className='go-github'>iptv-checker@{nowVersion}</div>
+                        <Box className='go-github'>iptv-checker
                         {
                             _mainContext.showNewVersion ? (
-                                <div style={{ color: 'red' }}>有新版本:{_mainContext.configInfo.version}</div>
+                                <a href='/#/settings' style={{ color: 'green' }}>{t('有新版本')}</a>
                             ) : ''
                         }
-                    </div>
-                </div>
+                        </Box>
+                    </Box>
+                </Box>
                 {
                     menuList.map((value, index) => (
                         value.showMod.includes(_mainContext.nowMod) ? (
-                            <div key={index}>
+                            <Box key={index}>
                                 {
                                     value.uri !== detailUri || (value.uri === detailUri && _mainContext.subCheckMenuList.length > 0) ? (
                                         <ListItem key={index} disablePadding onClick={() => changePath(value)}>
                                             <ListItemButton>
                                                 <ListItemIcon>
+                                                    {
+                                                        value.icon === 'LaptopIcon' ? <LaptopIcon />:''
+                                                    }
                                                     {
                                                         value.icon === 'SettingsIcon' ? <SettingsIcon /> : ''
                                                     }
@@ -214,7 +211,7 @@ export default function Layout() {
                                     ) : ''
                                 }
 
-                                {
+                                {/* {
                                     value.uri === detailUri && openSubCheckedMenu ? (
                                         <List component="div" disablePadding key={detailUri + "0000"}>
                                             {
@@ -226,8 +223,8 @@ export default function Layout() {
                                             }
                                         </List>
                                     ) : ''
-                                }
-                            </div>
+                                } */}
+                            </Box>
                         ) : ''
                     ))}
             </List>
@@ -290,22 +287,22 @@ export default function Layout() {
                 sponsorInfo={sponsorInfo}
                 onClose={handleCloseSponsor}
             />
-            <div className="layout">
+            <Box className="layout">
                 <Drawer open={openDrawer} anchor="left" variant={openDrawer ? "permanent" : 'temporary'}>
                     {DrawerList}
                 </Drawer>
                 <Box className="container-inner" style={{
                     marginLeft: openDrawer ? drawerWidth + "px" : '',
                 }}>
-                    <div data-tauri-drag-region style={{ width: '100%', height: '20px' }}></div>
+                    <Box data-tauri-drag-region style={{ width: '100%', height: '20px' }}></Box>
                     {
-                        <div style={{
+                        <Box style={{
                             padding: '0 20px',
                             display: 'flex',
                             justifyContent: 'space-between',
                             height: '60px',
                         }}>
-                            <div style={{
+                            <Box style={{
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 height: '60px',
@@ -325,42 +322,43 @@ export default function Layout() {
                                         nowSelectedMenu.name !== null && nowSelectedMenu.name !== undefined ?
                                             t(nowSelectedMenu.name) : _mainContext.detailMd5
                                     }</Box>
-                                    {
+                                    {/* {
                                         _mainContext.detailMd5 !== '' ? (
                                             <IconButton aria-label="delete" color='error' size="small" onClick={() => remove_detail(_mainContext.detailMd5)}>
                                                 <HighlightOffIcon />
                                             </IconButton>
                                         ) : ''
-                                    }
+                                    } */}
                                 </Box>
-                                <div data-tauri-drag-region style={{
+                                <Box data-tauri-drag-region style={{
                                     display: _mainContext.nowMod === 1 ? 'flex' : 'none',
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                 }}>
-                                    <div className="titlebar-button" id="titlebar-minimize">
+                                    <Box className="titlebar-button" id="titlebar-minimize">
                                         <img
                                             src="https://api.iconify.design/mdi:window-minimize.svg"
                                             alt="minimize"
                                         />
-                                    </div>
-                                    <div className="titlebar-button" id="titlebar-close">
+                                    </Box>
+                                    <Box className="titlebar-button" id="titlebar-close">
                                         <img src="https://api.iconify.design/mdi:close.svg" alt="close" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                                    </Box>
+                                </Box>
+                            </Box>
+                        </Box>
                     }
-                    <div style={{ width: '100%', height: '20px' }}></div>
+                    <Box style={{ width: '100%', height: '20px' }}></Box>
                     <Divider style={{ marginBottom: '10px' }} />
                     <Outlet />
                 </Box>
-            </div>
+            </Box>
         </ThemeProvider>
     )
 }
 
 function SimpleDialog(props) {
+    const { t } = useTranslation();
     const { onClose, sponsorInfo, open } = props;
 
     const handleClose = () => {
@@ -369,7 +367,7 @@ function SimpleDialog(props) {
 
     return (
         <Dialog onClose={handleClose} open={open}>
-            <DialogTitle>支持开发者开发继续维护该项目</DialogTitle>
+            <DialogTitle>{t('支持开发者开发继续维护该项目')}</DialogTitle>
             {
                 sponsorInfo !== null && sponsorInfo.url !== '' ? (
                     <Box sx={{

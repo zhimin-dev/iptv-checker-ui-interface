@@ -36,6 +36,70 @@ const ParseM3u = {
         }
         return []
     },
+    parseM3uBody:(body, removeNameUselessChar = false) => {
+        if (!body) {
+            return [];
+        }
+
+        let lines = body.split('\n');
+        let result = [];
+        let currentItem = null;
+        let index = 1;
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
+            
+            if (line.startsWith('#EXTINF:')) {
+                // Start of a new item
+                if (currentItem) {
+                    result.push(currentItem);
+                }
+                currentItem = ParseM3u.buildM3uBaseObject();
+                currentItem.index = index;
+                let name = ParseM3u.parseName(line);
+                if(removeNameUselessChar) {
+                    // Remove text within square brackets (both regular and full-width)
+                    name = name.replace(/[\[【].*?[\]】]/g, '').trim();
+                }
+                // Parse EXTINF line
+                currentItem.name = name;
+                
+                currentItem.tvgName = ParseM3u.pregValue(line, "tvg-name");
+                currentItem.tvgId = ParseM3u.pregValue(line, "tvg-id");
+                currentItem.groupTitle = ParseM3u.pregValue(line, "group-title");
+                currentItem.tvgLogo = ParseM3u.pregValue(line, "tvg-logo");
+                currentItem.tvgLanguage = ParseM3u.pregValue(line, "tvg-language");
+                currentItem.tvgCountry = ParseM3u.pregValue(line, "tvg-country");
+            } else if (line.startsWith('#EXTVLCOPT:')) {
+                // Handle VLCOPT lines
+                if (currentItem) {
+                    let opt = line.replace("#EXTVLCOPT:", "").split('=');
+                    if (opt.length >= 2) {
+                        currentItem.copt.push({
+                            key: opt[0],
+                            value: opt.slice(1).join('=')
+                        });
+                    }
+                }
+            } else if (line.startsWith('http')) {
+                // URL line
+                if (currentItem) {
+                    currentItem.url = line;
+                    currentItem.exist = true;
+                    result.push(currentItem);
+                    index++;
+                    currentItem = null;
+                }
+            }
+        }
+
+        // Add final item if exists
+        if (currentItem && currentItem.url) {
+            result.push(currentItem);
+        }
+
+        return result;
+    },
     parseOriginalBodyToList: (originalM3uBody, videoInfoMap) => {
         const regex = /#EXTINF:(.*)\n(#EXTVLCOPT:.*\n)*(http[s]*)(.*)/gm;
         let rows = [];
@@ -112,11 +176,15 @@ const ParseM3u = {
         return rows
     },
     buildM3uBaseObject(index, url, groupTitle, tvgLogo, tvgLanguage, tvgCountry, tvgId, name, originalData, raw) {
+        if (name === undefined || name === null) {
+            name = ""
+        }
         return {
             index: index,
             url: url,
             groupTitle: groupTitle,
             tvgLogo: tvgLogo,
+            tvgName: name,
             tvgLanguage: tvgLanguage,
             tvgCountry: tvgCountry,
             tvgId: tvgId,
@@ -124,6 +192,7 @@ const ParseM3u = {
             sName: ParseM3u.removeNameExtraInfo(name.toLowerCase()).trim(),
             originalData: originalData,
             raw: raw,
+            copt:[],
 
             status: 0,// 状态 0未检查 1成功 2失败
             checked: false,// 当前是否检查过
@@ -227,6 +296,8 @@ const ParseM3u = {
             regex = /tvg-country="(.*)"/gm;
         } else if (name === "tvg-id") {
             regex = /tvg-id="(.*)"/gm;
+        }else if (name === "tvg-name") {
+            regex = /tvg-name="(.*)"/gm;
         }
         let m;
         let value = "";

@@ -7,6 +7,7 @@ import TextField from '@mui/material/TextField';
 import LoadingButton from '@mui/lab/LoadingButton';
 import FormLabel from '@mui/material/FormLabel';
 import Dialog from '@mui/material/Dialog';
+import _package from './../../../package';
 import DialogTitle from '@mui/material/DialogTitle';
 import Snackbar from '@mui/material/Snackbar';
 import { useTranslation, initReactI18next } from "react-i18next";
@@ -16,6 +17,7 @@ import Select from '@mui/material/Select';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import { fontSize, fontWeight } from '@mui/system';
 
 function AddSourceDialog(props) {
     const { t } = useTranslation();
@@ -84,13 +86,13 @@ export default function Settings() {
 
     useEffect(() => {
         let config = _mainContext.settings
-        if(config !== null) {
-            setHttpRequestTimeout(config.httpRequestTimeout??1000)
-            setCustomLink(config.customLink??[])
-            setConcurrent(config.concurrent??1)
-            setLanguage(config.language??'zh')
-            setPrivateHost(config.privateHost??'')
-            setPlayerSource(config.playerSource??'video/mp2t')
+        if (config !== null) {
+            setHttpRequestTimeout(config.httpRequestTimeout ?? 1000)
+            setCustomLink(config.customLink ?? [])
+            setConcurrent(config.concurrent ?? 1)
+            setLanguage(config.language ?? 'zh')
+            setPrivateHost(config.privateHost ?? '')
+            setPlayerSource(config.playerSource ?? 'video/mp2t')
         }
     }, [_mainContext])
 
@@ -100,21 +102,17 @@ export default function Settings() {
         if (name === 'httpRequestTimeout') {
             setHttpRequestTimeout(valueInt)
         } else if (name === 'concurrent') {
-            if(valueInt === 0) {
+            if (valueInt === 0) {
                 valueInt = 1
             }
             setConcurrent(valueInt)
-        } else if(name === 'language') {
+        } else if (name === 'language') {
             setLanguage(e.target.value)
         } else if (name === 'privateHost') {
             setPrivateHost(e.target.value)
-        }else if (name === 'playerSource') {
+        } else if (name === 'playerSource') {
             setPlayerSource(e.target.value)
         }
-    }
-
-    const handleShowSponsorQrcode = () => {
-
     }
 
     const doSaveConfigSettings = () => {
@@ -151,6 +149,8 @@ export default function Settings() {
         setShowAddSourceDialog(false)
     }
 
+    const nowVersion = _package.version;
+
     const delCustomLink = (i) => {
         setCustomLink(customLink.filter((url, index) => index !== i))
     }
@@ -177,95 +177,58 @@ export default function Settings() {
             />
             <Box>
                 <Box sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '20px',
-                width: '300px'
-            }}>
-                <FormControl  sx={{ marginBottom: '20px' }}>
-                    <InputLabel id="demo-row-radio-buttons-group-label">{t('语言')}</InputLabel>
-                    <Select
-                        name="language"
-                        value={language}
-                        label={t('语言')}
-                        onChange={handleChangeConfigSettings}
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '20px',
+                    width: '400px'
+                }}>
+                    <FormControl sx={{ marginBottom: '20px' }}>
+                        <InputLabel id="demo-row-radio-buttons-group-label">{t('语言')}</InputLabel>
+                        <Select
+                            name="language"
+                            value={language}
+                            label={t('语言')}
+                            onChange={handleChangeConfigSettings}
+                        >
+                            {
+                                _mainContext.languageList.map((val, index) => (
+                                    <MenuItem key={index} value={val.code}>{val.name}</MenuItem>
+                                ))
+                            }
+                        </Select>
+                    </FormControl>
+                    <FormControl sx={{ marginBottom: '20px' }}>
+                        <InputLabel id="demo-row-radio-buttons-group-label">{t('播放平台')}</InputLabel>
+                        <Select
+                            name="playerSource"
+                            value={playerSource}
+                            label={t('播放平台')}
+                            onChange={handleChangeConfigSettings}
+                        >
+                            {
+                                _mainContext.videoPlayTypes.map((val, index) => (
+                                    <MenuItem key={index} value={val.value}>{val.name}</MenuItem>
+                                ))
+                            }
+                        </Select>
+                    </FormControl>
+                    <LoadingButton
+                        onClick={doSaveConfigSettings}
+                        variant="outlined"
                     >
-                        {
-                            _mainContext.languageList.map((val,index) => (
-                                <MenuItem key={index} value={val.code}>{val.name}</MenuItem>
-                            ))
-                        }
-                    </Select>
-                </FormControl>
-                <FormControl sx={{ marginBottom: '20px' }}>
-                    <FormLabel id="demo-row-radio-buttons-group-label">{t('检测并发数')}</FormLabel>
-                    <TextField
-                        name="concurrent"
-                        value={concurrent}
-                        onChange={handleChangeConfigSettings}
-                    />
-                </FormControl>
-                <FormControl sx={{ marginBottom: '20px' }}>
-                    <FormLabel id="demo-row-radio-buttons-group-label">{t('检查超时时间（毫秒）')}</FormLabel>
-                    <TextField
-                        name="httpRequestTimeout"
-                        value={httpRequestTimeout}
-                        onChange={handleChangeConfigSettings}
-                    />
-                </FormControl>
-                {
-                    _mainContext.nowMod === 1 ? (
-                        <FormControl sx={{ marginBottom: '20px' }}>
-                            <FormLabel id="demo-row-radio-buttons-group-label">{t('后台检查server域名')},{t('示例')}：http://127.0.0.1:8089</FormLabel>
-                            <TextField
-                                name="privateHost"
-                                value={privateHost}
-                                onChange={handleChangeConfigSettings}
-                            />
-                        </FormControl>
-                    ):''
-                }
-                {/* <FormControl sx={{ marginBottom: '20px' }}>
-                    <FormLabel id="demo-row-radio-buttons-group-label">
-                        {t('自定义网络源')}
-                        <IconButton aria-label={t('新增')} onClick={() => handleShowAddSourceDialog(true)}>
-                            <AddIcon />
-                        </IconButton>
-                    </FormLabel>
-                    <Box style={{ padding: '10px 0' }}>
-                        {
-                            customLink.map((value, index) => (
-                                <div key={index}>
-                                    <IconButton aria-label={t('删除')} onClick={() => delCustomLink(index)}>
-                                        <DeleteIcon />
-                                    </IconButton>- {value.name} - {value.url}
-                                </div>
-                            ))
-                        }
-                    </Box>
-                </FormControl> */}
-                <FormControl  sx={{ marginBottom: '20px' }}>
-                    <InputLabel id="demo-row-radio-buttons-group-label">{t('播放平台')}</InputLabel>
-                    <Select
-                        name="playerSource"
-                        value={playerSource}
-                        label={t('播放平台')}
-                        onChange={handleChangeConfigSettings}
-                    >
-                        {
-                            _mainContext.videoPlayTypes.map((val,index) => (
-                                <MenuItem key={index} value={val.value}>{val.name}</MenuItem>
-                            ))
-                        }
-                    </Select>
-                </FormControl>
-                <LoadingButton
-                    onClick={doSaveConfigSettings}
-                    variant="outlined"
-                >
-                    {t('保存')}
-                </LoadingButton>
+                        {t('保存')}
+                    </LoadingButton>
                 </Box>
+                <FormControl sx={{ marginTop: '20px' }}>
+                    <Box>{t('当前版本')}: {nowVersion}</Box>
+                    {
+                        _mainContext.showNewVersion ? (
+                            <Box style={{ color: 'green', fontWeight:"bold" }}>{t('有新版本')}: {_mainContext.configInfo.version}</Box>
+                        ) : ''
+                    }
+                    <Box>{t('Github地址')}：<a href={_package.homepage_url}>{_package.homepage_url}</a></Box>
+                    <Box>{t('❤️❤️如果觉得项目不错，请打开上面链接👆🏻，点个STAR❤️❤️')}</Box>
+                </FormControl>
             </Box>
         </Box>
     )

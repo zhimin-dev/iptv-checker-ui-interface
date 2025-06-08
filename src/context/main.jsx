@@ -28,6 +28,7 @@ export const MainContextProvider = function ({ children }) {
     const [showWindowsTopBar, setShowWindowsTopBar] = useState(true)
     const [checkHistory, setCheckHistory] = useState([])// 检测历史
     const [showNewVersion, setShowNewVersion] = useState(false)//是否显示新版本
+    const [ffmepgCheck, setFffmepgCheck] = useState(0)// 是否可以ffmepeg检查
     const [configInfo, setConfigInfo] = useState({
         "version": "",
         "sponsor": [],
@@ -41,51 +42,7 @@ export const MainContextProvider = function ({ children }) {
     })
     const [detailOriginal, setDetailOriginal] = useState(null)
     const [detailList, setDetailList] = useState([])//列表展示的数据
-    // [
-    //     {
-    //         "index": 1,
-    //         "url": "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
-    //         "groupTitle": "央视",
-    //         "tvgLogo": "https://live.fanmingming.com/tv/CCTV1.png",
-    //         "tvgLanguage": ["CN"],
-    //         "tvgCountry": "China",
-    //         "tvgId": "CCTV1",
-    //         "name": "CCTV-1",
-    //         "sName": "cctv-1",
-    //         "originalData": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
-    //         "raw": "#EXTINF:-1 tvg-id=\"CCTV1\" tvg-name=\"CCTV1\" tvg-logo=\"https://live.fanmingming.com/tv/CCTV1.png\" group-title=\"央视\",CCTV-1\nhttps://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8",
-    //         "status": 2,
-    //         "video": null,
-    //         "audio": null,
-    //         "videoType": "",
-    //         "delay": 0,
-
-    //         "checked": false,
-    //     }
-    // ]
     const [subCheckMenuList, setSubCheckMenuList] = useState([])//子菜单
-    // [
-    //     {
-    //         "md5": "xxxxx11",
-    //         "data": [
-    //         ],
-    //         "original": {
-    //             "urls": [
-    //                 "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News1.m3u8"
-    //             ],
-    //             "ffmpeg": 0,//是否使用ffmpeg
-    //             "sort": 0,//是否需要排序
-    //             "check": 0,//是否需要检查
-    //         },
-    //         "menu": {
-    //             "groups": ["央视"]
-    //         },
-    //         "query": {
-    //             "needFast": false,//是否需要选择最快的源
-    //             "searchName": ["cctv"],//搜索名称
-    //             "group": "央视",// 分组
-    //         }
-    //     }]
     const videoPlayTypes = [
         {
             "name": "mac",
@@ -187,11 +144,12 @@ export const MainContextProvider = function ({ children }) {
     const checkFFmpeg = () => {
         invoke("check_ffmpeg").then((result) => {
             if (result) {
+                setFffmepgCheck(1)
                 console.log("FFmpeg is installed");
-            } else {
-                console.log("FFmpeg is not installed");
             }
-        });
+        }).catch(e => {
+            console.log("invoke error",e)
+        })
     }
 
     const initControlBar = (appWindow, pageLabel) => {
@@ -277,7 +235,7 @@ export const MainContextProvider = function ({ children }) {
                 setNowPlatform(os_type)
             }
         }).catch(e => {
-            console.log(e)
+            console.log("invoke---",e)
         })
         let setting = localStorage.getItem('settings') ?? ''
         if (setting !== '') {
@@ -921,7 +879,7 @@ export const MainContextProvider = function ({ children }) {
     const _toOriginalStr = (data) => {
         let body = `#EXTM3U\n`;
         for (let i = 0; i < data.length; i += 1) {
-            body += `#EXTINF:-1 tvg-id="${data[i].tvgId}" tvg-logo="${data[i].tvgLogo}" group-title="${data[i].groupTitle}",${data[i].name}\n${data[i].url}\n`
+            body += `#EXTINF:-1 tvg-name="${data[i].tvgName}" tvg-id="${data[i].tvgId}" tvg-logo="${data[i].tvgLogo}" group-title="${data[i].groupTitle}",${data[i].name}\n${data[i].url}\n`
         }
         return body
     }
@@ -1158,7 +1116,7 @@ export const MainContextProvider = function ({ children }) {
             subCheckMenuList, checkHistory, saveDataToHistory,
             addDetail, get_m3u_body, get_m3u8_info_by_m3u_ori_data,
             m3uObjectToM3uBody, m3uObjectToTxtBody, webSaveFile,
-            detailList, detailQuery, detailMenu,
+            detailList, detailQuery, detailMenu, ffmepgCheck,
             detailOriginal, updateDetailMd5, delDetailData,
             detailMd5, configInfo, showNewVersion
         }}>

@@ -5,39 +5,26 @@ import { MainContextProvider } from './context/main'
 import {
   RouterProvider,
   createHashRouter,
-  createBrowserRouter
 } from "react-router-dom";
+import _package from './../package';
 import Detail from './components/detail'
+import Settings from './components/settings'
 import Watch from './components/watch'
 import Menu from './components/layout/menu'
-import Settings from './components/settings';
 import Task from './components/task';
-import Check from './components/check';
-import Fast from './components/fast';
-import Public from './components/public';
+import LTask from './components/ltask';
 import WatchSingle from './components/watch/single'
 import './utils/i18n';
+import { TaskProvider, useTask } from './context/tasker';
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: "/",
     element: <Menu />,
     children: [
       {
         path: "/",
-        element: <Fast />,
-      },
-      {
-        path: "/detail",
-        element: <Detail />,
-      },
-      {
-        path: "/public",
-        element: <Public />,
-      },
-      {
-        path: "/check",
-        element: <Check />,
+        element: <LTask />,
       },
       {
         path: "/watch",
@@ -50,7 +37,7 @@ const router = createBrowserRouter([
       {
         path: "/settings",
         element: <Settings />,
-      },
+      }
     ],
   },{
     path: "/watch/single",
@@ -61,7 +48,9 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <MainContextProvider>
-      <RouterProvider router={router} />
+      <TaskProvider>
+        <RouterProvider router={router}/>
+      </TaskProvider>
     </MainContextProvider>
   </React.StrictMode>
 )
