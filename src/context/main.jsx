@@ -108,7 +108,6 @@ export const MainContextProvider = function ({ children }) {
             if (response.status === 200) {
                 try {
                     setConfigInfo(response.data)
-                    check_version(response.data.version)
                 } catch (err) {
                     console.log(err)
                 }
@@ -116,7 +115,11 @@ export const MainContextProvider = function ({ children }) {
         })
     }
 
-    const check_version = (version) => {
+    const check_version = () => {
+        let version = configInfo.version
+        if(nowMod === 1) {
+            version = configInfo.app_version
+        }
         if (compareVersion(version, _package.version) > 0) {
             setShowNewVersion(true)
         } else {
@@ -1118,7 +1121,7 @@ export const MainContextProvider = function ({ children }) {
             m3uObjectToM3uBody, m3uObjectToTxtBody, webSaveFile,
             detailList, detailQuery, detailMenu, ffmepgCheck,
             detailOriginal, updateDetailMd5, delDetailData,
-            detailMd5, configInfo, showNewVersion
+            detailMd5, configInfo, showNewVersion,check_version
         }}>
             {children}
         </MainContext.Provider>
