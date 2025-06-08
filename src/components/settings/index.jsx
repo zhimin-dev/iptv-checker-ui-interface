@@ -82,10 +82,17 @@ export default function Settings() {
     const [dialogMsg, setDialogMsg] = useState('');
     const [playerSource, setPlayerSource] = useState('');
     const [openDialog, setOpenDialog] = useState(false);
+    const [newVersion, setNewVersion] = useState('');
     const { t } = useTranslation();
 
     useEffect(() => {
         let config = _mainContext.settings
+        _mainContext.check_version()
+        if(_mainContext.nowMod === 1) {
+            setNewVersion(_mainContext.configInfo.app_version)
+        } else {
+            setNewVersion(_mainContext.configInfo.version)
+        }
         if (config !== null) {
             setHttpRequestTimeout(config.httpRequestTimeout ?? 1000)
             setCustomLink(config.customLink ?? [])
@@ -223,7 +230,7 @@ export default function Settings() {
                     <Box>{t('当前版本')}: {nowVersion}</Box>
                     {
                         _mainContext.showNewVersion ? (
-                            <Box style={{ color: 'green', fontWeight:"bold" }}>{t('有新版本')}: {_mainContext.configInfo.version}</Box>
+                            <Box style={{ color: 'green', fontWeight:"bold" }}>{t('有新版本')}: {newVersion}</Box>
                         ) : ''
                     }
                     <Box>{t('Github地址')}：<a href={_package.homepage_url}>{_package.homepage_url}</a></Box>
