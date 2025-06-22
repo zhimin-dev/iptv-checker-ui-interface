@@ -19,10 +19,9 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { color, justifyContent } from '@mui/system';
 
-export const TaskRow = ({ row, clickTask, doTaskRightNow, source, showDownloadDialog, checkTaskRefetch, checkTaskContinue, checkTaskAgain }) => {
+export const TaskRow = ({ isNowHandle, row, clickTask, doTaskRightNow, source, showDownloadDialog, checkTaskRefetch, checkTaskContinue, checkTaskAgain }) => {
     const _mainContext = useContext(MainContext);
     const { t } = useTranslation();
-    const [open, setOpen] = useState(false);
 
     const handleTaskRightNow = (id) => {
         doTaskRightNow(id);
@@ -66,7 +65,7 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, source, showDownloadDi
             });
 
             // Keep only saveSameNum items per name group
-            saveData = Object.values(nameGroups).flatMap(group => 
+            saveData = Object.values(nameGroups).flatMap(group =>
                 group.slice(0, saveSameNum)
             );
         }
@@ -85,26 +84,26 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, source, showDownloadDi
                     <Box>
                         {
                             source === 'task' ? (
-                                <Button color="success" onClick={() => openDownloadDialog(row.id)} size="small" startIcon={<RemoveRedEyeIcon />}>
-                                    {t('查看')}
-                                </Button>
+                                <Box>
+                                    <Button color="success" onClick={() => openDownloadDialog(row.id)} size="small" startIcon={<RemoveRedEyeIcon />}>
+                                        {t('查看')}
+                                    </Button>
+                                    {
+                                        !isNowHandle && row.task_info.next_run_time > 0 &&
+                                            row.task_info.next_run_time - new Date().getTime() / 1000 >= 120 ? (
+                                            <Button color="success" onClick={() => handleTaskRightNow(row.id)}>{t('立即执行')}</Button>
+                                        ) : ''
+                                    }
+                                </Box>
                             ) : (
-                                row.task_info.task_status === "Completed" ? (
-                                    <Box style={{ display: "flex" }}>
-                                        {row.task_info.next_run_time > 0 &&
-                                            row.task_info.next_run_time - new Date().getTime() / 1000 >= 180 &&
-                                            row.task_info.last_run_time > 0 &&
-                                            new Date().getTime() / 1000 - row.task_info.last_run_time >= 180 && (
-                                                <Button color="success" onClick={() => handleTaskRightNow(row.id)}>{t('立即执行')}</Button>
-                                            )}
-                                        <Button size="small" color="success" startIcon={<FileDownloadIcon />} onClick={() => downloadFile(row.id, 'm3u')}>
-                                            .m3u
-                                        </Button>
-                                        <Button size="small" color="success" startIcon={<FileDownloadIcon />} onClick={() => downloadFile(row.id, 'txt')}>
-                                            .txt
-                                        </Button>
-                                    </Box>
-                                ) : ''
+                                <Box style={{ display: "flex" }}>
+                                    <Button size="small" color="success" startIcon={<FileDownloadIcon />} onClick={() => downloadFile(row.id, 'm3u')}>
+                                        .m3u
+                                    </Button>
+                                    <Button size="small" color="success" startIcon={<FileDownloadIcon />} onClick={() => downloadFile(row.id, 'txt')}>
+                                        .txt
+                                    </Button>
+                                </Box>
                             )
                         }
                     </Box>
@@ -117,10 +116,8 @@ export const TaskRow = ({ row, clickTask, doTaskRightNow, source, showDownloadDi
                         ) : ''
                     }
                     <div>
-                        {t('当前状态')}：{row.task_info.task_status}
-                        
+                        {t('当前状态')}：{isNowHandle?t('正在执行中'):t('待运行')}
                     </div>
-
                     {
                         source === 'task' && row.task_info.next_run_time > 0 ? (
                             <div>{t('下一次运行时间')}：{new Date(row.task_info.next_run_time * 1000).toLocaleTimeString('zh-CN', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: false })}</div>

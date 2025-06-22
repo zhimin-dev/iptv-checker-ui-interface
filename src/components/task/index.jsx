@@ -67,10 +67,10 @@ export default function TaskList() {
     const [alertBarMsg, setAlertBarMsg] = useState("");
     const [openDownloadBody, setOpenDownloadBody] = useState(false);
     const [downloadBody, setDownloadBody] = useState({ "content": "", "url": "" });
-    const [privateHost, setPrivateHost] = useState('');
     const [showImportDialog, setShowImportDialog] = useState(false);
     const [showExportDialog, setShowExportDialog] = useState(false);
     const [exportBody, setExportBody] = useState('');
+    const [nowTaskId, setNowTaskId] = useState('')
 
     useEffect(() => {
         get_task_list();
@@ -130,8 +130,9 @@ export default function TaskList() {
 
     const get_task_list = async () => {
         try {
-            const list = await taskService.getTaskList();
-            setTaskList(list);
+            let resp = await taskService.getTaskList();
+            setTaskList(resp.list);
+            setNowTaskId(resp.now_id);
         } catch (e) {
             setTaskList([]);
             handleOpenAlertBar(t('获取任务失败，请检查服务是否正常启动'));
@@ -207,114 +208,106 @@ export default function TaskList() {
 
     return (
         <Box style={{ padding: '0 20px' }}>
-            {privateHost || _mainContext.nowMod === 0 ? (
-                <>
-                    <Box style={{
-                        marginBottom: '10px',
-                        display: 'flex',
-                        justifyContent: 'space-between'
-                    }}>
-                        <Box>
-                            <Button
-                                variant="contained"
-                                size='small'
-                                startIcon={<AddIcon />}
-                                onClick={() => handleClickOpen(null)}
-                                style={{ marginRight: '10px' }}
-                            >
-                                {t('新增')}
-                            </Button>
-                            <Button
-                                variant="outlined"
-                                size='small'
-                                startIcon={<RefreshIcon />}
-                                onClick={refreshList}
-                            >
-                                {t('刷新列表')}
-                            </Button>
-                        </Box>
-                        <Box>
-                            <Button
-                                variant="outlined"
-                                size='small'
-                                startIcon={<PublishIcon />}
-                                style={{ marginRight: '10px' }}
-                                onClick={() => handleImportDialog(true)}
-                            >
-                                {t('任务导入')}
-                            </Button>
-                            <Button
-                                variant="outlined"
-                                size='small'
-                                startIcon={<GetAppIcon />}
-                                onClick={() => handleExportDialog(true)}
-                            >
-                                {t('任务导出')}
-                            </Button>
-                        </Box>
-                    </Box>
-                    <Snackbar
-                        open={openAlertBar}
-                        autoHideDuration={6000}
-                        onClose={handleCloseAlertBar}
-                        message={alertBarMsg}
-                    />
-                    <TaskForm
-                        taskService={taskService}
-                        formValue={formValue}
-                        open={formDialog}
-                        onClose={handleClose}
-                        handleSave={handleSave}
-                        handleDelete={handleDelete}
-                        checkType="server"
-                        output_folder = "static/output/"
-                    />
-                    <DownloadDialog
-                        formValue={downloadBody}
-                        open={openDownloadBody}
-                        onClose={handleDownloadClose}
-                    />
-                    <ImportDialog
-                        open={showImportDialog}
-                        onClose={handleImportDialog}
-                        onSave={handleSaveImportData}
-                    />
-                    <ExportDialog
-                        open={showExportDialog}
-                        formValue={exportBody}
-                        onClose={handleExportDialog}
-                    />
-                    {_mainContext.nowMod === 1 && (
-                        <Box>{t('当前设置的【后台检查server域名】为')}：{privateHost}</Box>
-                    )}
-                    <Paper sx={{ overflow: 'hidden' }}>
-                        <TableContainer>
-                            <Table aria-label="simple table">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>{t('任务id')}</TableCell>
-                                        <TableCell align="right">{t('运行时间')}</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {taskList.map((row) => (
-                                        <TaskRow
-                                            key={row.id}
-                                            row={row}
-                                            doTaskRightNow={doTaskRightNow}
-                                            showDownloadDialog={getDownloadBody}
-                                            clickTask={() => handleClickOpen(row)}
-                                            source="task"
-                                        />
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </Paper>
-                </>
-            ) : (
-                <Box>{t('对不起，您没有设置【后台检查server域名】，请至设置页面操作后再来查看')}</Box>
-            )}
+            <Box style={{
+                marginBottom: '10px',
+                display: 'flex',
+                justifyContent: 'space-between'
+            }}>
+                <Box>
+                    <Button
+                        variant="contained"
+                        size='small'
+                        startIcon={<AddIcon />}
+                        onClick={() => handleClickOpen(null)}
+                        style={{ marginRight: '10px' }}
+                    >
+                        {t('新增')}
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        size='small'
+                        startIcon={<RefreshIcon />}
+                        onClick={refreshList}
+                    >
+                        {t('刷新列表')}
+                    </Button>
+                </Box>
+                <Box>
+                    <Button
+                        variant="outlined"
+                        size='small'
+                        startIcon={<PublishIcon />}
+                        style={{ marginRight: '10px' }}
+                        onClick={() => handleImportDialog(true)}
+                    >
+                        {t('任务导入')}
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        size='small'
+                        startIcon={<GetAppIcon />}
+                        onClick={() => handleExportDialog(true)}
+                    >
+                        {t('任务导出')}
+                    </Button>
+                </Box>
+            </Box>
+            <Snackbar
+                open={openAlertBar}
+                autoHideDuration={6000}
+                onClose={handleCloseAlertBar}
+                message={alertBarMsg}
+            />
+            <TaskForm
+                taskService={taskService}
+                formValue={formValue}
+                open={formDialog}
+                onClose={handleClose}
+                handleSave={handleSave}
+                handleDelete={handleDelete}
+                checkType="server"
+                output_folder="static/output/"
+            />
+            <DownloadDialog
+                formValue={downloadBody}
+                open={openDownloadBody}
+                onClose={handleDownloadClose}
+            />
+            <ImportDialog
+                open={showImportDialog}
+                onClose={handleImportDialog}
+                onSave={handleSaveImportData}
+            />
+            <ExportDialog
+                open={showExportDialog}
+                formValue={exportBody}
+                onClose={handleExportDialog}
+            />
+            <Paper sx={{ overflow: 'hidden' }}>
+                <TableContainer>
+                    <Table aria-label="simple table">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>{t('任务id')}</TableCell>
+                                <TableCell align="right">{t('运行时间')}</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {taskList.map((row) => (
+                                <TaskRow
+                                    key={row.id}
+                                    row={row}
+                                    doTaskRightNow={doTaskRightNow}
+                                    showDownloadDialog={getDownloadBody}
+                                    clickTask={() => handleClickOpen(row)}
+                                    source="task"
+                                    isNowHandle={row.id===nowTaskId}
+                                />
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Paper>
         </Box>
     );
 }

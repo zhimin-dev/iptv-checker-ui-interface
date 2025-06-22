@@ -115,6 +115,10 @@ export const MainContextProvider = function ({ children }) {
         })
     }
 
+    const saveFile = () => {
+
+    }
+
     const check_version = () => {
         let version = configInfo.version
         if(nowMod === 1) {
@@ -1100,7 +1104,6 @@ export const MainContextProvider = function ({ children }) {
             originalM3uBody, changeOriginalM3uBody,
             exportDataStr, setExportDataStr,
             exportData, onChangeExportData,
-            // uGroups, setUGroups,
             videoResolution, changeVideoResolution,
             settings, onChangeSettings,
             headerHeight,
@@ -1121,7 +1124,7 @@ export const MainContextProvider = function ({ children }) {
             m3uObjectToM3uBody, m3uObjectToTxtBody, webSaveFile,
             detailList, detailQuery, detailMenu, ffmepgCheck,
             detailOriginal, updateDetailMd5, delDetailData,
-            detailMd5, configInfo, showNewVersion,check_version
+            detailMd5, configInfo, showNewVersion,check_version,saveFile
         }}>
             {children}
         </MainContext.Provider>
