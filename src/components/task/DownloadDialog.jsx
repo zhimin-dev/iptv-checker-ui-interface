@@ -24,7 +24,7 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
 
     const downloadFile = async () => {
         _mainContext.saveFile();
-        if (_mainContext.nowMod === 1) {
+        if (_mainContext.nowMod === 0) {
             window.open(url);
         } else {
             _mainContext.clientSaveFile(formValue.content, 'm3u');

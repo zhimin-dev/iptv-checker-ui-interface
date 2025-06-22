@@ -39,6 +39,7 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
+import { fontSize } from '@mui/system';
 
 let menuList = [{
     "name": "本地任务",
@@ -234,7 +235,8 @@ export default function Layout() {
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        paddingTop: '20px'
+                        paddingTop: '20px',
+                        fontSize:"14px",
                     }}>
                         <FormLabel id="demo-radio-buttons-group-label">{t('请开发者喝杯咖啡☕️')}</FormLabel>
                         <RadioGroup
@@ -242,10 +244,12 @@ export default function Layout() {
                             name="radio-buttons-group"
                             onChange={changeSponsorType}
                             value={nowSelectSponsor}
+                            size="small"
+                            sx={{fontSize:"14px",}}
                         >
                             {
                                 _mainContext.configInfo.sponsor.map((value, index) => (
-                                    <FormControlLabel key={index} value={value.name} control={<Radio />} label={value.name} />
+                                    <FormControlLabel sx={{fontSize:"14px",}} key={index} value={value.name} control={<Radio />} label={value.name} />
                                 ))
                             }
                         </RadioGroup>
@@ -322,13 +326,6 @@ export default function Layout() {
                                         nowSelectedMenu.name !== null && nowSelectedMenu.name !== undefined ?
                                             t(nowSelectedMenu.name) : _mainContext.detailMd5
                                     }</Box>
-                                    {/* {
-                                        _mainContext.detailMd5 !== '' ? (
-                                            <IconButton aria-label="delete" color='error' size="small" onClick={() => remove_detail(_mainContext.detailMd5)}>
-                                                <HighlightOffIcon />
-                                            </IconButton>
-                                        ) : ''
-                                    } */}
                                 </Box>
                                 <Box data-tauri-drag-region style={{
                                     display: _mainContext.nowMod === 1 ? 'flex' : 'none',

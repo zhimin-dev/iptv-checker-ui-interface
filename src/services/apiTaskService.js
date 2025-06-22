@@ -7,7 +7,7 @@ export class ApiTaskService {
 
     async getTaskList() {
         const response = await axios.get(`${this.baseUrl}/tasks/list?page=1`);
-        return response.data.list;
+        return response.data;
     }
 
     async uploadFile(formData) {
