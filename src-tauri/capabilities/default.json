@@ -1,6 +1,7 @@
 {
-  "identifier": "migrated",
-  "description": "permissions that were migrated from v1",
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
   "local": true,
   "windows": [
     "main",
@@ -13,7 +14,6 @@
     "fs:allow-read-dir",
     "fs:allow-copy-file",
     "fs:allow-mkdir",
-    "fs:allow-remove",
     "fs:allow-remove",
     "fs:allow-rename",
     "fs:allow-exists",

@@ -75,22 +75,12 @@ fn get_video_info(url: String, state: State<AppState>) -> Result<serde_json::Val
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // Initialize FFmpeg paths
-    let (ffmpeg_path, ffprobe_path) = find_ffmpeg_path()
-        .expect("Failed to find FFmpeg installation");
-
-    let app_state = AppState {
-        ffmpeg_path: Mutex::new(ffmpeg_path),
-        ffprobe_path: Mutex::new(ffprobe_path),
-    };
-
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_dialog::init())
-        .manage(app_state)
-        .invoke_handler(tauri::generate_handler![now_mod, check_ffmpeg, get_video_info])
+        .invoke_handler(tauri::generate_handler![now_mod])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
