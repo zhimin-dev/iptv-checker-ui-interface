@@ -292,7 +292,12 @@ export default function Layout() {
                 onClose={handleCloseSponsor}
             />
             <Box className="layout">
-                <Drawer open={openDrawer} anchor="left" variant={openDrawer ? "permanent" : 'temporary'}>
+                <Drawer sx={{
+                    '.MuiPaper-root': {
+                        borderTopLeftRadius:'12px',
+                        borderBottomLeftRadius:'12px',
+                        backgroundColor:'transparent' },
+                }} open={openDrawer} anchor="left" variant={openDrawer ? "permanent" : 'temporary'}>
                     {DrawerList}
                 </Drawer>
                 <Box className="container-inner" style={{
