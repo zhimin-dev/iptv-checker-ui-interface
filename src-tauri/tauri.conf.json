@@ -1,5 +1,5 @@
 {
-  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "$schema": "https://schema.tauri.app/config/2",
   "build": {
     "beforeBuildCommand": "npm run build",
     "beforeDevCommand": "npm run dev",
@@ -46,15 +46,22 @@
   "identifier": "com.zhimin-dev.iptv-checker",
   "plugins": {},
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
-        "decorations": false,
-        "fullscreen": false,
         "height": 800,
-        "resizable": true,
-        "title": "iptv-checker-desktop",
+        "title": "iptv-checker Desktop",
         "width": 1024,
-        "label": "main"
+        "url": "/home",
+        "label": "main",
+        "decorations": false,
+        "center":true,
+        "shadow": false,
+        "transparent": true,
+        "windowEffects": {
+          "effects": ["dark"],
+          "radius": 10.0
+        }
       }
     ]
   }

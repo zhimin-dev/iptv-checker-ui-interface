@@ -30,8 +30,12 @@ fn find_ffmpeg_path() -> Result<(String, String), String> {
         return Err("FFmpeg or FFprobe not found in PATH".to_string());
     }
 
-    let ffmpeg_path = String::from_utf8_lossy(&ffmpeg_output.stdout).trim().to_string();
-    let ffprobe_path = String::from_utf8_lossy(&ffprobe_output.stdout).trim().to_string();
+    let ffmpeg_path = String::from_utf8_lossy(&ffmpeg_output.stdout)
+        .trim()
+        .to_string();
+    let ffprobe_path = String::from_utf8_lossy(&ffprobe_output.stdout)
+        .trim()
+        .to_string();
 
     Ok((ffmpeg_path, ffprobe_path))
 }
@@ -52,11 +56,13 @@ fn get_video_info(url: String, state: State<AppState>) -> Result<serde_json::Val
     let ffprobe_path = state.ffprobe_path.lock().unwrap();
     let output = Command::new(&*ffprobe_path)
         .args(&[
-            "-v", "quiet",
-            "-print_format", "json",
+            "-v",
+            "quiet",
+            "-print_format",
+            "json",
             "-show_format",
             "-show_streams",
-            &url
+            &url,
         ])
         .output()
         .map_err(|e| format!("Error executing FFprobe command: {}", e))?;
@@ -64,9 +70,8 @@ fn get_video_info(url: String, state: State<AppState>) -> Result<serde_json::Val
     if output.status.success() {
         let json_str = String::from_utf8(output.stdout)
             .map_err(|e| format!("Invalid UTF-8 sequence: {}", e))?;
-            
-        serde_json::from_str(&json_str)
-            .map_err(|e| format!("Error parsing JSON: {}", e))
+
+        serde_json::from_str(&json_str).map_err(|e| format!("Error parsing JSON: {}", e))
     } else {
         let error = String::from_utf8_lossy(&output.stderr);
         Err(format!("FFprobe error: {}", error))
@@ -75,22 +80,12 @@ fn get_video_info(url: String, state: State<AppState>) -> Result<serde_json::Val
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // Initialize FFmpeg paths
-    let (ffmpeg_path, ffprobe_path) = find_ffmpeg_path()
-        .expect("Failed to find FFmpeg installation");
-
-    let app_state = AppState {
-        ffmpeg_path: Mutex::new(ffmpeg_path),
-        ffprobe_path: Mutex::new(ffprobe_path),
-    };
-
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_dialog::init())
-        .manage(app_state)
-        .invoke_handler(tauri::generate_handler![now_mod, check_ffmpeg, get_video_info])
+        .invoke_handler(tauri::generate_handler![now_mod])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
