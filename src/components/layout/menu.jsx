@@ -63,7 +63,7 @@ let menuList = [{
     "name": "设置",
     "uri": "/settings",
     "icon": "SettingsIcon",
-    'showMod': [0,1],
+    'showMod': [0, 1],
     'showHeader': true
 }]
 
@@ -80,6 +80,7 @@ export default function Layout() {
     const [nowSelectedMenu, setNowSelectedMenu] = useState(menuList[0])
     const [openSubCheckedMenu, setOpenSubCheckedMenu] = useState(false)
     const [nowSelectedCheckedMenu, setNowSelectedCheckedMenu] = useState(null)
+    const [showDonate, setShowDonate] = useState(false);
     const [openDrawer, setOpenDrawer] = useState(true);
     const [showSponsor, setShowSponsor] = useState(false);
     const [nowSelectSponsor, setNowSelectSponsor] = useState('')
@@ -120,7 +121,7 @@ export default function Layout() {
         setOpenDrawer(newOpen);
     };
 
-    const handleShowSponsor = () => {
+    const handleShowSponsor = (nowSelectSponsor) => {
         setShowSponsor(true)
         let data = null
         for (let i = 0; i < _mainContext.configInfo.sponsor.length; i++) {
@@ -137,6 +138,11 @@ export default function Layout() {
 
     const changeSponsorType = (e) => {
         setNowSelectSponsor(e.target.value)
+        handleShowSponsor(e.target.value)
+    }
+
+    const showDonateData = () => {
+        setShowDonate(!showDonate)
     }
 
     const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
@@ -162,11 +168,11 @@ export default function Layout() {
                     <Box className='side-bar-logo-item'>
                         <img src={icon} height="60"></img>
                         <Box className='go-github'>iptv-checker
-                        {
-                            _mainContext.showNewVersion ? (
-                                <a href='/#/settings' style={{ color: 'green' }}>{t('有新版本')}</a>
-                            ) : ''
-                        }
+                            {
+                                _mainContext.showNewVersion ? (
+                                    <a href='/#/settings' style={{ color: 'green' }}>{t('有新版本')}</a>
+                                ) : ''
+                            }
                         </Box>
                     </Box>
                 </Box>
@@ -180,7 +186,7 @@ export default function Layout() {
                                             <ListItemButton>
                                                 <ListItemIcon>
                                                     {
-                                                        value.icon === 'LaptopIcon' ? <LaptopIcon />:''
+                                                        value.icon === 'LaptopIcon' ? <LaptopIcon /> : ''
                                                     }
                                                     {
                                                         value.icon === 'SettingsIcon' ? <SettingsIcon /> : ''
@@ -211,20 +217,6 @@ export default function Layout() {
                                         </ListItem>
                                     ) : ''
                                 }
-
-                                {/* {
-                                    value.uri === detailUri && openSubCheckedMenu ? (
-                                        <List component="div" disablePadding key={detailUri + "0000"}>
-                                            {
-                                                _mainContext.subCheckMenuList.map((value, index) => (
-                                                    <ListItemButton sx={{ pl: 4 }} key={detailUri + index} onClick={() => changeCheckedPath(value)}>
-                                                        <ListItemText primary={value.md5} />
-                                                    </ListItemButton>
-                                                ))
-                                            }
-                                        </List>
-                                    ) : ''
-                                } */}
                             </Box>
                         ) : ''
                     ))}
@@ -235,32 +227,26 @@ export default function Layout() {
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        paddingTop: '20px',
-                        fontSize:"14px",
+                        fontSize: "12px",
                     }}>
-                        <FormLabel id="demo-radio-buttons-group-label">{t('请开发者喝杯咖啡☕️')}</FormLabel>
-                        <RadioGroup
-                            aria-labelledby="demo-radio-buttons-group-label"
-                            name="radio-buttons-group"
-                            onChange={changeSponsorType}
-                            value={nowSelectSponsor}
-                            size="small"
-                            sx={{fontSize:"14px",}}
-                        >
-                            {
-                                _mainContext.configInfo.sponsor.map((value, index) => (
-                                    <FormControlLabel sx={{fontSize:"14px",}} key={index} value={value.name} control={<Radio />} label={value.name} />
-                                ))
-                            }
-                        </RadioGroup>
+                        <FormLabel sx={{ fontSize: "12px", cursor: 'pointer' }} onClick={showDonateData} id="demo-radio-buttons-group-label">{t('请开发者喝杯咖啡☕️')}</FormLabel>
                         {
-                            nowSelectSponsor !== '' ? (
-                                <LoadingButton
-                                    onClick={handleShowSponsor}
-                                    variant="outlined"
-                                >
-                                    {t('点击赞助')}
-                                </LoadingButton>
+                            showDonate ? (
+                                < >
+                                    <RadioGroup
+                                        aria-labelledby="demo-radio-buttons-group-label"
+                                        name="radio-buttons-group"
+                                        onChange={changeSponsorType}
+                                        value={nowSelectSponsor}
+                                        sx={{ fontSize: "12px", }}
+                                    >
+                                        {
+                                            _mainContext.configInfo.sponsor.map((value, index) => (
+                                                <FormControlLabel sx={{ fontSize: '12px' }} key={index} value={value.name} control={<Radio size="small" />} label={value.name} />
+                                            ))
+                                        }
+                                    </RadioGroup>
+                                </>
                             ) : ''
                         }
                     </FormControl>
@@ -269,19 +255,6 @@ export default function Layout() {
 
         </Box>
     );
-
-    const getQueryParam = (location, key) => {
-        // 使用 URLSearchParams 获取查询参数
-        const params = new URLSearchParams(location.search);
-
-        // 获取对应的值
-        return params.get(key);
-    }
-
-    const remove_detail = (md5Str) => {
-        _mainContext.delDetailData(md5Str)
-        navigate("/")
-    }
 
     return (
         <ThemeProvider theme={theme}>
@@ -294,9 +267,10 @@ export default function Layout() {
             <Box className="layout">
                 <Drawer sx={{
                     '.MuiPaper-root': {
-                        borderTopLeftRadius:'12px',
-                        borderBottomLeftRadius:'12px',
-                        backgroundColor:'transparent' },
+                        borderTopLeftRadius: '12px',
+                        borderBottomLeftRadius: '12px',
+                        backgroundColor: 'transparent'
+                    },
                 }} open={openDrawer} anchor="left" variant={openDrawer ? "permanent" : 'temporary'}>
                     {DrawerList}
                 </Drawer>
