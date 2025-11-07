@@ -15,6 +15,9 @@ cd 到对应目录（C:\Users\pc\AppData\Roaming\），创建npm文件夹即可
 
 ## web变更日志
 
+- v4.1.8
+  - 修复了mac平台无法播放http链接源
+  - 尝试修复windows平台无法播放的问题
 - v4.1.5
   - 修复网页icon不能正常显示
   - 解决部分英文翻译缺失
