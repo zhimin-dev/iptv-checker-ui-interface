@@ -20,6 +20,22 @@ export class ApiTaskService {
         return response.data;
     }
 
+    async getReplaceList() {
+        const response = await axios.get(`${this.baseUrl}/system/replace`);
+        if (response.status !== 200) { 
+            throw new Error(response.data.msg);
+        }
+        return response.data;
+    }
+
+    async updateReplaceList(replaceList) {
+        const response = await axios.post(`${this.baseUrl}/system/replace`, replaceList);
+        if (response.status !== 200) {
+            throw new Error(response.data.msg);
+        }
+        return response.data;
+    }
+
     async addTask(taskData) {
         const response = await axios.post(`${this.baseUrl}/tasks/add`, taskData);
         if (response.data.code !== "200") {
