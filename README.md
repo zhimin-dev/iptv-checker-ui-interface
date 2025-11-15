@@ -15,7 +15,7 @@ cd 到对应目录（C:\Users\pc\AppData\Roaming\），创建npm文件夹即可
 
 ## web变更日志
 
-- v4.1.8.1
+- v4.1.9
   - 增加替换文字配置后台
 - v4.1.8
   - 修复了mac平台无法播放http链接源
