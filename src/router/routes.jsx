@@ -6,6 +6,7 @@ import Settings from '../components/settings';
 import WatchSingle from '../components/watch/single';
 import SearchSettings from '../components/settings/search';
 import KeywordSettings from '../components/settings/keywords';
+import FavoriteSettings from '../components/settings/favorite';
 import Detail from '../components/detail';
 
 // 路由配置项说明：
@@ -55,6 +56,17 @@ export const routes = [
         }
     },
     {
+        path: "/favorite",
+        name: "想看的频道",
+        icon: "FavoriteBorderIcon",
+        element: <FavoriteSettings />,
+        handle: { 
+            showMod: [0],
+            showHeader: true, 
+            showSidebar: true 
+        }
+    },
+    {
         path: "/settings",
         name: "设置",
         icon: "SettingsIcon",
@@ -79,17 +91,17 @@ export const routes = [
                 handle: { showHeader: true, showSidebar: true }
             },
             {
+                path: "/settings/keywords",
+                name: "特殊字符替换",
+                icon: "StickyNote2Icon",
+                element: <KeywordSettings />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
                 path: "/settings/search",
                 name: "爬取配置",
                 icon: "SearchIcon",
                 element: <SearchSettings />,
-                handle: { showHeader: true, showSidebar: true }
-            },
-            {
-                path: "/settings/keywords",
-                name: "频道名替换",
-                icon: "StickyNote2Icon",
-                element: <KeywordSettings />,
                 handle: { showHeader: true, showSidebar: true }
             }
         ]

@@ -207,6 +207,18 @@
       "原始源": "Raw Source",
       "GitHub 子页面": "GitHub Sub Page",
       "爬虫配置": "Spider Config",
-      "暂无数据": "No Data"
+      "暂无数据": "No Data",
+      "我想看的配置": "My Favorite Config",
+      "添加规则": "Add Rule",
+      "匹配逻辑": "Match Logic",
+      "包含": "Include",
+      "完全相等": "Exact Match",
+      "暂无规则，请点击右上角添加": "No rules yet, please add from top right",
+      "请输入频道名称": "Please enter channel name",
+      "输入想看的频道名称": "Enter favorite channel name",
+      "包含匹配": "Include Match",
+      "完全匹配": "Exact Match",
+      "添加想看的频道名": "Add Favorite Channel Name",
+      "订阅地址": "Subscription URL"
     }
-  }
+}

@@ -120,4 +120,14 @@ export class ApiTaskService {
         const response = await axios.get(`${this.baseUrl}/system/init-search-data`);
         return response.data;
     }
+
+    async getFavourite() {
+        const response = await axios.get(`${this.baseUrl}/system/get-favourite`);
+        return response.data;
+    }
+
+    async saveFavourite(data) {
+        const response = await axios.post(`${this.baseUrl}/system/save-favourite`, data);
+        return response.data;
+    }
 } 

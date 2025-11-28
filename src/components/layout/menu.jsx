@@ -24,6 +24,8 @@ import CloudQueueIcon from '@mui/icons-material/CloudQueue';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import SearchIcon from '@mui/icons-material/Search';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import Collapse from '@mui/material/Collapse';
 import _package from './../../../package';
 import { useTranslation, initReactI18next } from "react-i18next";
@@ -214,6 +216,12 @@ export default function Layout() {
                                                         {
                                                             value.icon === 'StickyNote2Icon' ? <StickyNote2Icon /> : ''
                                                         }
+                                                        {
+                                                            value.icon === 'FavoriteIcon' ? <FavoriteIcon /> : ''
+                                                        }
+                                                        {
+                                                            value.icon === 'FavoriteBorderIcon' ? <FavoriteBorderIcon /> : ''
+                                                        }
                                                     </ListItemIcon>
                                                     <ListItemText primary={t(value.name)} />
                                                     {
@@ -241,6 +249,7 @@ export default function Layout() {
                                                                             {child.icon === 'SettingsIcon' ? <SettingsIcon /> : ''}
                                                                             {child.icon === 'SearchIcon' ? <SearchIcon /> : ''}
                                                                             {child.icon === 'ManageSearchIcon' ? <ManageSearchIcon /> : ''}
+                                                                            {child.icon === 'FavoriteIcon' ? <FavoriteIcon /> : ''}
                                                                         </ListItemIcon>
                                                                         <ListItemText primary={t(child.name)} />
                                                                     </ListItemButton>
