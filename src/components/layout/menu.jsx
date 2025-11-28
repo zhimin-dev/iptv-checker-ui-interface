@@ -1,15 +1,17 @@
 import * as React from 'react';
 import { useEffect, useState, useContext } from "react"
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useMatches } from 'react-router-dom';
 import { Outlet } from "react-router-dom";
 import './menu.css'
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import LaptopIcon from '@mui/icons-material/Laptop';
 import LoadingButton from '@mui/lab/LoadingButton';
+import PublicIcon from '@mui/icons-material/Public';
 import { MainContext } from './../../context/main';
 import icon from './../../assets/icon.png';
 import Box from '@mui/material/Box';
+import StickyNote2Icon from '@mui/icons-material/StickyNote2';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -18,9 +20,11 @@ import ListItemText from '@mui/material/ListItemText';
 import BoltIcon from '@mui/icons-material/Bolt';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AdjustIcon from '@mui/icons-material/Adjust';
-import PublicIcon from '@mui/icons-material/Public';
 import CloudQueueIcon from '@mui/icons-material/CloudQueue';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
+import SearchIcon from '@mui/icons-material/Search';
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
+import Collapse from '@mui/material/Collapse';
 import _package from './../../../package';
 import { useTranslation, initReactI18next } from "react-i18next";
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
@@ -40,45 +44,24 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import { fontSize } from '@mui/system';
-
-let menuList = [{
-    "name": "本地任务",
-    "uri": "/",
-    "icon": "LaptopIcon",
-    'showMod': [0, 1],
-    'showHeader': true
-}, {
-    "name": "在线观看",
-    "uri": "/watch",
-    "icon": "RemoveRedEyeIcon",
-    'showMod': [1],
-    'showHeader': true
-}, {
-    "name": "定时检查任务",
-    "uri": "/task",
-    "icon": "CloudQueueIcon",
-    'showMod': [0],
-    'showHeader': true
-}, {
-    "name": "设置",
-    "uri": "/settings",
-    "icon": "SettingsIcon",
-    'showMod': [0, 1],
-    'showHeader': true
-}]
+import { routes } from '../../router/routes';
 
 const detailUri = '/detail'
-
-
 const drawerWidth = 240;
 
 export default function Layout() {
     const { t } = useTranslation();
     let location = useLocation();
+    const matches = useMatches();
     const _mainContext = useContext(MainContext);
     const navigate = useNavigate();
+    
+    // 过滤出菜单项
+    const menuList = routes.filter(r => !r.hideInMenu);
+
     const [nowSelectedMenu, setNowSelectedMenu] = useState(menuList[0])
     const [openSubCheckedMenu, setOpenSubCheckedMenu] = useState(false)
+    const [openSettings, setOpenSettings] = useState(false)
     const [nowSelectedCheckedMenu, setNowSelectedCheckedMenu] = useState(null)
     const [showDonate, setShowDonate] = useState(false);
     const [openDrawer, setOpenDrawer] = useState(true);
@@ -86,27 +69,47 @@ export default function Layout() {
     const [nowSelectSponsor, setNowSelectSponsor] = useState('')
     const [sponsorInfo, setSponsorInfo] = useState(null)
 
+    // 获取当前路由的 Layout 配置
+    const currentMatch = matches.find(m => m.handle?.showHeader !== undefined) || matches[matches.length - 1];
+    const layoutConfig = currentMatch?.handle || { showHeader: true, showSidebar: true };
+
     useEffect(() => {
         if (location.pathname == detailUri) {
-            setNowSelectedMenu({ 'showHeader': false })
+            // setNowSelectedMenu({ 'showHeader': false }) // 已废弃，由 handle 控制
         } else {
             _mainContext.updateDetailMd5("")
+            // 查找当前选中的菜单
+            // 这里逻辑保持原样用于高亮，或者可以优化
             for (let i = 0; i < menuList.length; i++) {
-                if (location.pathname == menuList[i].uri) {
+                if (location.pathname == menuList[i].path || location.pathname == menuList[i].uri) {
                     setNowSelectedMenu(menuList[i])
+                }
+                if (menuList[i].children) {
+                    for (let j = 0; j < menuList[i].children.length; j++) {
+                         // 兼容旧 uri 和新 path
+                        const path = menuList[i].children[j].path || menuList[i].children[j].uri;
+                        if (location.pathname == path) {
+                            setNowSelectedMenu(menuList[i].children[j])
+                            setOpenSettings(true)
+                        }
+                    }
                 }
             }
         }
-    }, [location])
+    }, [location, menuList])
 
     const changePath = (e) => {
-        if (e.uri === detailUri) {
+        const uri = e.path || e.uri;
+        if (uri === detailUri) {
             setOpenSubCheckedMenu(!openSubCheckedMenu)
+        } else if (e.children) {
+            setOpenSettings(!openSettings)
         } else {
             setNowSelectedMenu(e)
-            navigate(e.uri)
+            navigate(uri)
         }
     }
+
 
     const changeCheckedPath = (e) => {
         setNowSelectedCheckedMenu(e)
@@ -178,43 +181,76 @@ export default function Layout() {
                 </Box>
                 {
                     menuList.map((value, index) => (
-                        value.showMod.includes(_mainContext.nowMod) ? (
+                        value.handle?.showMod?.includes(_mainContext.nowMod) ? (
                             <Box key={index}>
                                 {
-                                    value.uri !== detailUri || (value.uri === detailUri && _mainContext.subCheckMenuList.length > 0) ? (
-                                        <ListItem key={index} disablePadding onClick={() => changePath(value)}>
-                                            <ListItemButton>
-                                                <ListItemIcon>
+                                    (value.path !== detailUri || (value.path === detailUri && _mainContext.subCheckMenuList.length > 0)) ? (
+                                        <>
+                                            <ListItem key={index} disablePadding onClick={() => changePath(value)}>
+                                                <ListItemButton>
+                                                    <ListItemIcon>
+                                                        {
+                                                            value.icon === 'LaptopIcon' ? <LaptopIcon /> : ''
+                                                        }
+                                                        {
+                                                            value.icon === 'SettingsIcon' ? <SettingsIcon /> : ''
+                                                        }
+                                                        {
+                                                            value.icon === 'AdjustIcon' ? <AdjustIcon /> : ''
+                                                        }
+                                                    
+                                                        {
+                                                            value.icon === 'CloudQueueIcon' ? <CloudQueueIcon /> : ''
+                                                        }
+                                                        {
+                                                            value.icon === 'RemoveRedEyeIcon' ? <RemoveRedEyeIcon /> : ''
+                                                        }
+                                                        {
+                                                            value.icon === 'BoltIcon' ? <BoltIcon /> : ''
+                                                        }
+                                                        {
+                                                            value.icon === 'PublicIcon' ? <PublicIcon /> : ''
+                                                        }
+                                                        {
+                                                            value.icon === 'StickyNote2Icon' ? <StickyNote2Icon /> : ''
+                                                        }
+                                                    </ListItemIcon>
+                                                    <ListItemText primary={t(value.name)} />
                                                     {
-                                                        value.icon === 'LaptopIcon' ? <LaptopIcon /> : ''
+                                                        value.path === detailUri ? (
+                                                            openSubCheckedMenu ? <ExpandLess /> : <ExpandMore />
+                                                        ) : ''
                                                     }
                                                     {
-                                                        value.icon === 'SettingsIcon' ? <SettingsIcon /> : ''
+                                                        value.children ? (
+                                                            openSettings ? <ExpandLess /> : <ExpandMore />
+                                                        ) : ''
                                                     }
-                                                    {
-                                                        value.icon === 'AdjustIcon' ? <AdjustIcon /> : ''
-                                                    }
-                                                    {
-                                                        value.icon === 'PublicIcon' ? <PublicIcon /> : ''
-                                                    }
-                                                    {
-                                                        value.icon === 'CloudQueueIcon' ? <CloudQueueIcon /> : ''
-                                                    }
-                                                    {
-                                                        value.icon === 'RemoveRedEyeIcon' ? <RemoveRedEyeIcon /> : ''
-                                                    }
-                                                    {
-                                                        value.icon === 'BoltIcon' ? <BoltIcon /> : ''
-                                                    }
-                                                </ListItemIcon>
-                                                <ListItemText primary={t(value.name)} />
-                                                {
-                                                    value.uri === detailUri ? (
-                                                        openSubCheckedMenu ? <ExpandLess /> : <ExpandMore />
-                                                    ) : ''
-                                                }
-                                            </ListItemButton>
-                                        </ListItem>
+                                                </ListItemButton>
+                                            </ListItem>
+                                            {
+                                                value.children ? (
+                                                    <Collapse in={openSettings} timeout="auto" unmountOnExit>
+                                                        <List component="div" disablePadding>
+                                                            {value.children.map((child, cIndex) => (
+                                                                !child.hideInMenu && (
+                                                                    <ListItemButton key={cIndex} sx={{ pl: 4 }} onClick={() => changePath(child)}>
+                                                                        <ListItemIcon>
+                                                                            {child.icon === 'PublicIcon' ? <PublicIcon /> : ''}
+                                                                            {child.icon === 'StickyNote2Icon' ? <StickyNote2Icon /> : ''}
+                                                                            {child.icon === 'SettingsIcon' ? <SettingsIcon /> : ''}
+                                                                            {child.icon === 'SearchIcon' ? <SearchIcon /> : ''}
+                                                                            {child.icon === 'ManageSearchIcon' ? <ManageSearchIcon /> : ''}
+                                                                        </ListItemIcon>
+                                                                        <ListItemText primary={t(child.name)} />
+                                                                    </ListItemButton>
+                                                                )
+                                                            ))}
+                                                        </List>
+                                                    </Collapse>
+                                                ) : ''
+                                            }
+                                        </>
                                     ) : ''
                                 }
                             </Box>
@@ -265,64 +301,70 @@ export default function Layout() {
                 onClose={handleCloseSponsor}
             />
             <Box className="layout">
-                <Drawer sx={{
-                    '.MuiPaper-root': {
-                        borderTopLeftRadius: '12px',
-                        borderBottomLeftRadius: '12px',
-                        backgroundColor: 'transparent'
-                    },
-                }} open={openDrawer} anchor="left" variant={openDrawer ? "permanent" : 'temporary'}>
-                    {DrawerList}
-                </Drawer>
+                {layoutConfig.showSidebar && (
+                    <Drawer sx={{
+                        '.MuiPaper-root': {
+                            borderTopLeftRadius: '12px',
+                            borderBottomLeftRadius: '12px',
+                            backgroundColor: 'transparent'
+                        },
+                    }} open={openDrawer} anchor="left" variant={openDrawer ? "permanent" : 'temporary'}>
+                        {DrawerList}
+                    </Drawer>
+                )}
                 <Box className="container-inner" style={{
-                    marginLeft: openDrawer ? drawerWidth + "px" : '',
+                    marginLeft: (layoutConfig.showSidebar && openDrawer) ? drawerWidth + "px" : '',
                 }}>
                     <Box data-tauri-drag-region style={{ width: '100%', height: '20px' }}></Box>
                     {
-                        <Box style={{
-                            padding: '0 20px',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            height: '60px',
-                        }}>
+                        layoutConfig.showHeader && (
                             <Box style={{
+                                padding: '0 20px',
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 height: '60px',
-                                width: '100%'
                             }}>
                                 <Box style={{
                                     display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    height: '60px',
+                                    width: '100%'
                                 }}>
-                                    <Box>
-                                        <IconButton aria-label="delete" size="small" onClick={toggleDrawer(!openDrawer)}>
-                                            <DehazeIcon />
-                                        </IconButton>
+                                    <Box style={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                    }}>
+                                        {layoutConfig.showSidebar && (
+                                            <Box>
+                                                <IconButton aria-label="delete" size="small" onClick={toggleDrawer(!openDrawer)}>
+                                                    <DehazeIcon />
+                                                </IconButton>
+                                            </Box>
+                                        )}
+                                        <Box style={{ fontWeight: 'bold', fontSize: '20px' }}>{
+                                            nowSelectedMenu.name !== null && nowSelectedMenu.name !== undefined ?
+                                                t(nowSelectedMenu.name) : _mainContext.detailMd5
+                                        }</Box>
                                     </Box>
-                                    <Box style={{ fontWeight: 'bold', fontSize: '20px' }}>{
-                                        nowSelectedMenu.name !== null && nowSelectedMenu.name !== undefined ?
-                                            t(nowSelectedMenu.name) : _mainContext.detailMd5
-                                    }</Box>
-                                </Box>
-                                <Box data-tauri-drag-region style={{
-                                    display: _mainContext.nowMod === 1 ? 'flex' : 'none',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                }}>
-                                    <Box className="titlebar-button" id="titlebar-minimize">
-                                        <img
-                                            src="https://api.iconify.design/mdi:window-minimize.svg"
-                                            alt="minimize"
-                                        />
-                                    </Box>
-                                    <Box className="titlebar-button" id="titlebar-close">
-                                        <img src="https://api.iconify.design/mdi:close.svg" alt="close" />
+                                    <Box data-tauri-drag-region style={{
+                                        display: _mainContext.nowMod === 1 ? 'flex' : 'none',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                    }}>
+                                        <Box className="titlebar-button" id="titlebar-minimize">
+                                            <img
+                                                src="https://api.iconify.design/mdi:window-minimize.svg"
+                                                alt="minimize"
+                                            />
+                                        </Box>
+                                        <Box className="titlebar-button" id="titlebar-close">
+                                            <img src="https://api.iconify.design/mdi:close.svg" alt="close" />
+                                        </Box>
                                     </Box>
                                 </Box>
                             </Box>
-                        </Box>
+                        )
                     }
                     <Box style={{ width: '100%', height: '20px' }}></Box>
                     <Divider style={{ marginBottom: '10px' }} />

@@ -79,4 +79,45 @@ export class ApiTaskService {
         const response = await axios.post(`${this.baseUrl}/system/tasks/import`, tasksData);
         return response.data;
     }
+
+    async getSearchConfig() {
+        const response = await axios.get(`${this.baseUrl}/system/info`);
+        if (response.status !== 200) {
+            throw new Error(response.data.msg);
+        }
+        return response.data;
+    }
+
+    async updateSearchConfig(config) {
+        const response = await axios.post(`${this.baseUrl}/system/global-config`, config);
+        if (response.status !== 200) {
+            throw new Error(response.data.msg);
+        }
+        return response.data;
+    }
+
+    async runSpider() {
+        const response = await axios.post(`${this.baseUrl}/system/spider/run`);
+        return response.data;
+    }
+
+    async getSpiderStatus() {
+        const response = await axios.get(`${this.baseUrl}/system/spider/status`);
+        return response.data;
+    }
+
+    async getTodayFiles() {
+        const response = await axios.get(`${this.baseUrl}/system/list-today-files`);
+        return response.data;
+    }
+
+    async clearSearchFolder() {
+        const response = await axios.get(`${this.baseUrl}/system/clear-search-folder`);
+        return response.data;
+    }
+
+    async initSearchData() {
+        const response = await axios.get(`${this.baseUrl}/system/init-search-data`);
+        return response.data;
+    }
 } 

@@ -192,6 +192,21 @@
       "当前源来自github的iptv-org，如您有相关源链接，请至设置中添加":"The current source is from iptv-org on GitHub. If you have relevant source links, please add them in the settings.",
       "当前设置的【后台检查server域名】为":"The current setting for 【Background check server domain】 is",
       "后台检查server域名":"Background check server domain",
-      "对不起，您没有设置【后台检查server域名】，请至设置页面操作后再来查看":"I'm sorry, you haven't set the 【Background check server domain】 yet. Please go to the settings page to set it up before checking again."
+      "对不起，您没有设置【后台检查server域名】，请至设置页面操作后再来查看":"I'm sorry, you haven't set the 【Background check server domain】 yet. Please go to the settings page to set it up before checking again.",
+      "将远程图片转换为本地图片": "Remote URL to Local Images",
+      "文件扩展名": "Extensions",
+      "扩展名（每行一个）": "Extensions (One per line)",
+      "搜索源": "Search Sources",
+      "添加源": "Add Source",
+      "解析类型": "Parse Type",
+      "URL地址（每行一个）": "URLs (One per line)",
+      "包含文件（每行一个）": "Include Files (One per line)",
+      "可选：过滤特定文件": "Optional: Filter specific files",
+      "保存配置": "Save Configuration",
+      "GitHub 主页": "GitHub Home Page",
+      "原始源": "Raw Source",
+      "GitHub 子页面": "GitHub Sub Page",
+      "爬虫配置": "Spider Config",
+      "暂无数据": "No Data"
     }
   }

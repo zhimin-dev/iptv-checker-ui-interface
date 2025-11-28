@@ -1,24 +1,20 @@
-import * as React from 'react';
-import { useEffect, useState, useContext } from "react";
+import React, { useState, useEffect } from 'react';
+import Box from '@mui/material/Box';
 import { useTranslation } from "react-i18next";
 import { ApiTaskService } from '../../services/apiTaskService';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
-import DialogTitle from '@mui/material/DialogTitle';
-import {
-    Dialog,
-    Button,
-} from '@mui/material';
-import { MainContext } from '../../context/main';
+import Button from '@mui/material/Button';
+import Snackbar from '@mui/material/Snackbar';
 
-export const ShowReplaceDialog = ({ onClose, formValue, open }) => {
+export default function KeywordSettings() {
     const { t } = useTranslation();
     const [replaceList, setReplaceList] = useState([]);
-    const _mainContext = useContext(MainContext);
     const [showList, setShowList] = useState([]);
-
     const [taskService] = useState(() => new ApiTaskService());
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMsg, setSnackbarMsg] = useState('');
 
     useEffect(() => {
         fetchData();
@@ -27,7 +23,6 @@ export const ShowReplaceDialog = ({ onClose, formValue, open }) => {
     const fetchData = async () => {
         try {
             const response = await taskService.getReplaceList();
-            console.log("response---", response);
             setReplaceList(response);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -79,25 +74,37 @@ export const ShowReplaceDialog = ({ onClose, formValue, open }) => {
 
         try {
             await taskService.updateReplaceList(postData);
+            setSnackbarMsg(t('保存成功'));
+            setOpenSnackbar(true);
         } catch (err) {
             console.error('Error saving replace list:', err);
+            setSnackbarMsg(t('保存失败'));
+            setOpenSnackbar(true);
         }
     };
-    // Render UI: rows + actions
+
     return (
-        <Dialog onClose={() => onClose(false)} open={open}>
-            <DialogTitle id="alert-dialog-title">
-                {t('字符替换配置')}
-            </DialogTitle>
-            <div style={{padding: '0 20px 10px', fontSize: '12px', color: '#666'}}>
-                <p style={{padding:'0',margin:'0'}}>{t('网络上的频道名前后经常出现一些特殊字符，可以通过添加该配置将这些字符替换掉，提升频道名的整洁度。')}</p>
-                <p style={{padding:'0',margin:'0'}}>{t('比如频道名中出现“[HD]”，如果需要将这个字符去掉，添加一行：搜索值填写“[HD]”，替换值留空即可。')}</p>
+        <Box style={{ padding: '0 20px', width: '800px' }}>
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={3000}
+                onClose={() => setOpenSnackbar(false)}
+                message={snackbarMsg}
+            />
+            <div style={{ padding: '0 0 10px', fontSize: '12px', color: '#666' }}>
+                <p style={{ padding: '0', margin: '0' }}>{t('网络上的频道名前后经常出现一些特殊字符，可以通过添加该配置将这些字符替换掉，提升频道名的整洁度。')}</p>
+                <p style={{ padding: '0', margin: '0' }}>{t('比如频道名中出现“[HD]”，如果需要将这个字符去掉，添加一行：搜索值填写“[HD]”，替换值留空即可。')}</p>
             </div>
-            <div>
-                <div style={{ overflow: 'hidden', padding: '0 20px' }}>
-                    <div style={{ maxHeight: '60vh', overflow: 'auto', padding: '12px 0' }}>
+            <div style={{ padding: '10px 0' }}>
+                <Button variant="contained" onClick={handleAddRow}>
+                    {t('添加')}
+                </Button>
+            </div>
+            <div style={{ padding: '10px 0' }}>
+                <div style={{ overflow: 'hidden' }}>
+                    <div style={{ maxHeight: 'calc(100vh - 200px)', overflow: 'auto', padding: '12px 0' }}>
                         {showList.length === 0 ? (
-                            <div style={{ padding: '8px 0', color: '#666' }}>{t('No items') || 'No items'}</div>
+                            <div style={{ padding: '8px 0', color: '#666' }}>{t('暂无数据')}</div>
                         ) : (
                             showList.map((row, idx) => (
                                 <div
@@ -132,21 +139,14 @@ export const ShowReplaceDialog = ({ onClose, formValue, open }) => {
                     </div>
 
                     <div style={{ display: 'flex', gap: 8, padding: '12px 0', alignItems: 'center' }}>
-                        <Button variant="contained" onClick={handleAddRow}>
-                            {t('添加')}
-                        </Button>
-
                         <div style={{ flex: 1 }} />
 
-                        <Button variant="contained" color="primary" onClick={handleSave}>
+                        <Button variant="contained" color="success" onClick={handleSave}>
                             {t('保存')}
-                        </Button>
-                        <Button variant="outlined" onClick={() => onClose(false)}>
-                            {t('取消')}
                         </Button>
                     </div>
                 </div>
             </div>
-        </Dialog>
+        </Box>
     );
-}; 
+}

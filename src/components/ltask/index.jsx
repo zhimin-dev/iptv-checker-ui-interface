@@ -156,6 +156,7 @@ export default function LTaskList() {
                             startIcon={<AddIcon />}
                             onClick={() => handleClickOpen(null)}
                             style={{ marginRight: '10px' }}
+                            size="small"
                         >
                             {t('新增')}
                         </Button>

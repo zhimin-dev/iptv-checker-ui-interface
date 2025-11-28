@@ -11,7 +11,6 @@ import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import Snackbar from '@mui/material/Snackbar';
-import FindReplaceIcon from '@mui/icons-material/FindReplace';
 import AddIcon from '@mui/icons-material/Add';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useTranslation } from "react-i18next";
@@ -22,7 +21,6 @@ import { TaskForm } from './TaskForm';
 import { TaskRow } from './TaskRow';
 import { DownloadDialog } from './DownloadDialog';
 import { ImportDialog, ExportDialog } from './ImportExportDialog';
-import {ShowReplaceDialog} from './ShowReplaceDialog';
 
 const run_type_list = [{ "value": "EveryDay", "name": "每天" }, { "value": "EveryHour", "name": "每小时" }]
 const output_folder = "static/output/"
@@ -73,7 +71,6 @@ export default function TaskList() {
     const [showExportDialog, setShowExportDialog] = useState(false);
     const [exportBody, setExportBody] = useState('');
     const [nowTaskId, setNowTaskId] = useState('')
-    const [showReplaceDialog, setShowReplaceDialog] = useState(false);
 
     useEffect(() => {
         get_task_list();
@@ -235,15 +232,6 @@ export default function TaskList() {
                     >
                         {t('刷新列表')}
                     </Button>
-                    <Button
-                        variant="outlined"
-                        size='small'
-                        color='secondary'
-                        startIcon={<FindReplaceIcon />}
-                        onClick={showReplaceDialog ? () => setShowReplaceDialog(false) : () => setShowReplaceDialog(true)}
-                    >
-                        {t('字符替换配置')}
-                    </Button>
                 </Box>
                 <Box>
                     <Button
@@ -285,11 +273,6 @@ export default function TaskList() {
                 formValue={downloadBody}
                 open={openDownloadBody}
                 onClose={handleDownloadClose}
-            />
-            <ShowReplaceDialog
-                formValue={downloadBody}
-                open={showReplaceDialog}
-                onClose={() => setShowReplaceDialog(false)}
             />
             <ImportDialog
                 open={showImportDialog}
