@@ -130,4 +130,9 @@ export class ApiTaskService {
         const response = await axios.post(`${this.baseUrl}/system/save-favourite`, data);
         return response.data;
     }
-} 
+
+    async openUrl(url) {
+        const response = await axios.get(`${this.baseUrl}/system/open-url`, { params: { url } });
+        return response.data;
+    }
+}

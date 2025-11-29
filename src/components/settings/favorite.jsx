@@ -15,6 +15,9 @@ import AddIcon from '@mui/icons-material/Add';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
 
 export default function FavoriteSettings() {
     const { t } = useTranslation();
@@ -27,6 +30,10 @@ export default function FavoriteSettings() {
 
     const [newName, setNewName] = useState('');
     const [newMode, setNewMode] = useState('include');
+
+    const [showFileDialog, setShowFileDialog] = useState(false);
+    const [fileTitle, setFileTitle] = useState('');
+    const [fileContent, setFileContent] = useState('');
 
     useEffect(() => {
         fetchData();
@@ -42,7 +49,10 @@ export default function FavoriteSettings() {
                 
                 setConfig(prev => ({
                     ...prev,
-                    favorite_rules: rules
+                    favorite_rules: rules,
+                    all_channel_url: response.all_channel_url,
+                    liked_channel_url: response.liked_channel_url,
+                    checked_liked_channel_url: response.checked_liked_channel_url
                 }));
             }
         } catch (error) {
@@ -71,6 +81,19 @@ export default function FavoriteSettings() {
             ...prev,
             favorite_rules: prev.favorite_rules.filter((_, i) => i !== index)
         }));
+    };
+
+    const handleOpenFile = async (title, url) => {
+        try {
+            const content = await taskService.openUrl( url);
+            setFileTitle(title);
+            setFileContent(typeof content === 'string' ? content : JSON.stringify(content, null, 2));
+            setShowFileDialog(true);
+        } catch (error) {
+            console.error('Error opening file:', error);
+            setSnackbarMsg(t('打开文件失败'));
+            setOpenSnackbar(true);
+        }
     };
 
     const handleSave = async () => {
@@ -129,8 +152,36 @@ export default function FavoriteSettings() {
                 onClose={() => setOpenSnackbar(false)}
                 message={snackbarMsg}
             />
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 4 }}>
-                {t('订阅地址')}：https://www.example.com/iptv/fa.m3u
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 4 }}>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Typography>{t('爬取的全部频道列表')}：</Typography>
+                    <Typography 
+                        component="span" 
+                        sx={{ cursor: 'pointer', color: 'primary.main', textDecoration: 'underline' }}
+                        onClick={() => handleOpenFile(t('爬取的全部频道列表'), window.document.location.origin + config.all_channel_url)}
+                    >
+                        {window.document.location.origin +config.all_channel_url || t('暂无链接')}
+                    </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Typography>{t('喜欢的频道列表')}：</Typography>
+                    <Typography 
+                        component="span" 
+                        sx={{ cursor: 'pointer', color: 'primary.main', textDecoration: 'underline' }}
+                        onClick={() => handleOpenFile(t('喜欢的频道列表'), window.document.location.origin + config.liked_channel_url)}
+                    >
+                        {window.document.location.origin + config.liked_channel_url || t('暂无链接')}
+                    </Typography>
+                </Box>
+                <Box sx={{ fontSize: '12px', color: 'text.secondary' }}>
+                    {t('上述链接内容经过繁体转简体以及特殊字符替换')}
+                </Box>
+                <Box sx={{ fontSize: '12px', color: 'text.secondary' }}>
+                    {t('下面的关键词直接输入简体中文即可，无需担心原始源有繁体字问题而导致搜索不到')}
+                </Box>
+                <Box sx={{ fontSize: '12px', color: 'text.secondary' }}>
+                    {t('记得保存')}😄
+                </Box>
             </Box>
 
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 4, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
@@ -172,6 +223,13 @@ export default function FavoriteSettings() {
                     {t('保存配置')}
                 </Button>
             </Box>
+
+            <Dialog open={showFileDialog} onClose={() => setShowFileDialog(false)} maxWidth="lg" fullWidth>
+                <DialogTitle>{fileTitle}</DialogTitle>
+                <DialogContent>
+                    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '60vh', overflow: 'auto' }}>{fileContent}</pre>
+                </DialogContent>
+            </Dialog>
         </Box>
     );
 }
