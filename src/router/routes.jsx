@@ -7,7 +7,10 @@ import WatchSingle from '../components/watch/single';
 import SearchSettings from '../components/settings/search';
 import KeywordSettings from '../components/settings/keywords';
 import FavoriteSettings from '../components/settings/favorite';
+import ChannelLogos from '../components/settings/logos';
 import Detail from '../components/detail';
+import Welcome from '../components/welcome';
+import DonateSettings from '../components/settings/donate';
 
 // 路由配置项说明：
 // path: 路由路径
@@ -24,6 +27,17 @@ import Detail from '../components/detail';
 export const routes = [
     {
         path: "/",
+        name: "欢迎",
+        icon: "HomeOutlinedIcon",
+        element: <Welcome />,
+        handle: {
+            showMod: [0,1],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/local",
         name: "本地任务",
         icon: "LaptopIcon",
         element: <LTask />,
@@ -69,7 +83,7 @@ export const routes = [
     {
         path: "/settings",
         name: "设置",
-        icon: "SettingsIcon",
+        icon: "SettingsOutlinedIcon",
         handle: {
             showMod: [0, 1],
             showHeader: true,
@@ -102,6 +116,20 @@ export const routes = [
                 name: "爬取配置",
                 icon: "SearchIcon",
                 element: <SearchSettings />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/settings/logos",
+                name: "频道封面配置",
+                icon: "PhotoLibraryIcon",
+                element: <ChannelLogos />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/settings/donate",
+                name: "捐赠",
+                icon: "VolunteerActivismIcon",
+                element: <DonateSettings />,
                 handle: { showHeader: true, showSidebar: true }
             }
         ]

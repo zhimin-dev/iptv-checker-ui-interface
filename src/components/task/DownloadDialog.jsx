@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import {
     Dialog,
     Button,
+    TextField
 } from '@mui/material';
 import { MainContext } from '../../context/main';
 
@@ -16,9 +17,9 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
     useEffect(() => {
         setUrl(window.document.location.origin + "/" + formValue.url);
         if (formValue.content !== '') {
-            setShowData(formValue.content.split("\n"));
+            setShowData(formValue.content);
         } else {
-            setShowData([]);
+            setShowData('');
         }
     }, [formValue]);
 
@@ -39,32 +40,30 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
             }}>
                 <div style={{
                     overflow: 'hidden',
-                    padding: '0 20px'
                 }}>
                     <div style={{
-                        position: 'fixed',
-                        overflow: 'hidden',
                         backgroundColor: '#fff',
                         zIndex: 9,
-                        width: '560px',
                     }}>
                         <div>{t('订阅链接')}：<b>{url}</b></div>
-                        {showData.length > 0 && (
+                        {showData !='' && (
                             <div>
                                 <Button variant="text" onClick={() => downloadFile(formValue.url)}>{t('点击下载')}</Button>
                             </div>
                         )}
                     </div>
-                    {showData.length > 0 ? (
-                        <div style={{
-                            padding: "60px 0",
-                            position: 'relative',
-                            textWrap: "nowrap"
-                        }}>
-                            {showData.map((value, index) => (
-                                <div key={index}>{value}</div>
-                            ))}
-                        </div>
+                    {showData !='' ? (
+                        <TextField
+                            multiline
+                            fullWidth
+                            minRows={15}
+                            maxRows={25}
+                            value={showData}
+                            variant="outlined"
+                            InputProps={{
+                                readOnly: true,
+                            }}
+                        />
                     ) : (
                         <div style={{ padding: "60px 0", position: 'relative' }}>
                             <div>{t('暂未生成')}</div>

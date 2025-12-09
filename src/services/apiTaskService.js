@@ -135,4 +135,14 @@ export class ApiTaskService {
         const response = await axios.get(`${this.baseUrl}/system/open-url`, { params: { url } });
         return response.data;
     }
+
+    async getChannelLogos() {
+        const response = await axios.get(`${this.baseUrl}/system/channel-logos`);
+        return response.data;
+    }
+
+    async saveChannelLogos(data) {
+        const response = await axios.post(`${this.baseUrl}/system/channel-logos`, data);
+        return response.data;
+    }
 }

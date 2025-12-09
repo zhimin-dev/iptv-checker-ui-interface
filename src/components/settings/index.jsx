@@ -233,8 +233,6 @@ export default function Settings() {
                             <Box style={{ color: 'green', fontWeight:"bold" }}>{t('有新版本')}: {newVersion}</Box>
                         ) : ''
                     }
-                    <Box>{t('Github地址')}：<a href={_package.homepage_url}>{_package.homepage_url}</a></Box>
-                    <Box>{t('❤️❤️如果觉得项目不错，请打开上面链接👆🏻，点个STAR❤️❤️')}</Box>
                 </FormControl>
             </Box>
         </Box>

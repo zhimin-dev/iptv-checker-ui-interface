@@ -24,9 +24,14 @@ import CloudQueueIcon from '@mui/icons-material/CloudQueue';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import SearchIcon from '@mui/icons-material/Search';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
+import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import Collapse from '@mui/material/Collapse';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
+import HomeIcon from '@mui/icons-material/Home';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import _package from './../../../package';
 import { useTranslation, initReactI18next } from "react-i18next";
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
@@ -222,6 +227,15 @@ export default function Layout() {
                                                         {
                                                             value.icon === 'FavoriteBorderIcon' ? <FavoriteBorderIcon /> : ''
                                                         }
+                                                        {
+                                                            value.icon === 'HomeIcon' ? <HomeIcon /> : ''
+                                                        }
+                                                        {
+                                                            value.icon === 'HomeOutlinedIcon' ? <HomeOutlinedIcon /> : ''
+                                                        }
+                                                        {
+                                                            value.icon === 'SettingsOutlinedIcon' ? <SettingsOutlinedIcon /> : ''
+                                                        }
                                                     </ListItemIcon>
                                                     <ListItemText primary={t(value.name)} />
                                                     {
@@ -249,7 +263,9 @@ export default function Layout() {
                                                                             {child.icon === 'SettingsIcon' ? <SettingsIcon /> : ''}
                                                                             {child.icon === 'SearchIcon' ? <SearchIcon /> : ''}
                                                                             {child.icon === 'ManageSearchIcon' ? <ManageSearchIcon /> : ''}
+                                                                            {child.icon === 'PhotoLibraryIcon' ? <PhotoLibraryIcon /> : ''}
                                                                             {child.icon === 'FavoriteIcon' ? <FavoriteIcon /> : ''}
+                                                                            {child.icon === 'VolunteerActivismIcon' ? <VolunteerActivismIcon /> : ''}
                                                                         </ListItemIcon>
                                                                         <ListItemText primary={t(child.name)} />
                                                                     </ListItemButton>
@@ -266,38 +282,6 @@ export default function Layout() {
                         ) : ''
                     ))}
             </List>
-            {
-                _mainContext.configInfo.sponsor.length > 0 ? (
-                    <FormControl sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        fontSize: "12px",
-                    }}>
-                        <FormLabel sx={{ fontSize: "12px", cursor: 'pointer' }} onClick={showDonateData} id="demo-radio-buttons-group-label">{t('请开发者喝杯咖啡☕️')}</FormLabel>
-                        {
-                            showDonate ? (
-                                < >
-                                    <RadioGroup
-                                        aria-labelledby="demo-radio-buttons-group-label"
-                                        name="radio-buttons-group"
-                                        onChange={changeSponsorType}
-                                        value={nowSelectSponsor}
-                                        sx={{ fontSize: "12px", }}
-                                    >
-                                        {
-                                            _mainContext.configInfo.sponsor.map((value, index) => (
-                                                <FormControlLabel sx={{ fontSize: '12px' }} key={index} value={value.name} control={<Radio size="small" />} label={value.name} />
-                                            ))
-                                        }
-                                    </RadioGroup>
-                                </>
-                            ) : ''
-                        }
-                    </FormControl>
-                ) : ''
-            }
-
         </Box>
     );
 
