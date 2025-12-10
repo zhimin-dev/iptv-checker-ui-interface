@@ -137,7 +137,16 @@ export class ApiTaskService {
     }
 
     async getChannelLogos() {
-        const response = await axios.get(`${this.baseUrl}/system/channel-logos`);
+        const response = await axios.get(`${this.baseUrl}/media/logos`);
+        return response.data;
+    }
+
+    async uploadLogos(formData) {
+        const response = await axios.post(`${this.baseUrl}/media/upload-logos`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
         return response.data;
     }
 

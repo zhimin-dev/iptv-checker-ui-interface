@@ -7,14 +7,12 @@ import {
     Card, 
     CardContent, 
     Grid,
-    IconButton,
     InputAdornment,
     Snackbar,
     Alert,
-    CardMedia,
-    Tooltip
+    Tooltip,
+    CircularProgress
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useTranslation } from 'react-i18next';
@@ -24,11 +22,9 @@ const ChannelLogos = () => {
     const { t } = useTranslation();
     const [taskService] = useState(() => new ApiTaskService());
     const [logos, setLogos] = useState({});
-    const [inputName, setInputName] = useState('');
-    const [inputLogo, setInputLogo] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
-    const [existingLogo, setExistingLogo] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     useEffect(() => {
         fetchLogos();
@@ -43,72 +39,30 @@ const ChannelLogos = () => {
         }
     };
 
-    const handleNameChange = (e) => {
-        const name = e.target.value;
-        setInputName(name);
-        if (logos[name]) {
-            setExistingLogo(logos[name]);
-        } else {
-            setExistingLogo(null);
-        }
-    };
-
     const handleUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
 
+        setIsUploading(true);
         const formData = new FormData();
-        formData.append('file', file);
-
+        files.forEach(file => {
+            formData.append('files', file);
+        });
+            
         try {
-            const res = await taskService.uploadFile(formData);
-            if (res.url) {
-                setInputLogo(res.url);
-            } else {
-                setMessage({ open: true, text: t('上传失败，未获取到URL'), type: 'error' });
-            }
+            await taskService.uploadLogos(formData);
+            await fetchLogos();
+            setMessage({ 
+                open: true, 
+                text: t('上传完成'), 
+                type: 'success' 
+            });
         } catch (error) {
             console.error('Upload failed', error);
-            setMessage({ open: true, text: t('操作失败'), type: 'error' });
-        }
-    };
-
-    const handleAdd = async () => {
-        if (!inputName) {
-            setMessage({ open: true, text: t('请先输入频道名称'), type: 'warning' });
-            return;
-        }
-        if (!inputLogo) {
-             setMessage({ open: true, text: t('请先上传或选择图片'), type: 'warning' });
-             return;
-        }
-
-        const newLogos = { ...logos, [inputName]: inputLogo };
-        try {
-            await taskService.saveChannelLogos(newLogos);
-            setLogos(newLogos);
-            setInputName('');
-            setInputLogo('');
-            setExistingLogo(null);
-            setMessage({ open: true, text: t('添加成功'), type: 'success' });
-        } catch (error) {
-            console.error('Save failed', error);
-            setMessage({ open: true, text: t('保存失败'), type: 'error' });
-        }
-    };
-
-    const handleDelete = async (name) => {
-        if (!window.confirm(t('确定要删除吗') + `: ${name}?`)) {
-            return;
-        }
-        const newLogos = { ...logos };
-        delete newLogos[name];
-        try {
-            await taskService.saveChannelLogos(newLogos);
-            setLogos(newLogos);
-            setMessage({ open: true, text: t('删除成功'), type: 'success' });
-        } catch (error) {
-             setMessage({ open: true, text: t('保存失败'), type: 'error' });
+            setMessage({ open: true, text: t('上传失败'), type: 'error' });
+        } finally {
+            setIsUploading(false);
+            e.target.value = '';
         }
     };
 
@@ -120,75 +74,32 @@ const ChannelLogos = () => {
         .filter(([name]) => name.toLowerCase().includes(searchKeyword.toLowerCase()));
 
     return (
-        <Box sx={{ width: '100%', p: 2, maxWidth: 1200, margin: '0 auto' }}>
+        <Box sx={{ width: '100%', p: 2 }}>
             <Typography variant="h5" sx={{ mb: 3 }}>{t('频道封面配置')}</Typography>
 
-            {/* Add Section */}
+            {/* Upload Section */}
             <Card sx={{ mb: 3, p: 2 }}>
-                <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={12} md={4}>
-                        <TextField
-                            fullWidth
-                            label={t('频道名称')}
-                            value={inputName}
-                            onChange={handleNameChange}
-                            size="small"
-                        />
-                    </Grid>
-                    <Grid item xs={12} md={4} sx={{ display: 'flex', gap: 1 }}>
-                        <TextField
-                            fullWidth
-                            label={t('图片地址')}
-                            value={inputLogo}
-                            onChange={(e) => setInputLogo(e.target.value)}
-                            size="small"
-                            disabled // Mainly populated by upload, but could be editable. User said "upload".
-                        />
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>
+                    <Typography variant="body2" color="textSecondary">
+                        {t('上传的文件名就是电视频道名称')}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Button
                             component="label"
-                            variant="outlined"
-                            startIcon={<CloudUploadIcon />}
-                            sx={{ whiteSpace: 'nowrap' }}
+                            variant="contained"
+                            startIcon={isUploading ? <CircularProgress size={20} color="inherit" /> : <CloudUploadIcon />}
+                            disabled={isUploading}
                         >
-                            {t('上传图片')}
-                            <input type="file" hidden accept="image/*" onChange={handleUpload} />
-                        </Button>
-                    </Grid>
-                    <Grid item xs={12} md={2}>
-                        <Button 
-                            variant="contained" 
-                            fullWidth 
-                            onClick={handleAdd}
-                        >
-                            {t('添加')}/{t('更新')}
-                        </Button>
-                    </Grid>
-                </Grid>
-                
-                {/* Preview Section */}
-                <Box sx={{ mt: 2, display: 'flex', gap: 4 }}>
-                    {existingLogo && (
-                        <Box>
-                            <Typography variant="caption" color="textSecondary">{t('已存在封面')}:</Typography>
-                            <Box 
-                                component="img" 
-                                src={existingLogo} 
-                                sx={{ height: 60, display: 'block', mt: 1, border: '1px solid #eee' }} 
-                                onError={(e) => e.target.style.display = 'none'}
+                            {isUploading ? t('正在上传...') : t('批量上传图片')}
+                            <input 
+                                type="file" 
+                                hidden 
+                                accept="image/*" 
+                                multiple 
+                                onChange={handleUpload} 
                             />
-                        </Box>
-                    )}
-                    {inputLogo && (
-                        <Box>
-                            <Typography variant="caption" color="textSecondary">{t('当前预览')}:</Typography>
-                            <Box 
-                                component="img" 
-                                src={inputLogo} 
-                                sx={{ height: 60, display: 'block', mt: 1, border: '1px solid #eee' }} 
-                                onError={(e) => e.target.style.display = 'none'}
-                            />
-                        </Box>
-                    )}
+                        </Button>
+                    </Box>
                 </Box>
             </Card>
 
@@ -225,15 +136,12 @@ const ChannelLogos = () => {
                                     }}
                                 />
                             </Box>
-                            <CardContent sx={{ p: 1.5, flexGrow: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <CardContent sx={{ p: 1.5, flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                 <Tooltip title={name}>
-                                    <Typography variant="subtitle2" noWrap sx={{ maxWidth: '70%' }}>
+                                    <Typography variant="subtitle2" noWrap sx={{ maxWidth: '100%' }}>
                                         {name}
                                     </Typography>
                                 </Tooltip>
-                                <IconButton size="small" color="error" onClick={() => handleDelete(name)}>
-                                    <DeleteIcon fontSize="small" />
-                                </IconButton>
                             </CardContent>
                         </Card>
                     </Grid>
