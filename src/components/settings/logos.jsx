@@ -75,8 +75,6 @@ const ChannelLogos = () => {
 
     return (
         <Box sx={{ width: '100%', p: 2 }}>
-            <Typography variant="h5" sx={{ mb: 3 }}>{t('频道封面配置')}</Typography>
-
             {/* Upload Section */}
             <Card sx={{ mb: 3, p: 2 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>

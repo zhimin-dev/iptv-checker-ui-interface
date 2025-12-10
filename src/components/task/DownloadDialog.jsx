@@ -12,10 +12,12 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
     const { t } = useTranslation();
     const [showData, setShowData] = useState([]);
     const [url, setUrl] = useState('');
+    const [withLocalLogoUrl, setWithLocalLogoUrl] = useState('');
     const _mainContext = useContext(MainContext);
 
     useEffect(() => {
         setUrl(window.document.location.origin + "/" + formValue.url);
+        setWithLocalLogoUrl(window.document.location.origin + "/q?url=./" + formValue.url+"&host="+window.document.location.origin+"/");
         if (formValue.content !== '') {
             setShowData(formValue.content);
         } else {
@@ -46,6 +48,7 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
                         zIndex: 9,
                     }}>
                         <div>{t('订阅链接')}：<b>{url}</b></div>
+                        <div>{t('本地Logo链接')}：<b>{withLocalLogoUrl}</b></div>
                         {showData !='' && (
                             <div>
                                 <Button variant="text" onClick={() => downloadFile(formValue.url)}>{t('点击下载')}</Button>
