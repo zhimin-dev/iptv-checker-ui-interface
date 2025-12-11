@@ -11,10 +11,18 @@ import {
     Snackbar,
     Alert,
     Tooltip,
-    CircularProgress
+    CircularProgress,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    IconButton,
+    Chip,
+    Stack
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import { useTranslation } from 'react-i18next';
 import { ApiTaskService } from '../../services/apiTaskService';
 
@@ -25,6 +33,15 @@ const ChannelLogos = () => {
     const [searchKeyword, setSearchKeyword] = useState('');
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
     const [isUploading, setIsUploading] = useState(false);
+    
+    // Alias Dialog State
+    const [aliasDialog, setAliasDialog] = useState({ 
+        open: false, 
+        sourceName: '', 
+        sourceUrl: '', 
+        currentAliases: [], 
+        newAlias: '' 
+    });
 
     useEffect(() => {
         fetchLogos();
@@ -33,7 +50,17 @@ const ChannelLogos = () => {
     const fetchLogos = async () => {
         try {
             const data = await taskService.getChannelLogos();
-            setLogos(data || {});
+            const logoMap = {};
+            if (Array.isArray(data)) {
+                data.forEach(item => {
+                    if (item.url && Array.isArray(item.name)) {
+                        item.name.forEach(n => {
+                            logoMap[n] = item.url;
+                        });
+                    }
+                });
+            }
+            setLogos(logoMap);
         } catch (error) {
             console.error('Error fetching logos:', error);
         }
@@ -66,12 +93,69 @@ const ChannelLogos = () => {
         }
     };
 
+    const handleOpenAlias = (name, url) => {
+        // Find all aliases pointing to this URL
+        const aliases = Object.keys(logos).filter(key => logos[key] === url);
+        setAliasDialog({ 
+            open: true, 
+            sourceName: name, 
+            sourceUrl: url, 
+            currentAliases: aliases, 
+            newAlias: '' 
+        });
+    };
+
+    const handleCloseAlias = () => {
+        setAliasDialog({ open: false, sourceName: '', sourceUrl: '', currentAliases: [], newAlias: '' });
+    };
+
+    const handleAddChip = () => {
+        const val = aliasDialog.newAlias.trim();
+        if (!val) return;
+        if (aliasDialog.currentAliases.includes(val)) {
+             setMessage({ open: true, text: t('别名已存在'), type: 'warning' });
+             return;
+        }
+        setAliasDialog(prev => ({
+            ...prev,
+            currentAliases: [...prev.currentAliases, val],
+            newAlias: ''
+        }));
+    };
+
+    const handleDeleteChip = (aliasToDelete) => {
+        setAliasDialog(prev => ({
+            ...prev,
+            currentAliases: prev.currentAliases.filter(alias => alias !== aliasToDelete)
+        }));
+    };
+
+    const handleSaveAlias = async () => {
+        try {
+            await taskService.updateLogo({
+                url: aliasDialog.sourceUrl,
+                name: aliasDialog.currentAliases
+            });
+            await fetchLogos();
+            setMessage({ open: true, text: t('保存成功'), type: 'success' });
+            handleCloseAlias();
+        } catch (error) {
+            console.error('Save alias failed', error);
+            setMessage({ open: true, text: t('保存失败'), type: 'error' });
+        }
+    };
+
     const handleCloseMessage = () => {
         setMessage({ ...message, open: false });
     };
 
     const filteredLogos = Object.entries(logos)
         .filter(([name]) => name.toLowerCase().includes(searchKeyword.toLowerCase()));
+
+    // Deduplicate visuals: if multiple aliases point to same URL, only show one card? 
+    // Or show all? The requirement says "list display current all data". 
+    // Usually showing all is better so user can search by any alias.
+    // So current filteredLogos is fine.
 
     return (
         <Box sx={{ width: '100%', p: 2 }}>
@@ -134,11 +218,16 @@ const ChannelLogos = () => {
                                     }}
                                 />
                             </Box>
-                            <CardContent sx={{ p: 1.5, flexGrow: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <CardContent sx={{ p: 1.5, flexGrow: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Tooltip title={name}>
-                                    <Typography variant="subtitle2" noWrap sx={{ maxWidth: '100%' }}>
+                                    <Typography variant="subtitle2" noWrap sx={{ maxWidth: '70%' }}>
                                         {name}
                                     </Typography>
+                                </Tooltip>
+                                <Tooltip title={t('编辑别名')}>
+                                    <IconButton size="small" color="primary" onClick={() => handleOpenAlias(name, url)}>
+                                        <DriveFileRenameOutlineIcon fontSize="small" />
+                                    </IconButton>
                                 </Tooltip>
                             </CardContent>
                         </Card>
@@ -152,6 +241,57 @@ const ChannelLogos = () => {
                     </Grid>
                 )}
             </Grid>
+
+            {/* Alias Dialog */}
+            <Dialog open={aliasDialog.open} onClose={handleCloseAlias} maxWidth="sm" fullWidth>
+                <DialogTitle>{t('编辑别名')}</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ pt: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                             <Box 
+                                component="img" 
+                                src={aliasDialog.sourceUrl} 
+                                sx={{ maxHeight: 100, maxWidth: '100%', objectFit: 'contain' }} 
+                             />
+                        </Box>
+
+                        <Typography variant="subtitle2" gutterBottom>{t('已有别名')}</Typography>
+                        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 3 }}>
+                            {aliasDialog.currentAliases.map((alias) => (
+                                <Chip 
+                                    key={alias} 
+                                    label={alias} 
+                                    onDelete={() => handleDeleteChip(alias)} 
+                                />
+                            ))}
+                            {aliasDialog.currentAliases.length === 0 && (
+                                <Typography variant="caption" color="textSecondary">
+                                    {t('暂无别名')}
+                                </Typography>
+                            )}
+                        </Stack>
+
+                        <Typography variant="subtitle2" gutterBottom>{t('新增别名')}</Typography>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                            <TextField
+                                fullWidth
+                                size="small"
+                                label={t('输入别名')}
+                                value={aliasDialog.newAlias}
+                                onChange={(e) => setAliasDialog({ ...aliasDialog, newAlias: e.target.value })}
+                                onKeyPress={(e) => { if (e.key === 'Enter') handleAddChip(); }}
+                            />
+                            <Button onClick={handleAddChip} variant="contained" size="small">
+                                {t('添加')}
+                            </Button>
+                        </Box>
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseAlias}>{t('取消')}</Button>
+                    <Button onClick={handleSaveAlias} variant="contained" color="primary">{t('保存')}</Button>
+                </DialogActions>
+            </Dialog>
 
             <Snackbar 
                 open={message.open} 

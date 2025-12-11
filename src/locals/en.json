@@ -287,6 +287,18 @@
       "正在上传...": "Uploading...",
       "成功": "Success",
       "失败": "Failed",
-      "所有文件上传失败": "All files failed to upload"
+      "所有文件上传失败": "All files failed to upload",
+      "添加别名": "Add Alias",
+      "请输入别名": "Please enter alias",
+      "别名添加成功": "Alias added successfully",
+      "原频道": "Original Channel",
+      "别名": "Alias",
+      "支持多个别名，用逗号分隔": "Support multiple aliases, separated by comma",
+      "编辑别名": "Edit Alias",
+      "已有别名": "Existing Aliases",
+      "新增别名": "Add New Alias",
+      "输入别名": "Enter Alias",
+      "别名已存在": "Alias already exists",
+      "暂无别名": "No Aliases"
     }
 }
