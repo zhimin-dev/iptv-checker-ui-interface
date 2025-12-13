@@ -70,6 +70,13 @@ export class ApiTaskService {
         return response.data;
     }
 
+    async getTaskContent(taskId, host) {
+        const response = await axios.get(`${this.baseUrl}/tasks/get-task-content`, {
+            params: { task_id: taskId, host }
+        });
+        return response.data;
+    }
+
     async exportTasks() {
         const response = await axios.get(`${this.baseUrl}/system/tasks/export`);
         return response.data;

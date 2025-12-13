@@ -213,9 +213,6 @@ const ChannelLogos = () => {
                                     src={url} 
                                     alt={name}
                                     sx={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                                    onError={(e) => {
-                                        e.target.src = 'https://via.placeholder.com/100?text=No+Img';
-                                    }}
                                 />
                             </Box>
                             <CardContent sx={{ p: 1.5, flexGrow: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

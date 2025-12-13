@@ -299,6 +299,8 @@
       "新增别名": "Add New Alias",
       "输入别名": "Enter Alias",
       "别名已存在": "Alias already exists",
-      "暂无别名": "No Aliases"
+      "暂无别名": "No Aliases",
+      "本地Logo链接": "Local Logo Links",
+      "获取失败": "Failed to fetch"
     }
 }

@@ -104,7 +104,7 @@ export default function LTaskList() {
         try {
             const data = await taskService.getDownloadBody(id);
             setOpenDownloadBody(true);
-            setDownloadBody({ 'content': data.content, "url": data.url });
+            setDownloadBody({ 'content': data.content, "url": data.url, "task_id": id });
         } catch (e) {
             handleOpenAlertBar(t('操作失败'));
         }
