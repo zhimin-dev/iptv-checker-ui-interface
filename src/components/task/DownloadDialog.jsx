@@ -28,7 +28,7 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
         if (!open) return; // 对话框未打开时不执行
         
         setUrl(window.document.location.origin + "/" + formValue.url);
-        setWithLocalLogoUrl(window.document.location.origin + "/q?url=/" + formValue.url+"&host="+window.document.location.origin);
+        setWithLocalLogoUrl(window.document.location.origin + "/q?url=/" + formValue.url);
         
         // 重置数据
         setShowData('');

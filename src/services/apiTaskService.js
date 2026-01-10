@@ -171,4 +171,23 @@ export class ApiTaskService {
         const response = await axios.post(`${this.baseUrl}/system/channel-logos`, data);
         return response.data;
     }
+
+    async saveChannelLogosConfig(data) {
+        const response = await axios.post(`${this.baseUrl}/media/logos/config`, data);
+        return response.data;
+    }
+
+    async exportConfig() {
+        const response = await axios.get(`${this.baseUrl}/system/export`);
+        return response.data;
+    }
+
+    async importConfig(formData) {
+        const response = await axios.post(`${this.baseUrl}/system/import`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    }
 }

@@ -70,7 +70,8 @@ export default function SearchSettings() {
             extensions: [],
             search_list: []
         },
-        today_fetch: false
+        today_fetch: false,
+        host: ''
     });
     const [taskService] = useState(() => new ApiTaskService());
     const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -96,9 +97,9 @@ export default function SearchSettings() {
                     search: {
                         source: response.search?.source ?? [],
                         extensions: response.search?.extensions ?? [],
-                        search_list: response.search?.search_list ?? []
+                        search_list: response.search?.search_list ?? [],
                     },
-                    today_fetch: response.today_fetch ?? false
+                    today_fetch: response.today_fetch ?? false,
                 });
             }
         } catch (error) {
@@ -147,7 +148,7 @@ export default function SearchSettings() {
                     ...s,
                     urls: s.urls.filter(u => u.trim()),
                     include_files: s.include_files.filter(f => f.trim())
-                }))
+                })).filter(s => s.urls.length > 0)
             }
         };
 
@@ -173,14 +174,14 @@ export default function SearchSettings() {
         { value: 'github-sub-page', label: t('GitHub 子页面') },
     ];
 
-    const canAddSource = config.search.source.length < sourceTypes.length;
+    const canAddSource = true;
 
     const handleAddSource = () => {
         if (!canAddSource) return;
 
         // Find first unused type
         const usedTypes = config.search.source.map(s => s.parse_type);
-        const nextType = sourceTypes.find(t => !usedTypes.includes(t.value))?.value || 'raw-source';
+        const nextType = sourceTypes.find(t => !usedTypes.includes(t.value))?.value || 'github-sub-page';
 
         setConfig(prev => ({
             ...prev,
@@ -298,7 +299,7 @@ export default function SearchSettings() {
                 <Typography variant="h6">{t('搜索源')}</Typography>
                 {canAddSource && (
                     <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddSource}>
-                        {t('添加源')}
+                        {t('添加github子页面源')}
                     </Button>
                 )}
             </Box>
@@ -317,7 +318,7 @@ export default function SearchSettings() {
                                     >
                                         {sourceTypes.map(type => {
                                             const isUsed = config.search.source.some(s => s.parse_type === type.value);
-                                            const disabled = isUsed && type.value !== source.parse_type;
+                                            const disabled = type.value !== 'github-sub-page' && isUsed && type.value !== source.parse_type;
                                             return (
                                                 <MenuItem key={type.value} value={type.value} disabled={disabled}>{type.label}</MenuItem>
                                             );

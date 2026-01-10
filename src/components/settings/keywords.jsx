@@ -7,10 +7,13 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
+import Switch from '@mui/material/Switch';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 export default function KeywordSettings() {
     const { t } = useTranslation();
-    const [replaceList, setReplaceList] = useState([]);
+    const [replaceString, setReplaceString] = useState(false);
+    const [replaceMap, setReplaceMap] = useState({});
     const [showList, setShowList] = useState([]);
     const [taskService] = useState(() => new ApiTaskService());
     const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -23,25 +26,26 @@ export default function KeywordSettings() {
     const fetchData = async () => {
         try {
             const response = await taskService.getReplaceList();
-            setReplaceList(response);
+            setReplaceString(response.replace_string ?? false);
+            setReplaceMap(response.replace_map ?? {});
         } catch (error) {
             console.error('Error fetching data:', error);
         }
     }
 
     useEffect(() => {
-        if (!replaceList) {
+        if (!replaceMap) {
             setShowList([]);
             return;
         }
-        if (Array.isArray(replaceList)) {
-            setShowList(replaceList.map(r => ({ key: r.key ?? '', value: r.value ?? '' })));
-        } else if (typeof replaceList === 'object') {
-            setShowList(Object.entries(replaceList).map(([k, v]) => ({ key: k, value: v ?? '' })));
+        if (Array.isArray(replaceMap)) {
+            setShowList(replaceMap.map(r => ({ key: r.key ?? '', value: r.value ?? '' })));
+        } else if (typeof replaceMap === 'object') {
+            setShowList(Object.entries(replaceMap).map(([k, v]) => ({ key: k, value: v ?? '' })));
         } else {
             setShowList([]);
         }
-    }, [replaceList]);
+    }, [replaceMap]);
 
     const handleChange = (index, field, value) => {
         setShowList(prev => {
@@ -60,20 +64,21 @@ export default function KeywordSettings() {
     };
 
     const handleSave = async () => {
-        const result = {};
+        const newReplaceMap = {};
         showList.forEach(row => {
             if (row.key !== undefined && row.key !== '') {
-                result[row.key] = row.value ?? '';
+                newReplaceMap[row.key] = row.value ?? '';
             }
         });
-        setReplaceList(result);
 
-        let postData = {
-            "content": JSON.stringify(result)
-        }
+        const postData = {
+            replace_string: replaceString,
+            replace_map: newReplaceMap
+        };
 
         try {
             await taskService.updateReplaceList(postData);
+            setReplaceMap(newReplaceMap);
             setSnackbarMsg(t('保存成功'));
             setOpenSnackbar(true);
         } catch (err) {
@@ -95,6 +100,19 @@ export default function KeywordSettings() {
                 <p style={{ padding: '0', margin: '0' }}>{t('网络上的频道名前后经常出现一些特殊字符，可以通过添加该配置将这些字符替换掉，提升频道名的整洁度。')}</p>
                 <p style={{ padding: '0', margin: '0' }}>{t('比如频道名中出现“[HD]”，如果需要将这个字符去掉，添加一行：搜索值填写“[HD]”，替换值留空即可。')}</p>
             </div>
+
+            <Box sx={{ mb: 2 }}>
+                <FormControlLabel
+                    control={
+                        <Switch
+                            checked={replaceString}
+                            onChange={(e) => setReplaceString(e.target.checked)}
+                        />
+                    }
+                    label={t('启用字符串替换')}
+                />
+            </Box>
+
             <div style={{ padding: '10px 0' }}>
                 <Button variant="contained" onClick={handleAddRow}>
                     {t('添加')}

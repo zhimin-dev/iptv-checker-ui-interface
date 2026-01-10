@@ -56,6 +56,9 @@ import { routes } from '../../router/routes';
 const detailUri = '/detail'
 const drawerWidth = 240;
 
+// 过滤出菜单项
+const menuList = routes.filter(r => !r.hideInMenu);
+
 export default function Layout() {
     const { t } = useTranslation();
     let location = useLocation();
@@ -63,9 +66,6 @@ export default function Layout() {
     const _mainContext = useContext(MainContext);
     const navigate = useNavigate();
     
-    // 过滤出菜单项
-    const menuList = routes.filter(r => !r.hideInMenu);
-
     const [nowSelectedMenu, setNowSelectedMenu] = useState(menuList[0])
     const [openSubCheckedMenu, setOpenSubCheckedMenu] = useState(false)
     const [openSettings, setOpenSettings] = useState(false)
