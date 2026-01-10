@@ -5,6 +5,7 @@ import { Box, Typography, Button, Grid, Dialog, DialogTitle, DialogContent, Card
 import StarsIcon from '@mui/icons-material/Stars';
 import LocalCafeIcon from '@mui/icons-material/LocalCafe';
 import _package from '../../../package.json';
+import howtostarPng from '../../assets/howtostar.png';
 
 const DonateSettings = () => {
     const { t } = useTranslation();
@@ -134,6 +135,7 @@ const DonateSettings = () => {
                             {t('前往 GitHub 点 Star')}
                         </Button>
                     </Box>
+                    <img src={howtostarPng} alt="how to star" style={{ width: '100%', maxWidth: '800px', objectFit: 'contain' }} />
                     <Button variant="text" onClick={handleGoBack}>
                         {t('返回')}
                     </Button>

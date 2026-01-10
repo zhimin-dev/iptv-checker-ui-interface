@@ -183,9 +183,9 @@ const ChannelLogos = () => {
                             <Typography variant="body2" sx={{ mb: 1 }}>
                                 <strong>{t('全局 Host')}:</strong> {config.host || t('未设置')}
                             </Typography>
-                            <Typography variant="body2">
+                            {/* <Typography variant="body2">
                                 <strong>{t('将远程图片转换为本地图片')}:</strong> {config.remote_url2local_images ? t('已启用') : t('已禁用')}
-                            </Typography>
+                            </Typography> */}
                         </Box>
                         <Button 
                             variant="outlined" 
@@ -205,7 +205,7 @@ const ChannelLogos = () => {
                             fullWidth
                             placeholder="http://localhost:5173"
                         />
-                        <FormControlLabel
+                        {/* <FormControlLabel
                             control={
                                 <Switch
                                     checked={config.remote_url2local_images}
@@ -213,7 +213,7 @@ const ChannelLogos = () => {
                                 />
                             }
                             label={t('将远程图片转换为本地图片')}
-                        />
+                        /> */}
                         <Box sx={{ display: 'flex', gap: 1 }}>
                             <Button variant="contained" onClick={handleSaveConfig} size="small">
                                 {t('保存配置')}

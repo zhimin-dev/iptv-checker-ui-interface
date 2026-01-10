@@ -159,6 +159,7 @@ export default function TaskList() {
     };
 
     const getDownloadBody = async (id) => {
+        // setOpenDownloadBody(true);
         try {
             const data = await taskService.getDownloadBody(id);
             setOpenDownloadBody(true);
@@ -233,7 +234,7 @@ export default function TaskList() {
                         {t('刷新列表')}
                     </Button>
                 </Box>
-                <Box>
+                {/* <Box>
                     <Button
                         variant="outlined"
                         size='small'
@@ -251,7 +252,7 @@ export default function TaskList() {
                     >
                         {t('任务导出')}
                     </Button>
-                </Box>
+                </Box> */}
             </Box>
             <Snackbar
                 open={openAlertBar}

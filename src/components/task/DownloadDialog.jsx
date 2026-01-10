@@ -21,18 +21,21 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
     const [withLocalLogoUrl, setWithLocalLogoUrl] = useState('');
     const [currentTab, setCurrentTab] = useState(0);
     const [loadingContent, setLoadingContent] = useState(false);
+    const [hasLogoType, setHasLogoType] = useState(false);
     const taskService = new ApiTaskService();
     const _mainContext = useContext(MainContext);
 
     useEffect(() => {
         if (!open) return; // 对话框未打开时不执行
         
+        setCurrentTab(0);
         setUrl(window.document.location.origin + "/" + formValue.url);
         setWithLocalLogoUrl(window.document.location.origin + "/q?url=/" + formValue.url);
         
         // 重置数据
         setShowData('');
         setLocalLogoData('');
+        setHasLogoType(false);
         
         // 如果有 task_id，请求任务内容
         const fetchTaskContent = async () => {
@@ -54,6 +57,7 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
                     data.forEach(item => {
                         if (item.type === 'logo' && item.content) {
                             setLocalLogoData(item.content);
+                            setHasLogoType(true);
                         } else if (item.type === 'sub' && item.content) {
                             setShowData(item.content);
                         }
@@ -111,7 +115,7 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={currentTab} onChange={handleTabChange}>
                         <Tab label={t('原始数据')} />
-                        <Tab label={t('本地Logo链接')} />
+                        {hasLogoType && <Tab label={t('本地Logo链接')} />}
                     </Tabs>
                 </Box>
 
@@ -144,7 +148,7 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
                                 </>
                             )}
                             
-                            {currentTab === 1 && (
+                            {currentTab === 1 && hasLogoType && (
                                 <>
                                     {localLogoData ? (
                                         <TextField
