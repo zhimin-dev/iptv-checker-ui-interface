@@ -161,9 +161,9 @@ export default function TaskList() {
     const getDownloadBody = async (id) => {
         // setOpenDownloadBody(true);
         try {
-            const data = await taskService.getDownloadBody(id);
+            const data = await taskService.getTaskDetail(id);
             setOpenDownloadBody(true);
-            setDownloadBody({ 'content': data.content, "url": data.url, "task_id": id });
+            setDownloadBody({ "task_id": id, "check_result": data.check_result });
         } catch (e) {
             handleOpenAlertBar(t('操作失败'));
         }

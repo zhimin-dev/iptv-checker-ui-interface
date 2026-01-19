@@ -11,6 +11,7 @@ import ChannelLogos from '../components/settings/logos';
 import Detail from '../components/detail';
 import Welcome from '../components/welcome';
 import DonateSettings from '../components/settings/donate';
+import BackupSettings from '../components/settings/backup';
 
 // 路由配置项说明：
 // path: 路由路径
@@ -123,6 +124,13 @@ export const routes = [
                 name: "频道封面配置",
                 icon: "PhotoLibraryIcon",
                 element: <ChannelLogos />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/settings/backup",
+                name: "备份与恢复",
+                icon: "SettingsBackupRestoreIcon",
+                element: <BackupSettings />,
                 handle: { showHeader: true, showSidebar: true }
             },
             {

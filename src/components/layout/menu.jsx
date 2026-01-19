@@ -32,6 +32,7 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
 import HomeIcon from '@mui/icons-material/Home';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 import _package from './../../../package';
 import { useTranslation, initReactI18next } from "react-i18next";
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
@@ -236,6 +237,9 @@ export default function Layout() {
                                                         {
                                                             value.icon === 'SettingsOutlinedIcon' ? <SettingsOutlinedIcon /> : ''
                                                         }
+                                                        {
+                                                            value.icon === 'SettingsBackupRestoreIcon' ? <SettingsBackupRestoreIcon /> : ''
+                                                        }
                                                     </ListItemIcon>
                                                     <ListItemText primary={t(value.name)} />
                                                     {
@@ -266,6 +270,7 @@ export default function Layout() {
                                                                             {child.icon === 'PhotoLibraryIcon' ? <PhotoLibraryIcon /> : ''}
                                                                             {child.icon === 'FavoriteIcon' ? <FavoriteIcon /> : ''}
                                                                             {child.icon === 'VolunteerActivismIcon' ? <VolunteerActivismIcon /> : ''}
+                                                                            {child.icon === 'SettingsBackupRestoreIcon' ? <SettingsBackupRestoreIcon /> : ''}
                                                                         </ListItemIcon>
                                                                         <ListItemText primary={t(child.name)} />
                                                                     </ListItemButton>

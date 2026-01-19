@@ -18,13 +18,6 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import { fontSize, fontWeight } from '@mui/system';
-import { ApiTaskService } from '../../services/apiTaskService';
-import Divider from '@mui/material/Divider';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import CircularProgress from '@mui/material/CircularProgress';
 
 function AddSourceDialog(props) {
     const { t } = useTranslation();
@@ -90,9 +83,6 @@ export default function Settings() {
     const [playerSource, setPlayerSource] = useState('');
     const [openDialog, setOpenDialog] = useState(false);
     const [newVersion, setNewVersion] = useState('');
-    const [isExporting, setIsExporting] = useState(false);
-    const [isImporting, setIsImporting] = useState(false);
-    const [taskService] = useState(() => new ApiTaskService());
     const { t } = useTranslation();
 
     useEffect(() => {
@@ -145,48 +135,6 @@ export default function Settings() {
         setOpenDialog(true)
         setDialogMsg(t('保存成功'))
     }
-
-    const handleExport = async () => {
-        setIsExporting(true);
-        try {
-            const res = await taskService.exportConfig();
-            if (res && res.file) {
-                // 如果是相对路径，可能需要拼接 host
-                const downloadUrl = res.file.startsWith('http') ? res.file : `${_mainContext.settings.privateHost || ''}${res.file}`;
-                window.open(downloadUrl);
-                setDialogMsg(t('导出成功'));
-            } else {
-                setDialogMsg(t('导出失败：接口未返回文件地址'));
-            }
-        } catch (error) {
-            console.error('Export failed:', error);
-            setDialogMsg(t('导出失败'));
-        } finally {
-            setIsExporting(false);
-            setOpenDialog(true);
-        }
-    };
-
-    const handleImport = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        setIsImporting(true);
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            await taskService.importConfig(formData);
-            setDialogMsg(t('导入成功，请重启应用或刷新页面'));
-        } catch (error) {
-            console.error('Import failed:', error);
-            setDialogMsg(t('导入失败'));
-        } finally {
-            setIsImporting(false);
-            setOpenDialog(true);
-            e.target.value = ''; // clear input
-        }
-    };
 
     const handleShowAddSourceDialog = (val) => {
         setShowAddSourceDialog(val)
@@ -277,40 +225,8 @@ export default function Settings() {
                     >
                         {t('保存')}
                     </LoadingButton>
-
-                    <Divider sx={{ my: 3 }} />
-                    
-                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-                        {t('数据备份与恢复')}
-                    </Typography>
-                    
-                    <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-                        <LoadingButton
-                            variant="outlined"
-                            loading={isExporting}
-                            startIcon={<FileDownloadIcon />}
-                            onClick={handleExport}
-                        >
-                            {t('导出配置')}
-                        </LoadingButton>
-
-                        <Button
-                            variant="outlined"
-                            component="label"
-                            startIcon={isImporting ? <CircularProgress size={20} /> : <CloudUploadIcon />}
-                            disabled={isImporting}
-                        >
-                            {isImporting ? t('正在导入...') : t('导入配置')}
-                            <input
-                                type="file"
-                                hidden
-                                accept=".zip"
-                                onChange={handleImport}
-                            />
-                        </Button>
-                    </Box>
                 </Box>
-                <FormControl sx={{ marginTop: '20px' }}>
+                <FormControl sx={{ marginTop: '20px',paddingLeft: '20px', }}>
                     <Box>{t('当前版本')}: {nowVersion}</Box>
                     {
                         _mainContext.showNewVersion ? (

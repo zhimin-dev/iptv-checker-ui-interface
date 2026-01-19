@@ -62,13 +62,12 @@ const StringListEditor = ({ values, onChange, label, t, placeholder, validation 
 
 export default function SearchSettings() {
     const { t } = useTranslation();
-    const [showLocal2RemoteSwitch, setShowLocal2RemoteSwitch] = useState(false);
     const [config, setConfig] = useState({
         remote_url2local_images: false,
         search: {
             source: [],
-            extensions: [],
-            search_list: []
+            search_list: [],
+            interval_hours: 24
         },
         today_fetch: false,
         host: ''
@@ -95,9 +94,12 @@ export default function SearchSettings() {
                 setConfig({
                     remote_url2local_images: response.remote_url2local_images ?? false,
                     search: {
-                        source: response.search?.source ?? [],
-                        extensions: response.search?.extensions ?? [],
+                        source: (response.search?.source ?? []).map(s => ({
+                            ...s,
+                            extensions: s.extensions ?? []
+                        })),
                         search_list: response.search?.search_list ?? [],
+                        interval_hours: response.search?.interval_hours ?? 24
                     },
                     today_fetch: response.today_fetch ?? false,
                 });
@@ -187,7 +189,7 @@ export default function SearchSettings() {
             ...prev,
             search: {
                 ...prev.search,
-                source: [...prev.search.source, { urls: [], include_files: [], parse_type: nextType }]
+                source: [...prev.search.source, { urls: [], include_files: [], parse_type: nextType, extensions: [] }]
             }
         }));
     };
@@ -235,7 +237,7 @@ export default function SearchSettings() {
             />
 
             <Box sx={{ mb: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     {config.today_fetch ? (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                             {isProcessing ? <CircularProgress size={24} /> : (
@@ -250,49 +252,22 @@ export default function SearchSettings() {
                         )
                     )}
                 </Box>
-            </Box>
-
-            {
-                showLocal2RemoteSwitch ? (
-
-                    <Box sx={{ mb: 3 }}>
-                        <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={config.remote_url2local_images}
-                                    onChange={handleSwitchChange}
-                                />
-                            }
-                            label={t('将远程图片转换为本地图片')}
-                        />
-                    </Box>
-                ) : null
-            }
-
-            <Typography variant="h6" gutterBottom>{t('文件扩展名')}</Typography>
-            <Box sx={{ mb: 3 }}>
-                <FormGroup row>
-                    {availableExtensions.map(ext => (
-                        <FormControlLabel
-                            key={ext}
-                            control={
-                                <Checkbox
-                                    checked={config.search.extensions.includes(ext)}
-                                    onChange={(e) => {
-                                        const checked = e.target.checked;
-                                        setConfig(prev => {
-                                            const newExts = checked
-                                                ? [...prev.search.extensions, ext]
-                                                : prev.search.extensions.filter(x => x !== ext);
-                                            return { ...prev, search: { ...prev.search, extensions: newExts } };
-                                        });
-                                    }}
-                                />
-                            }
-                            label={ext}
-                        />
-                    ))}
-                </FormGroup>
+                {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2">{t('定时爬取')}</Typography>
+                    <TextField
+                        size="small"
+                        type="number"
+                        value={config.search.interval_hours}
+                        onChange={(e) => setConfig(prev => ({
+                            ...prev,
+                            search: { ...prev.search, interval_hours: parseInt(e.target.value, 10) || 0 }
+                        }))}
+                        sx={{ width: 80 }}
+                        InputProps={{
+                            endAdornment: <Typography variant="caption" sx={{ ml: 0.5 }}>h</Typography>
+                        }}
+                    />
+                </Box> */}
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -339,7 +314,34 @@ export default function SearchSettings() {
                                 validation={validateUrl}
                             />
 
-                            {source.parse_type !== 'raw-source' && (
+                            {source.parse_type === 'github-home-page' && (
+                                <Box sx={{ mb: 2 }}>
+                                    <Typography variant="caption" color="textSecondary" sx={{ mb: 1, display: 'block' }}>{t('文件扩展名')}</Typography>
+                                    <FormGroup row>
+                                        {availableExtensions.map(ext => (
+                                            <FormControlLabel
+                                                key={ext}
+                                                control={
+                                                    <Checkbox
+                                                        checked={(source.extensions || []).includes(ext)}
+                                                        onChange={(e) => {
+                                                            const checked = e.target.checked;
+                                                            const newExts = checked
+                                                                ? [...(source.extensions || []), ext]
+                                                                : (source.extensions || []).filter(x => x !== ext);
+                                                            handleSourceChange(index, 'extensions', newExts);
+                                                        }}
+                                                        size="small"
+                                                    />
+                                                }
+                                                label={<Typography variant="body2">{ext}</Typography>}
+                                            />
+                                        ))}
+                                    </FormGroup>
+                                </Box>
+                            )}
+
+                            {source.parse_type === 'github-sub-page' && (
                                 <StringListEditor
                                     label={t('包含文件')}
                                     values={source.include_files || []}

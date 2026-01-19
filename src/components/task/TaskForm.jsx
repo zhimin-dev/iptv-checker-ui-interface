@@ -31,6 +31,7 @@ import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 import MoodBadIcon from '@mui/icons-material/MoodBad';
 import PublicIcon from '@mui/icons-material/Public';
 import UploadIcon from '@mui/icons-material/Upload';
+import AddIcon from '@mui/icons-material/Add';
 
 const run_type_list = [{ "value": "EveryDay", "name": "每天" }, { "value": "EveryHour", "name": "每小时" }];
 const output_extenion = ".m3u";
@@ -70,6 +71,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
     const [task, setTask] = useState(defaultValue);
     const [filterFavKeyword, setFilterFavKeyword] = useState('');
     const [filterDisKeyword, setFilterDisKeyword] = useState('');
+    const [keywordType, setKeywordType] = useState('like'); // 'like' or 'dislike'
     const [activeStep, setActiveStep] = useState(0);
     const [delOpen, setDelOpen] = useState(false);
 
@@ -84,6 +86,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
             setTask(default_data);
             setFilterDisKeyword('');
             setFilterFavKeyword('');
+            setKeywordType('like');
             setActiveStep(0);
             setDelOpen(false);
         }
@@ -109,12 +112,21 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                 }
             };
             setTask(processedFormValue);
+            // 根据已有数据设置keywordType
+            if (processedFormValue.original.keyword_like && processedFormValue.original.keyword_like.length > 0) {
+                setKeywordType('like');
+            } else if (processedFormValue.original.keyword_dislike && processedFormValue.original.keyword_dislike.length > 0) {
+                setKeywordType('dislike');
+            } else {
+                setKeywordType('like');
+            }
         } else {
             let default_data = JSON.parse(JSON.stringify(defaultValue));
             if (default_data.original.result_name === '') {
                 default_data.original.result_name = randomString(10);
             }
             setTask(default_data);
+            setKeywordType('like');
         }
     }, [formValue]);
 
@@ -524,88 +536,135 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                         <FormControl fullWidth style={{
                             margin: "10px 0 20px",
                         }}>
-                            <Stack direction="row" spacing={2}>
-                                <TextField
-                                    id="standard-basic"
-                                    label={t('喜欢频道名称')}
-                                    variant="standard"
-                                    fullWidth
-                                    value={filterFavKeyword} onChange={changeFilterFavKeyword} />
-                                <Button
-                                    size='small'
-                                    variant="outlined"
-                                    onClick={() => addKeyword(1)}
-                                    startIcon={<InsertEmoticonIcon />}
-                                >{t('添加')}</Button>
-                            </Stack>
+                            <Typography variant="subtitle1" component="div" sx={{ mb: 2 }}>{t('频道名称过滤方式')}</Typography>
+                            <RadioGroup
+                                row
+                                value={keywordType}
+                                onChange={(e) => {
+                                    const newType = e.target.value;
+                                    setKeywordType(newType);
+                                    // 切换类型时清空另一个选项的数据
+                                    if (newType === 'like') {
+                                        setTask(prev => ({
+                                            ...prev,
+                                            original: {
+                                                ...prev.original,
+                                                keyword_dislike: []
+                                            }
+                                        }));
+                                        setFilterDisKeyword('');
+                                    } else {
+                                        setTask(prev => ({
+                                            ...prev,
+                                            original: {
+                                                ...prev.original,
+                                                keyword_like: []
+                                            }
+                                        }));
+                                        setFilterFavKeyword('');
+                                    }
+                                }}
+                            >
+                                <FormControlLabel value="like" control={<Radio />} label={t('喜欢频道名称')} />
+                                <FormControlLabel value="dislike" control={<Radio />} label={t('不喜欢频道名称')} />
+                            </RadioGroup>
                         </FormControl>
-                        {
-                            task.original.keyword_like !== null && task.original.keyword_like.length > 0 ? (
+
+                        {keywordType === 'like' ? (
+                            <>
                                 <FormControl fullWidth style={{
-                                    padding: "0 0 20px",
+                                    margin: "10px 0 15px",
                                 }}>
-                                    <Typography variant="subtitle1" component="div">{t('只看频道关键词')}</Typography>
-                                    <Stack direction="row" spacing={1} style={{
-                                        display: "flex",
-                                        flexWrap: "wrap"
-                                    }}>
-                                        {
-                                            task.original.keyword_like !== null && task.original.keyword_like.map((value, i) => (
-                                                <Chip
-                                                    label={value}
-                                                    onDelete={() => deleteThisLikeKw(i)}
-                                                    variant="outlined"
-                                                    key={i}
-                                                    style={{ margin: '5px' }}
-                                                />
-                                            ))
-                                        }
+                                    <Stack direction="row" spacing={1} alignItems="flex-end">
+                                        <TextField
+                                            id="standard-basic"
+                                            label={t('喜欢频道名称')}
+                                            variant="standard"
+                                            fullWidth
+                                            value={filterFavKeyword} onChange={changeFilterFavKeyword} />
+                                        <IconButton
+                                            color="primary"
+                                            onClick={() => addKeyword(1)}
+                                            sx={{ mb: 0.5 }}
+                                        >
+                                            <AddIcon />
+                                        </IconButton>
                                     </Stack>
                                 </FormControl>
-                            ) : ''
-                        }
-                        <FormControl fullWidth style={{
-                            margin: "10px 0 20px",
-                        }}>
-                            <Stack direction="row" spacing={2}>
-                                <TextField
-                                    id="standard-basic"
-                                    label={t('不喜欢频道名称')}
-                                    variant="standard"
-                                    fullWidth
-                                    value={filterDisKeyword} onChange={changeFilterDisKeyword} />
-                                <Button
-                                    size='small'
-                                    variant="outlined"
-                                    onClick={() => addKeyword(2)}
-                                    startIcon={<MoodBadIcon />}>{t('添加')}</Button>
-                            </Stack>
-                        </FormControl>
-                        {
-                            task.original.keyword_dislike !== null && task.original.keyword_dislike.length > 0 ? (
+                                {
+                                    task.original.keyword_like !== null && task.original.keyword_like.length > 0 ? (
+                                        <FormControl fullWidth style={{
+                                            padding: "0 0 20px",
+                                        }}>
+                                            <Typography variant="subtitle1" component="div">{t('只看频道关键词')}</Typography>
+                                            <Stack direction="row" spacing={1} style={{
+                                                display: "flex",
+                                                flexWrap: "wrap"
+                                            }}>
+                                                {
+                                                    task.original.keyword_like !== null && task.original.keyword_like.map((value, i) => (
+                                                        <Chip
+                                                            label={value}
+                                                            onDelete={() => handleDeleteKeyword('keyword_like', i)}
+                                                            variant="outlined"
+                                                            key={i}
+                                                            style={{ margin: '5px' }}
+                                                        />
+                                                    ))
+                                                }
+                                            </Stack>
+                                        </FormControl>
+                                    ) : ''
+                                }
+                            </>
+                        ) : (
+                            <>
                                 <FormControl fullWidth style={{
-                                    padding: "0 0 10px",
+                                    margin: "10px 0 20px",
                                 }}>
-                                    <Typography variant="subtitle1" component="div">{t('不看频道关键词')}</Typography>
-                                    <Stack direction="row" spacing={1} style={{
-                                        display: "flex",
-                                        flexWrap: "wrap"
-                                    }}>
-                                        {
-                                            task.original.keyword_dislike.map((value, i) => (
-                                                <Chip
-                                                    label={value}
-                                                    variant="outlined"
-                                                    onDelete={() => deleteThisDislikeKw(i)}
-                                                    key={i}
-                                                    style={{ margin: '5px' }}
-                                                />
-                                            ))
-                                        }
+                                    <Stack direction="row" spacing={1} alignItems="flex-end">
+                                        <TextField
+                                            id="standard-basic"
+                                            label={t('不喜欢频道名称')}
+                                            variant="standard"
+                                            fullWidth
+                                            value={filterDisKeyword} onChange={changeFilterDisKeyword} />
+                                        <IconButton
+                                            color="primary"
+                                            onClick={() => addKeyword(2)}
+                                            sx={{ mb: 0.5 }}
+                                        >
+                                            <AddIcon />
+                                        </IconButton>
                                     </Stack>
                                 </FormControl>
-                            ) : ''
-                        }
+                                {
+                                    task.original.keyword_dislike !== null && task.original.keyword_dislike.length > 0 ? (
+                                        <FormControl fullWidth style={{
+                                            padding: "0 0 10px",
+                                        }}>
+                                            <Typography variant="subtitle1" component="div">{t('不看频道关键词')}</Typography>
+                                            <Stack direction="row" spacing={1} style={{
+                                                display: "flex",
+                                                flexWrap: "wrap"
+                                            }}>
+                                                {
+                                                    task.original.keyword_dislike.map((value, i) => (
+                                                        <Chip
+                                                            label={value}
+                                                            variant="outlined"
+                                                            onDelete={() => handleDeleteKeyword('keyword_dislike', i)}
+                                                            key={i}
+                                                            style={{ margin: '5px' }}
+                                                        />
+                                                    ))
+                                                }
+                                            </Stack>
+                                        </FormControl>
+                                    ) : ''
+                                }
+                            </>
+                        )}
                     </Box>
                 );
             case 2:

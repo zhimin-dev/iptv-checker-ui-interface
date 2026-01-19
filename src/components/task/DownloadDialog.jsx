@@ -7,10 +7,8 @@ import {
     TextField,
     Tabs,
     Tab,
-    Box,
-    CircularProgress
+    Box
 } from '@mui/material';
-import { ApiTaskService } from '../../services/apiTaskService';
 import { MainContext } from '../../context/main';
 
 export const DownloadDialog = ({ onClose, formValue, open }) => {
@@ -20,61 +18,59 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
     const [url, setUrl] = useState('');
     const [withLocalLogoUrl, setWithLocalLogoUrl] = useState('');
     const [currentTab, setCurrentTab] = useState(0);
-    const [loadingContent, setLoadingContent] = useState(false);
     const [hasLogoType, setHasLogoType] = useState(false);
-    const taskService = new ApiTaskService();
     const _mainContext = useContext(MainContext);
 
     useEffect(() => {
         if (!open) return; // 对话框未打开时不执行
         
         setCurrentTab(0);
-        setUrl(window.document.location.origin + "/" + formValue.url);
-        setWithLocalLogoUrl(window.document.location.origin + "/q?url=/" + formValue.url);
         
         // 重置数据
         setShowData('');
         setLocalLogoData('');
+        setUrl('');
+        setWithLocalLogoUrl('');
         setHasLogoType(false);
         
-        // 如果有 task_id，请求任务内容
-        const fetchTaskContent = async () => {
-            if (!formValue.task_id) {
-                // 如果没有 task_id，使用原有的 content
+        // 解析 check_result 字段
+        const parseCheckResult = () => {
+            if (!formValue.check_result || !Array.isArray(formValue.check_result)) {
+                // 如果没有 check_result，尝试使用原有的 content 和 url（向后兼容）
                 if (formValue.content !== '') {
                     setShowData(formValue.content);
+                }
+                if (formValue.url) {
+                    setUrl(window.document.location.origin + "/" + formValue.url);
+                    setWithLocalLogoUrl(window.document.location.origin + "/q?url=/" + formValue.url);
                 }
                 return;
             }
             
-            setLoadingContent(true);
-            try {
-                const host = window.document.location.origin;
-                const data = await taskService.getTaskContent(formValue.task_id, host);
-                
-                // 根据返回的数组设置数据
-                if (Array.isArray(data)) {
-                    data.forEach(item => {
-                        if (item.type === 'logo' && item.content) {
-                            setLocalLogoData(item.content);
-                            setHasLogoType(true);
-                        } else if (item.type === 'sub' && item.content) {
-                            setShowData(item.content);
-                        }
-                    });
+            // 遍历 check_result 数组
+            formValue.check_result.forEach(item => {
+                if (item.type === 'sub') {
+                    // 原始数据：读取 type = 'sub' 的 content
+                    if (item.content) {
+                        setShowData(item.content);
+                    }
+                    // 订阅链接：读取 type = 'sub' 的 url
+                    if (item.url) {
+                        const subUrl = item.url.startsWith('http') ? item.url : `${window.document.location.origin}/${item.url}`;
+                        setUrl(subUrl);
+                        setWithLocalLogoUrl(window.document.location.origin + "/q?url=/" + item.url);
+                    }
+                } else if (item.type === 'logo') {
+                    // 本地 logo 链接：读取 type = 'logo' 的 content
+                    if (item.content) {
+                        setLocalLogoData(item.content);
+                        setHasLogoType(true);
+                    }
                 }
-            } catch (error) {
-                console.error('Error fetching task content:', error);
-                // 如果请求失败，使用原有的 content
-                if (formValue.content !== '') {
-                    setShowData(formValue.content);
-                }
-            } finally {
-                setLoadingContent(false);
-            }
+            });
         };
         
-        fetchTaskContent();
+        parseCheckResult();
     }, [formValue, open]);
 
 
@@ -120,54 +116,46 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
                 </Box>
 
                 <Box sx={{ p: 2 }}>
-                    {loadingContent ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', padding: "60px 0" }}>
-                            <CircularProgress />
-                        </Box>
-                    ) : (
+                    {currentTab === 0 && (
                         <>
-                            {currentTab === 0 && (
-                                <>
-                                    {showData !='' ? (
-                                        <TextField
-                                            multiline
-                                            fullWidth
-                                            minRows={15}
-                                            maxRows={25}
-                                            value={showData}
-                                            variant="outlined"
-                                            InputProps={{
-                                                readOnly: true,
-                                            }}
-                                        />
-                                    ) : (
-                                        <Box sx={{ padding: "60px 0", textAlign: 'center' }}>
-                                            <div>{t('暂未生成')}</div>
-                                        </Box>
-                                    )}
-                                </>
+                            {showData !='' ? (
+                                <TextField
+                                    multiline
+                                    fullWidth
+                                    minRows={15}
+                                    maxRows={25}
+                                    value={showData}
+                                    variant="outlined"
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                />
+                            ) : (
+                                <Box sx={{ padding: "60px 0", textAlign: 'center' }}>
+                                    <div>{t('暂未生成')}</div>
+                                </Box>
                             )}
-                            
-                            {currentTab === 1 && hasLogoType && (
-                                <>
-                                    {localLogoData ? (
-                                        <TextField
-                                            multiline
-                                            fullWidth
-                                            minRows={15}
-                                            maxRows={25}
-                                            value={localLogoData}
-                                            variant="outlined"
-                                            InputProps={{
-                                                readOnly: true,
-                                            }}
-                                        />
-                                    ) : (
-                                        <Box sx={{ padding: "60px 0", textAlign: 'center' }}>
-                                            <div>{t('暂未生成')}</div>
-                                        </Box>
-                                    )}
-                                </>
+                        </>
+                    )}
+                    
+                    {currentTab === 1 && hasLogoType && (
+                        <>
+                            {localLogoData ? (
+                                <TextField
+                                    multiline
+                                    fullWidth
+                                    minRows={15}
+                                    maxRows={25}
+                                    value={localLogoData}
+                                    variant="outlined"
+                                    InputProps={{
+                                        readOnly: true,
+                                    }}
+                                />
+                            ) : (
+                                <Box sx={{ padding: "60px 0", textAlign: 'center' }}>
+                                    <div>{t('暂未生成')}</div>
+                                </Box>
                             )}
                         </>
                     )}
