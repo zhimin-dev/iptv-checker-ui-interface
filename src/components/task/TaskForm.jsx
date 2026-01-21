@@ -17,6 +17,7 @@ import {
     InputLabel,
     OutlinedInput,
     InputAdornment,
+    FormHelperText,
     Stack,
     Chip,
     RadioGroup,
@@ -65,7 +66,7 @@ const defaultValue = {
     }
 };
 
-export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleDelete, taskService, checkType, output_folder }) => {
+export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleDelete, taskService, checkType }) => {
     const { t } = useTranslation();
     const _mainContext = useContext(MainContext);
     const [task, setTask] = useState(defaultValue);
@@ -99,7 +100,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                 ...formValue,
                 original: {
                     ...formValue.original,
-                    result_name: formValue.original.result_name.replace(output_folder, "").replace(output_extenion, ""),
+                    result_name: formValue.original.result_name,
                     http_timeout: formValue.original.http_timeout ?? 0,
                     check_timeout: formValue.original.check_timeout ?? 0,
                     concurrent: formValue.original.concurrent ?? 0,
@@ -514,17 +515,18 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                 <FormControl fullWidth style={{
                                     margin: "20px 0 20px",
                                 }}>
-                                    <InputLabel htmlFor="outlined-adornment-amount">{t('结果文件名')}</InputLabel>
+                                    <InputLabel htmlFor="outlined-adornment-amount">{t('自定义id')}</InputLabel>
                                     <OutlinedInput
                                         style={{ width: '100%' }}
                                         name="resultName"
-                                        endAdornment={<InputAdornment position="end">{output_extenion}</InputAdornment>}
-                                        startAdornment={<InputAdornment position="start">{output_folder}</InputAdornment>}
                                         aria-describedby="outlined-weight-helper-text"
-                                        label={t('结果文件名')}
+                                        label={t('自定义id')}
                                         value={task.original.result_name}
                                         onChange={changeResultName}
                                     />
+                                    <FormHelperText sx={{ fontSize: '0.75rem', mt: 0.5 }}>
+                                        请确保这个id不重复，如果重复，则数据会被覆盖
+                                    </FormHelperText>
                                 </FormControl>
                             ) : ''}
 

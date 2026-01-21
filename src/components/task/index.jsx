@@ -23,8 +23,6 @@ import { DownloadDialog } from './DownloadDialog';
 import { ImportDialog, ExportDialog } from './ImportExportDialog';
 
 const run_type_list = [{ "value": "EveryDay", "name": "每天" }, { "value": "EveryHour", "name": "每小时" }]
-const output_folder = "static/output/"
-const output_extenion = ".m3u"
 
 const defaultValue = {
     "original": {
@@ -102,7 +100,7 @@ export default function TaskList() {
     const getTaskSaveData = (value) => {
         return {
             "urls": value.original.urls,
-            "result_name": "static/output/" + value.original.result_name + ".m3u",
+            "result_name": value.original.result_name,
             "md5": "",
             "run_type": value.original.run_type,
             "keyword_dislike": value.original.keyword_dislike,
@@ -268,7 +266,6 @@ export default function TaskList() {
                 handleSave={handleSave}
                 handleDelete={handleDelete}
                 checkType="server"
-                output_folder="static/output/"
             />
             <DownloadDialog
                 formValue={downloadBody}
