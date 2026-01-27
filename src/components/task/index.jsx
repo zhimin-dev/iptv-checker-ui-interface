@@ -176,34 +176,34 @@ export default function TaskList() {
         get_task_list();
     };
 
-    const handleImportDialog = (val) => {
-        setShowImportDialog(val);
-    };
+    // const handleImportDialog = (val) => {
+    //     setShowImportDialog(val);
+    // };
 
-    const handleExportDialog = async (val) => {
-        if (val) {
-            try {
-                const data = await taskService.exportTasks();
-                setShowExportDialog(true);
-                setExportBody(JSON.stringify(data));
-            } catch (e) {
-                handleOpenAlertBar(t('获取失败'));
-            }
-        } else {
-            setShowExportDialog(false);
-        }
-    };
+    // const handleExportDialog = async (val) => {
+    //     if (val) {
+    //         try {
+    //             const data = await taskService.exportTasks();
+    //             setShowExportDialog(true);
+    //             setExportBody(JSON.stringify(data));
+    //         } catch (e) {
+    //             handleOpenAlertBar(t('获取失败'));
+    //         }
+    //     } else {
+    //         setShowExportDialog(false);
+    //     }
+    // };
 
-    const handleSaveImportData = async (val) => {
-        try {
-            const data = JSON.parse(val);
-            await taskService.importTasks(data);
-            setShowImportDialog(false);
-            refreshList();
-        } catch (e) {
-            handleOpenAlertBar(t('保存失败'));
-        }
-    };
+    // const handleSaveImportData = async (val) => {
+    //     try {
+    //         const data = JSON.parse(val);
+    //         await taskService.importTasks(data);
+    //         setShowImportDialog(false);
+    //         refreshList();
+    //     } catch (e) {
+    //         handleOpenAlertBar(t('保存失败'));
+    //     }
+    // };
 
     return (
         <Box style={{ padding: '0 20px' }}>
@@ -272,16 +272,16 @@ export default function TaskList() {
                 open={openDownloadBody}
                 onClose={handleDownloadClose}
             />
-            <ImportDialog
+            {/* <ImportDialog
                 open={showImportDialog}
                 onClose={handleImportDialog}
                 onSave={handleSaveImportData}
-            />
-            <ExportDialog
+            /> */}
+            {/* <ExportDialog
                 open={showExportDialog}
                 formValue={exportBody}
                 onClose={handleExportDialog}
-            />
+            /> */}
             <Paper sx={{ overflow: 'hidden' }}>
                 <TableContainer>
                     <Table aria-label="simple table">

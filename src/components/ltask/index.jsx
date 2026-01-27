@@ -101,13 +101,13 @@ export default function LTaskList() {
     };
 
     const getDownloadBody = async (id) => {
-        try {
-            const data = await taskService.getDownloadBody(id);
-            setOpenDownloadBody(true);
-            setDownloadBody({ 'content': data.content, "url": data.url, "task_id": id });
-        } catch (e) {
-            handleOpenAlertBar(t('操作失败'));
-        }
+        setOpenDownloadBody(true);
+        // try {
+        //     const data = await taskService.getDownloadBody(id);
+        //     setDownloadBody({ 'content': data.content, "url": data.url, "task_id": id });
+        // } catch (e) {
+        //     handleOpenAlertBar(t('操作失败'));
+        // }
     };
 
     const handleDownloadClose = (val) => {

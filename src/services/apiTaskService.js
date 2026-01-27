@@ -65,17 +65,17 @@ export class ApiTaskService {
         return response.data;
     }
 
-    async getDownloadBody(taskId) {
-        const response = await axios.get(`${this.baseUrl}/tasks/get-download-body?task_id=${taskId}`);
-        return response.data;
-    }
+    // async getDownloadBody(taskId) {
+    //     const response = await axios.get(`${this.baseUrl}/tasks/get-download-body?task_id=${taskId}`);
+    //     return response.data;
+    // }
 
-    async getTaskContent(taskId, host) {
-        const response = await axios.get(`${this.baseUrl}/tasks/get-task-content`, {
-            params: { task_id: taskId, host }
-        });
-        return response.data;
-    }
+    // async getTaskContent(taskId, host) {
+    //     const response = await axios.get(`${this.baseUrl}/tasks/get-task-content`, {
+    //         params: { task_id: taskId, host }
+    //     });
+    //     return response.data;
+    // }
 
     async getTaskDetail(taskId) {
         const response = await axios.get(`${this.baseUrl}/tasks/detail`, {
@@ -84,15 +84,15 @@ export class ApiTaskService {
         return response.data;
     }
 
-    async exportTasks() {
-        const response = await axios.get(`${this.baseUrl}/system/tasks/export`);
-        return response.data;
-    }
+    // async exportTasks() {
+    //     const response = await axios.get(`${this.baseUrl}/system/tasks/export`);
+    //     return response.data;
+    // }
 
-    async importTasks(tasksData) {
-        const response = await axios.post(`${this.baseUrl}/system/tasks/import`, tasksData);
-        return response.data;
-    }
+    // async importTasks(tasksData) {
+    //     const response = await axios.post(`${this.baseUrl}/system/tasks/import`, tasksData);
+    //     return response.data;
+    // }
 
     async getSearchConfig() {
         const response = await axios.get(`${this.baseUrl}/system/info`);
