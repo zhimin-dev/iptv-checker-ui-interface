@@ -7,7 +7,11 @@ import {
     TextField,
     Tabs,
     Tab,
-    Box
+    Box,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select
 } from '@mui/material';
 import { MainContext } from '../../context/main';
 
@@ -20,6 +24,9 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
     const [currentTab, setCurrentTab] = useState(0);
     const [hasLogoType, setHasLogoType] = useState(false);
     const _mainContext = useContext(MainContext);
+    const [fileType, setFileType] = useState(0);//默认是0 m3u 1 txt
+    const [fileTypeList, setFileTypeList] = useState([{label: 'm3u', value: 0}, {label: 'txt', value: 1}]);
+    const [checkResultMap, setCheckResultMap] = useState({});
 
     useEffect(() => {
         if (!open) return; // 对话框未打开时不执行
@@ -44,30 +51,34 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
                     setUrl(window.document.location.origin + "/" + formValue.url);
                     setWithLocalLogoUrl(window.document.location.origin + "/q?url=/" + formValue.url);
                 }
+                setCheckResultMap({});
                 return;
             }
             
+            const nextMap = {};
             // 遍历 check_result 数组
             formValue.check_result.forEach(item => {
-                if (item.type === 'sub') {
-                    // 原始数据：读取 type = 'sub' 的 content
+                const typeKey = item.type || 'sub';
+                if (!nextMap[typeKey]) {
+                    nextMap[typeKey] = {};
+                }
+                if (item.content) {
+                    nextMap[typeKey].content = item.content;
+                }
+                if (item.url) {
+                    nextMap[typeKey].url = item.url;
+                }
+                // 向后兼容：保持原有状态
+                if (typeKey === 'sub') {
                     if (item.content) {
                         setShowData(item.content);
                     }
-                    // 订阅链接：读取 type = 'sub' 的 url
                     if (item.url) {
-                        const subUrl = item.url.startsWith('http') ? item.url : `${window.document.location.origin}/${item.url}`;
-                        setUrl(subUrl);
-                        setWithLocalLogoUrl(window.document.location.origin + "/q?url=/" + item.url);
-                    }
-                } else if (item.type === 'logo') {
-                    // 本地 logo 链接：读取 type = 'logo' 的 content
-                    if (item.content) {
-                        setLocalLogoData(item.content);
-                        setHasLogoType(true);
+                        setUrl(item.url);
                     }
                 }
             });
+            setCheckResultMap(nextMap);
         };
         
         parseCheckResult();
@@ -78,11 +89,11 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
         _mainContext.saveFile();
         if (_mainContext.nowMod === 0) {
             // 根据当前 tab 打开对应的链接
-            const downloadUrl = currentTab === 0 ? url : withLocalLogoUrl;
+            const downloadUrl = currentUrl;
             window.open(downloadUrl);
         } else {
             // 根据当前 tab 下载对应的内容
-            const content = currentTab === 0 ? showData : localLogoData;
+            const content = currentContent;
             _mainContext.clientSaveFile(content, 'm3u');
         }
     };
@@ -90,41 +101,59 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
     const handleTabChange = (event, newValue) => {
         setCurrentTab(newValue);
     };
+    const buildSubUrl = (rawUrl) => {
+        if (!rawUrl) return '';
+        return rawUrl.startsWith('http')
+            ? rawUrl
+            : `${window.document.location.origin}/${rawUrl}&r=${fileType}`;
+    };
 
-    // 根据当前 tab 获取对应的链接和数据
-    const currentLink = currentTab === 0 ? url : withLocalLogoUrl;
-    const currentData = currentTab === 0 ? showData : localLogoData;
-    const hasData = currentTab === 0 ? (showData !== '') : (localLogoData !== '');
+    const currentType = currentTab === 0 ? 'sub' : (currentTab === 1 ? 'ipv4' : 'ipv6');
+    const currentData = checkResultMap[currentType] || {};
+    const currentContent = currentData.content || '';
+    const currentUrl = buildSubUrl(currentData.url || url);
 
     return (
         <Dialog onClose={() => onClose(false)} open={open} maxWidth="lg" fullWidth>
             <Box sx={{ width: '100%', minHeight: '400px' }}>
                 <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-                    <div>{t('订阅链接')}：<b>{currentLink}</b></div>
-                    {hasData && (
-                        <Box sx={{ mt: 1 }}>
-                            <Button variant="text" onClick={() => downloadFile()}>{t('点击下载')}</Button>
-                        </Box>
-                    )}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                        <FormControl size="small" sx={{ minWidth: 120 }}>
+                            <InputLabel>{t('文件类型')}</InputLabel>
+                            <Select
+                                value={fileType}
+                                label={t('文件类型')}
+                                onChange={(event) => setFileType(event.target.value)}
+                            >
+                                {fileTypeList.map(item => (
+                                    <MenuItem key={item.value} value={item.value}>
+                                        {item.label}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <div>{t('订阅链接')}：<b>{currentUrl}</b></div>
+                    </Box>
                 </Box>
                 
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={currentTab} onChange={handleTabChange}>
                         <Tab label={t('原始数据')} />
-                        {hasLogoType && <Tab label={t('本地Logo链接')} />}
+                        <Tab label={t('ipv4')} />
+                        <Tab label={t('ipv6')} />
                     </Tabs>
                 </Box>
 
                 <Box sx={{ p: 2 }}>
-                    {currentTab === 0 && (
+                   
                         <>
-                            {showData !='' ? (
+                            {currentContent !='' ? (
                                 <TextField
                                     multiline
                                     fullWidth
                                     minRows={15}
                                     maxRows={25}
-                                    value={showData}
+                                    value={currentContent}
                                     variant="outlined"
                                     InputProps={{
                                         readOnly: true,
@@ -136,29 +165,8 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
                                 </Box>
                             )}
                         </>
-                    )}
-                    
-                    {currentTab === 1 && hasLogoType && (
-                        <>
-                            {localLogoData ? (
-                                <TextField
-                                    multiline
-                                    fullWidth
-                                    minRows={15}
-                                    maxRows={25}
-                                    value={localLogoData}
-                                    variant="outlined"
-                                    InputProps={{
-                                        readOnly: true,
-                                    }}
-                                />
-                            ) : (
-                                <Box sx={{ padding: "60px 0", textAlign: 'center' }}>
-                                    <div>{t('暂未生成')}</div>
-                                </Box>
-                            )}
-                        </>
-                    )}
+
+        
                 </Box>
             </Box>
         </Dialog>
