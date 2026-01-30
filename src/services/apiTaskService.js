@@ -146,7 +146,7 @@ export class ApiTaskService {
     }
 
     async openUrl(url) {
-        const response = await axios.get(`${this.baseUrl}/system/open-url`, { params: { url } });
+        const response = await axios.get(url);
         return response.data;
     }
 

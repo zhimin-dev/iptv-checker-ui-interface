@@ -138,7 +138,7 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
                 
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={currentTab} onChange={handleTabChange}>
-                        <Tab label={t('原始数据')} />
+                        <Tab label={t('all')} />
                         <Tab label={t('ipv4')} />
                         <Tab label={t('ipv6')} />
                     </Tabs>
