@@ -3,15 +3,22 @@ import { useEffect, useState, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
     Button,
     TextField,
     Tabs,
     Tab,
     Box,
     FormControl,
+    FormGroup,
+    FormControlLabel,
+    Checkbox,
     InputLabel,
     MenuItem,
-    Select
+    Select,
+    CircularProgress
 } from '@mui/material';
 import { MainContext } from '../../context/main';
 
@@ -27,6 +34,23 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
     const [fileType, setFileType] = useState(0);//默认是0 m3u 1 txt
     const [fileTypeList, setFileTypeList] = useState([{label: 'm3u', value: 0}, {label: 'txt', value: 1}]);
     const [checkResultMap, setCheckResultMap] = useState({});
+    const [qualityDialogOpen, setQualityDialogOpen] = useState(false);
+    const [selectedQualities, setSelectedQualities] = useState([]);
+    const [qualityValue, setQualityValue] = useState(0);
+    const [qualityFetchContent, setQualityFetchContent] = useState('');
+    const [qualityFetchLoading, setQualityFetchLoading] = useState(false);
+    const [qualityFetchError, setQualityFetchError] = useState('');
+
+    const qualityOptions = [
+        { label: '8K', value: '8K' },
+        { label: '4K', value: '4K' },
+        { label: '2K', value: '2K' },
+        { label: '1080P', value: '1080P' },
+        { label: '720P', value: '720P' },
+        { label: '480P', value: '480P' },
+        { label: '360P', value: '360P' },
+        { label: '240P', value: '240P' },
+    ];
 
     useEffect(() => {
         if (!open) return; // 对话框未打开时不执行
@@ -39,6 +63,12 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
         setUrl('');
         setWithLocalLogoUrl('');
         setHasLogoType(false);
+        setQualityDialogOpen(false);
+        setSelectedQualities([]);
+        setQualityValue(0);
+        setQualityFetchContent('');
+        setQualityFetchLoading(false);
+        setQualityFetchError('');
         
         // 解析 check_result 字段
         const parseCheckResult = () => {
@@ -88,13 +118,11 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
     const downloadFile = async () => {
         _mainContext.saveFile();
         if (_mainContext.nowMod === 0) {
-            // 根据当前 tab 打开对应的链接
-            const downloadUrl = currentUrl;
+            const downloadUrl = currentUrlWithQuality;
             window.open(downloadUrl);
         } else {
-            // 根据当前 tab 下载对应的内容
-            const content = currentContent;
-            _mainContext.clientSaveFile(content, 'm3u');
+            const content = showQualityResult ? qualityFetchContent : currentContent;
+            _mainContext.clientSaveFile(content, fileType === 0 ? 'm3u' : 'txt');
         }
     };
 
@@ -108,10 +136,70 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
             : `${window.document.location.origin}/${rawUrl}&r=${fileType}`;
     };
 
+    const buildQualityValue = (selected) => {
+        const bits = qualityOptions
+            .map((item) => (selected.includes(item.value) ? '1' : '0'))
+            .join('');
+        return parseInt(bits || '0', 2);
+    };
+
+    const buildQualityUrl = (baseUrl) => {
+        if (!baseUrl || qualityValue <= 0) return baseUrl;
+        const joiner = baseUrl.includes('?') ? '&' : '?';
+        return `${baseUrl}${joiner}q=${qualityValue}`;
+    };
+
+    const handleToggleQuality = (value) => {
+        setSelectedQualities((prev) => (
+            prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
+        ));
+    };
+
+    const handleConfirmQuality = async () => {
+        const newQualityValue = buildQualityValue(selectedQualities);
+        setQualityValue(newQualityValue);
+        setQualityDialogOpen(false);
+        setQualityFetchError('');
+        setQualityFetchContent('');
+        if (newQualityValue <= 0) return;
+        const subData = checkResultMap['sub'] || {};
+        const rawUrl = subData.url || url;
+        const baseUrl = buildSubUrl(rawUrl);
+        const fetchUrl = baseUrl ? `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}q=${newQualityValue}` : '';
+        if (!fetchUrl) return;
+        setQualityFetchLoading(true);
+        try {
+            const timeout = _mainContext?.settings?.httpRequestTimeout || 30000;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            const res = await fetch(fetchUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (!res.ok) throw new Error(res.statusText || '请求失败');
+            const text = await res.text();
+            setQualityFetchContent(text);
+        } catch (e) {
+            setQualityFetchError(e?.message || t('请求失败'));
+        } finally {
+            setQualityFetchLoading(false);
+        }
+    };
+
+    const handleCancelQuality = () => {
+        setSelectedQualities([]);
+        setQualityDialogOpen(false);
+    };
+
     const currentType = currentTab === 0 ? 'sub' : (currentTab === 1 ? 'ipv4' : 'ipv6');
     const currentData = checkResultMap[currentType] || {};
     const currentContent = currentData.content || '';
     const currentUrl = buildSubUrl(currentData.url || url);
+    const isFfmpegTask = Boolean(formValue?.original?.ffmpeg_check);
+    const currentUrlWithQuality = isFfmpegTask ? buildQualityUrl(currentUrl) : currentUrl;
+    const selectedQualityLabels = qualityOptions
+        .filter((item) => selectedQualities.includes(item.value))
+        .map((item) => item.label)
+        .join(', ');
+    const showQualityResult = isFfmpegTask && qualityValue > 0;
 
     return (
         <Dialog onClose={() => onClose(false)} open={open} maxWidth="lg" fullWidth>
@@ -132,20 +220,63 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
                                 ))}
                             </Select>
                         </FormControl>
-                        <div>{t('订阅链接')}：<b>{currentUrl}</b></div>
+                        <div>{t('订阅链接')}：<b>{currentUrlWithQuality}</b></div>
+                        {isFfmpegTask ? (
+                            <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() => setQualityDialogOpen(true)}
+                            >
+                                {t('继续选择分辨率')}
+                            </Button>
+                        ) : null}
                     </Box>
+                    {isFfmpegTask && selectedQualityLabels ? (
+                        <Box sx={{ marginTop: 1, color: 'text.secondary', fontSize: 12 }}>
+                            {t('已选择分辨率')}：{selectedQualityLabels}
+                        </Box>
+                    ) : null}
                 </Box>
                 
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={currentTab} onChange={handleTabChange}>
-                        <Tab label={t('all')} />
-                        <Tab label={t('ipv4')} />
-                        <Tab label={t('ipv6')} />
-                    </Tabs>
-                </Box>
+                {!showQualityResult ? (
+                    <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                        <Tabs value={currentTab} onChange={handleTabChange}>
+                            <Tab label={t('all')} />
+                            <Tab label={t('ipv4')} />
+                            <Tab label={t('ipv6')} />
+                        </Tabs>
+                    </Box>
+                ) : null}
 
                 <Box sx={{ p: 2 }}>
-                   
+                    {showQualityResult ? (
+                        qualityFetchLoading ? (
+                            <Box sx={{ padding: "60px 0", textAlign: 'center' }}>
+                                <CircularProgress />
+                                <div style={{ marginTop: 8 }}>{t('加载中...')}</div>
+                            </Box>
+                        ) : qualityFetchError ? (
+                            <Box sx={{ padding: "60px 0", textAlign: 'center', color: 'error.main' }}>
+                                <div>{t('请求失败')}：{qualityFetchError}</div>
+                            </Box>
+                        ) : qualityFetchContent ? (
+                            <TextField
+                                multiline
+                                fullWidth
+                                minRows={15}
+                                maxRows={25}
+                                value={qualityFetchContent}
+                                variant="outlined"
+                                InputProps={{
+                                    readOnly: true,
+                                }}
+                            />
+                        ) : (
+                            <Box sx={{ padding: "60px 0", textAlign: 'center' }}>
+                                <div>{t('暂未生成')}</div>
+                            </Box>
+                        )
+                    ) : (
                         <>
                             {currentContent !='' ? (
                                 <TextField
@@ -165,10 +296,39 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
                                 </Box>
                             )}
                         </>
-
-        
+                    )}
                 </Box>
             </Box>
+            <Dialog
+                open={qualityDialogOpen}
+                onClose={handleCancelQuality}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle>{t('选择分辨率')}</DialogTitle>
+                <DialogContent>
+                    <FormGroup>
+                        {qualityOptions.map((item) => (
+                            <FormControlLabel
+                                key={item.value}
+                                control={(
+                                    <Checkbox
+                                        checked={selectedQualities.includes(item.value)}
+                                        onChange={() => handleToggleQuality(item.value)}
+                                    />
+                                )}
+                                label={item.label}
+                            />
+                        ))}
+                    </FormGroup>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancelQuality}>{t('取消')}</Button>
+                    <Button variant="contained" onClick={handleConfirmQuality}>
+                        {t('确定')}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Dialog>
     );
 }; 

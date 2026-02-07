@@ -161,7 +161,7 @@ export default function TaskList() {
         try {
             const data = await taskService.getTaskDetail(id);
             setOpenDownloadBody(true);
-            setDownloadBody({ "task_id": id, "check_result": data.check_result });
+            setDownloadBody({ "task_id": id, "check_result": data.check_result, "original": data });
         } catch (e) {
             handleOpenAlertBar(t('操作失败'));
         }
