@@ -12,6 +12,7 @@ import _package from './../../../package';
 import DialogTitle from '@mui/material/DialogTitle';
 import Snackbar from '@mui/material/Snackbar';
 import { useTranslation, initReactI18next } from "react-i18next";
+import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
@@ -215,36 +216,33 @@ export default function Settings() {
                     display: 'flex',
                     flexDirection: 'column',
                     padding: '20px',
-                    width: '400px'
+                    width: '500px'
                 }}>
-                    <FormControl sx={{ marginBottom: '20px' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                        <Typography sx={{ width: '150px' }}>{t('全局 Host')}</Typography>
                         <TextField
                             name="baseHost"
-                            label={t('全局 Host')}
                             value={baseHost}
                             onChange={handleChangeConfigSettings}
                             size="small"
-                            fullWidth
+                            sx={{ flex: 1 }}
                             placeholder="http://localhost:5173"
                         />
-                    </FormControl>
-                    <FormControl sx={{ marginBottom: '20px' }}>
-                        <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={replaceString}
-                                    onChange={(e) => setReplaceString(e.target.checked)}
-                                />
-                            }
-                            label={t('特殊字符替换')}
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                        <Typography sx={{ width: '150px' }}>{t('特殊字符替换')}</Typography>
+                        <Switch
+                            checked={replaceString}
+                            onChange={(e) => setReplaceString(e.target.checked)}
                         />
-                    </FormControl>
-                    <FormControl sx={{ marginBottom: '20px' }}>
-                        <InputLabel id="demo-row-radio-buttons-group-label">{t('语言')}</InputLabel>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                        <Typography sx={{ width: '150px' }}>{t('语言')}</Typography>
                         <Select
                             name="language"
                             value={language}
-                            label={t('语言')}
+                            size="small"
+                            sx={{ flex: 1 }}
                             onChange={handleChangeConfigSettings}
                         >
                             {
@@ -253,13 +251,14 @@ export default function Settings() {
                                 ))
                             }
                         </Select>
-                    </FormControl>
-                    {/* <FormControl sx={{ marginBottom: '20px' }}>
-                        <InputLabel id="demo-row-radio-buttons-group-label">{t('播放平台')}</InputLabel>
+                    </Box>
+                    {/* <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                        <Typography sx={{ width: '150px' }}>{t('播放平台')}</Typography>
                         <Select
                             name="playerSource"
                             value={playerSource}
-                            label={t('播放平台')}
+                            size="small"
+                            sx={{ flex: 1 }}
                             onChange={handleChangeConfigSettings}
                         >
                             {
@@ -268,13 +267,16 @@ export default function Settings() {
                                 ))
                             }
                         </Select>
-                    </FormControl> */}
-                    <LoadingButton
-                        onClick={doSaveConfigSettings}
-                        variant="outlined"
-                    >
-                        {t('保存')}
-                    </LoadingButton>
+                    </Box> */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', marginTop: '10px' }}>
+                        <Box sx={{ width: '150px' }}></Box>
+                        <LoadingButton
+                            onClick={doSaveConfigSettings}
+                            variant="outlined"
+                        >
+                            {t('保存')}
+                        </LoadingButton>
+                    </Box>
                 </Box>
                 <FormControl sx={{ marginTop: '20px',paddingLeft: '20px', }}>
                     <Box>{t('当前版本')}: {nowVersion}</Box>
