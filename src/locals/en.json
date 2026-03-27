@@ -314,7 +314,7 @@
       "暂无节目数据": "No program data",
       "查询": "Query",
       "加载中...": "Loading...",
-      "EPG 频道": "EPG Channels",
+      "EPG节目单": "EPG Program Info",
       "频道列表": "Channel List",
       "获取频道列表失败": "Failed to fetch channel list",
       "EPG 频道搜索说明": "Enter a channel id (e.g. CCTV1) to look up the program guide from EPG."

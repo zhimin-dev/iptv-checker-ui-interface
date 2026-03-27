@@ -22,6 +22,8 @@ import FormGroup from '@mui/material/FormGroup';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -77,6 +79,7 @@ export default function SearchSettings() {
     const [snackbarMsg, setSnackbarMsg] = useState('');
     
     const [showResultDialog, setShowResultDialog] = useState(false);
+    const [confirmClearDialogOpen, setConfirmClearDialogOpen] = useState(false);
     const [tabValue, setTabValue] = useState(0);
     const [resultData, setResultData] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -112,13 +115,8 @@ export default function SearchSettings() {
     const handleRunSpider = async () => {
         setIsProcessing(true);
         try {
-            if (config.today_fetch) {
-                await taskService.clearSearchFolder();
-                setSnackbarMsg(t('清理成功'));
-            } else {
-                await taskService.initSearchData();
-                setSnackbarMsg(t('开始爬取'));
-            }
+            await taskService.initSearchData();
+            setSnackbarMsg(t('开始爬取'));
             setOpenSnackbar(true);
             await fetchData();
         } catch (error) {
@@ -127,6 +125,30 @@ export default function SearchSettings() {
         } finally {
             setIsProcessing(false);
         }
+    };
+
+    const handleConfirmClearResults = async () => {
+        setConfirmClearDialogOpen(false);
+        setIsProcessing(true);
+        try {
+            await taskService.clearSearchFolder();
+            setSnackbarMsg(t('清理成功'));
+            setOpenSnackbar(true);
+            await fetchData();
+        } catch (error) {
+            setSnackbarMsg(t('操作失败'));
+            setOpenSnackbar(true);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const openConfirmClearDialog = () => {
+        setConfirmClearDialogOpen(true);
+    };
+
+    const closeConfirmClearDialog = () => {
+        setConfirmClearDialogOpen(false);
     };
 
     const handleShowResults = async () => {
@@ -241,7 +263,7 @@ export default function SearchSettings() {
                     {config.today_fetch ? (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                             {isProcessing ? <CircularProgress size={24} /> : (
-                                <Button variant="contained" color="warning" onClick={handleRunSpider}>{t('清理结果')}</Button>
+                                <Button variant="contained" color="warning" onClick={openConfirmClearDialog}>{t('清理结果')}</Button>
                             )}
                             {/* Since we don't have last_run, we might omit it or fetch it if possible */}
                             <Button variant="outlined" onClick={handleShowResults}>{t('查看结果')}</Button>
@@ -371,6 +393,30 @@ export default function SearchSettings() {
                         {resultData[tabValue]?.content || t('无内容')}
                     </Box>
                 </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={confirmClearDialogOpen}
+                onClose={closeConfirmClearDialog}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    {t('确认清理爬取结果？')}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        {t('清理后将删除所有已爬取的数据。您确定要继续吗？')}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeConfirmClearDialog} color="primary">
+                        {t('取消')}
+                    </Button>
+                    <Button onClick={handleConfirmClearResults} color="error" autoFocus>
+                        {t('确认')}
+                    </Button>
+                </DialogActions>
             </Dialog>
         </Box>
     );

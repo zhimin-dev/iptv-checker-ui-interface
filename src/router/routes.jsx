@@ -86,7 +86,7 @@ export const routes = [
     },
     {
         path: "/epg-channel-search",
-        name: "EPG 频道",
+        name: "EPG节目单",
         icon: "LiveTvIcon",
         element: <EpgChannelSearch />,
         handle: {
@@ -137,13 +137,6 @@ export const routes = [
                 handle: { showHeader: true, showSidebar: true }
             },
             {
-                path: "/settings/epg",
-                name: "EPG 配置",
-                icon: "TvIcon",
-                element: <EpgSettings />,
-                handle: { showHeader: true, showSidebar: true }
-            },
-            {
                 path: "/settings/search",
                 name: "爬取配置",
                 icon: "SearchIcon",
@@ -155,6 +148,13 @@ export const routes = [
                 name: "频道封面配置",
                 icon: "PhotoLibraryIcon",
                 element: <ChannelLogos />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/settings/epg",
+                name: "EPG 配置",
+                icon: "TvIcon",
+                element: <EpgSettings />,
                 handle: { showHeader: true, showSidebar: true }
             },
             {

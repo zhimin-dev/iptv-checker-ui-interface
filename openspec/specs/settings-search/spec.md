@@ -1,0 +1,23 @@
+# settings-search Specification
+
+## Purpose
+TBD - created by archiving change search-clear-cache-confirmation. Update Purpose after archive.
+## Requirements
+### Requirement: 清理爬取结果二次确认
+
+在「爬取配置」页面中，当用户点击「清理结果」按钮时，系统 **MUST 弹出一个二次确认对话框**，询问用户是否确认清理。
+只有当用户在对话框中点击「确认」后，系统才 MUST 调用后端清理接口（`taskService.clearSearchFolder()`），并在操作期间展示加载状态。操作完成后，系统 MUST 根据结果显示成功或失败反馈，并刷新数据。
+如果用户在对话框中选择「取消」，则不执行任何操作并关闭对话框。
+
+#### Scenario: 触发清理结果确认
+- **WHEN** 用户点击「清理结果」按钮
+- **THEN** 系统弹出一个确认对话框，询问用户是否确认清理
+
+#### Scenario: 用户取消清理结果
+- **WHEN** 用户在确认对话框中点击取消
+- **THEN** 对话框关闭，不调用清理接口
+
+#### Scenario: 确认清理结果成功
+- **WHEN** 用户在确认对话框中点击确认且接口返回成功
+- **THEN** 对话框关闭，系统在操作期间显示加载状态，完成后显示成功反馈并刷新数据
+
