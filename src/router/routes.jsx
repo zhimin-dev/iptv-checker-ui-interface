@@ -1,4 +1,5 @@
 import React from 'react';
+import { Navigate } from 'react-router-dom';
 import LTask from '../components/ltask';
 import Watch from '../components/watch';
 import Task from '../components/task';
@@ -6,12 +7,14 @@ import Settings from '../components/settings';
 import WatchSingle from '../components/watch/single';
 import SearchSettings from '../components/settings/search';
 import KeywordSettings from '../components/settings/keywords';
-import FavoriteSettings from '../components/settings/favorite';
+import FavoriteSettings from '../components/favourite';
+import EpgChannelSearch from '../components/favourite/epg-search';
 import ChannelLogos from '../components/settings/logos';
 import Detail from '../components/detail';
 import Welcome from '../components/welcome';
 import DonateSettings from '../components/settings/donate';
 import BackupSettings from '../components/settings/backup';
+import EpgSettings from '../components/settings/epg';
 
 // 路由配置项说明：
 // path: 路由路径
@@ -75,10 +78,31 @@ export const routes = [
         name: "想看的频道",
         icon: "FavoriteBorderIcon",
         element: <FavoriteSettings />,
-        handle: { 
+        handle: {
             showMod: [0],
-            showHeader: true, 
-            showSidebar: true 
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/epg-channel-search",
+        name: "EPG 频道",
+        icon: "LiveTvIcon",
+        element: <EpgChannelSearch />,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/favorite/epg-search",
+        element: <Navigate to="/epg-channel-search" replace />,
+        hideInMenu: true,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
         }
     },
     {
@@ -110,6 +134,13 @@ export const routes = [
                 name: "特殊字符替换",
                 icon: "StickyNote2Icon",
                 element: <KeywordSettings />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/settings/epg",
+                name: "EPG 配置",
+                icon: "TvIcon",
+                element: <EpgSettings />,
                 handle: { showHeader: true, showSidebar: true }
             },
             {

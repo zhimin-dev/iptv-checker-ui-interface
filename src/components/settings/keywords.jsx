@@ -7,8 +7,6 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
-import Switch from '@mui/material/Switch';
-import FormControlLabel from '@mui/material/FormControlLabel';
 
 export default function KeywordSettings() {
     const { t } = useTranslation();
@@ -99,19 +97,8 @@ export default function KeywordSettings() {
             <div style={{ padding: '0 0 10px', fontSize: '12px', color: '#666' }}>
                 <p style={{ padding: '0', margin: '0' }}>{t('网络上的频道名前后经常出现一些特殊字符，可以通过添加该配置将这些字符替换掉，提升频道名的整洁度。')}</p>
                 <p style={{ padding: '0', margin: '0' }}>{t('比如频道名中出现“[HD]”，如果需要将这个字符去掉，添加一行：搜索值填写“[HD]”，替换值留空即可。')}</p>
+                <p style={{ padding: '0', margin: '0' }}>{t('特殊字符替换的开关在「设置」页中。')}</p>
             </div>
-
-            <Box sx={{ mb: 2 }}>
-                <FormControlLabel
-                    control={
-                        <Switch
-                            checked={replaceString}
-                            onChange={(e) => setReplaceString(e.target.checked)}
-                        />
-                    }
-                    label={t('启用字符串替换')}
-                />
-            </Box>
 
             <div style={{ padding: '10px 0' }}>
                 <Button variant="contained" onClick={handleAddRow}>

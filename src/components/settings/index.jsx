@@ -1,6 +1,7 @@
 import { useState, useContext, useEffect } from 'react'
 import * as React from 'react';
 import { MainContext } from './../../context/main';
+import { ApiTaskService } from '../../services/apiTaskService';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
@@ -17,6 +18,7 @@ import Select from '@mui/material/Select';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 import { fontSize, fontWeight } from '@mui/system';
 
 function AddSourceDialog(props) {
@@ -71,6 +73,8 @@ function AddSourceDialog(props) {
     );
 }
 
+const taskService = new ApiTaskService();
+
 export default function Settings() {
     const _mainContext = useContext(MainContext);
     const [showAddSourceDialog, setShowAddSourceDialog] = useState(false)
@@ -79,6 +83,9 @@ export default function Settings() {
     const [language, setLanguage] = useState('zh');
     const [customLink, setCustomLink] = useState([]);
     const [privateHost, setPrivateHost] = useState('')
+    const [baseHost, setBaseHost] = useState('')
+    const [replaceString, setReplaceString] = useState(false)
+    const [replaceMap, setReplaceMap] = useState({})
     const [dialogMsg, setDialogMsg] = useState('');
     const [playerSource, setPlayerSource] = useState('');
     const [openDialog, setOpenDialog] = useState(false);
@@ -103,6 +110,16 @@ export default function Settings() {
         }
     }, [_mainContext])
 
+    useEffect(() => {
+        taskService.getBaseConfig().then((data) => {
+            setBaseHost(data?.host ?? '')
+            setReplaceString(data?.replace_string ?? false)
+        }).catch(() => {
+            setBaseHost('')
+            setReplaceString(false)
+        })
+    }, [])
+
     const handleChangeConfigSettings = (e) => {
         const { name, value } = e.target;
         let valueInt = parseInt(e.target.value, 10)
@@ -119,10 +136,21 @@ export default function Settings() {
             setPrivateHost(e.target.value)
         } else if (name === 'playerSource') {
             setPlayerSource(e.target.value)
-        }
+        } else if (name === 'baseHost') {
+            setBaseHost(e.target.value)
+        } else if (name === 'replaceString') {
+            setReplaceString(e.target.checked)
+        } 
     }
 
-    const doSaveConfigSettings = () => {
+    const doSaveConfigSettings = async () => {
+        try {
+            await taskService.saveBaseConfig({ host: baseHost, replace_string: replaceString })
+        } catch (e) {
+            setDialogMsg(t('保存失败') + (e?.message ? ': ' + e.message : ''))
+            setOpenDialog(true)
+            return
+        }
         _mainContext.onChangeSettings({
             httpRequestTimeout: httpRequestTimeout,
             customLink: customLink,
@@ -189,6 +217,28 @@ export default function Settings() {
                     padding: '20px',
                     width: '400px'
                 }}>
+                    <FormControl sx={{ marginBottom: '20px' }}>
+                        <TextField
+                            name="baseHost"
+                            label={t('全局 Host')}
+                            value={baseHost}
+                            onChange={handleChangeConfigSettings}
+                            size="small"
+                            fullWidth
+                            placeholder="http://localhost:5173"
+                        />
+                    </FormControl>
+                    <FormControl sx={{ marginBottom: '20px' }}>
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={replaceString}
+                                    onChange={(e) => setReplaceString(e.target.checked)}
+                                />
+                            }
+                            label={t('特殊字符替换')}
+                        />
+                    </FormControl>
                     <FormControl sx={{ marginBottom: '20px' }}>
                         <InputLabel id="demo-row-radio-buttons-group-label">{t('语言')}</InputLabel>
                         <Select

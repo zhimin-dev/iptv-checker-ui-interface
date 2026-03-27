@@ -36,7 +36,6 @@ const ChannelLogos = () => {
         remote_url2local_images: false,
         logos: []
     });
-    const [isEditingConfig, setIsEditingConfig] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState('');
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
     const [isUploading, setIsUploading] = useState(false);
@@ -57,11 +56,14 @@ const ChannelLogos = () => {
     const fetchLogos = async () => {
         try {
             const data = await taskService.getChannelLogos();
+            const baseConfig = await taskService.getBaseConfig().catch(() => ({}));
+            const host = baseConfig?.host ?? '';
             if (data && data.logos) {
-                setConfig(data);
+                setConfig({ ...data, host });
             } else if (Array.isArray(data)) {
-                // 兼容旧格式
-                setConfig(prev => ({ ...prev, logos: data }));
+                setConfig(prev => ({ ...prev, logos: data, host }));
+            } else {
+                setConfig(prev => ({ ...prev, host }));
             }
         } catch (error) {
             console.error('Error fetching logos:', error);
@@ -145,17 +147,6 @@ const ChannelLogos = () => {
         }
     };
 
-    const handleSaveConfig = async () => {
-        try {
-            await taskService.saveChannelLogosConfig(config);
-            setMessage({ open: true, text: t('保存成功'), type: 'success' });
-            setIsEditingConfig(false);
-        } catch (error) {
-            console.error('Save config failed', error);
-            setMessage({ open: true, text: t('保存失败'), type: 'error' });
-        }
-    };
-
     const handleCloseMessage = () => {
         setMessage({ ...message, open: false });
     };
@@ -175,57 +166,6 @@ const ChannelLogos = () => {
 
     return (
         <Box sx={{ width: '100%', p: 2 }}>
-            {/* Global Config Section */}
-            <Card sx={{ mb: 3, p: 2 }}>
-                {!isEditingConfig ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                        <Box>
-                            <Typography variant="body2" sx={{ mb: 1 }}>
-                                <strong>{t('全局 Host')}:</strong> {config.host || t('未设置')}
-                            </Typography>
-                            {/* <Typography variant="body2">
-                                <strong>{t('将远程图片转换为本地图片')}:</strong> {config.remote_url2local_images ? t('已启用') : t('已禁用')}
-                            </Typography> */}
-                        </Box>
-                        <Button 
-                            variant="outlined" 
-                            size="small" 
-                            onClick={() => setIsEditingConfig(true)}
-                        >
-                            {t('修改配置')}
-                        </Button>
-                    </Box>
-                ) : (
-                    <Stack spacing={2}>
-                        <TextField
-                            label={t('全局 Host (可选)')}
-                            value={config.host || ''}
-                            onChange={(e) => setConfig({ ...config, host: e.target.value })}
-                            size="small"
-                            fullWidth
-                            placeholder="http://localhost:5173"
-                        />
-                        {/* <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={config.remote_url2local_images}
-                                    onChange={(e) => setConfig({ ...config, remote_url2local_images: e.target.checked })}
-                                />
-                            }
-                            label={t('将远程图片转换为本地图片')}
-                        /> */}
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                            <Button variant="contained" onClick={handleSaveConfig} size="small">
-                                {t('保存配置')}
-                            </Button>
-                            <Button variant="outlined" onClick={() => setIsEditingConfig(false)} size="small">
-                                {t('取消')}
-                            </Button>
-                        </Box>
-                    </Stack>
-                )}
-            </Card>
-
             {/* Upload Section */}
             <Card sx={{ mb: 3, p: 2 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>

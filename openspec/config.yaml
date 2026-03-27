@@ -1,0 +1,19 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Full write-up: openspec/project.md
+context: |
+  React 18 + Vite 7 + MUI 7 + react-router-dom (hash). JS/JSX. Backend API proxied to :8089.
+  Services in src/services (axios). i18n: src/locals/zh.json, en.json. Tauri 2 optional desktop.
+  Conventions: match existing patterns; ApiTaskService for APIs; t() for UI strings; minimal scope changes.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours

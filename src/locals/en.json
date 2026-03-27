@@ -301,6 +301,22 @@
       "别名已存在": "Alias already exists",
       "暂无别名": "No Aliases",
       "本地Logo链接": "Local Logo Links",
-      "获取失败": "Failed to fetch"
+      "获取失败": "Failed to fetch",
+      "EPG 配置": "EPG Settings",
+      "EPG 配置说明": "Maintain EPG source URLs here; saving persists to the server. You can trigger an update and look up programs by channel.",
+      "添加 EPG 源": "Add EPG source",
+      "EPG URL": "EPG URL",
+      "立即更新 EPG": "Update EPG now",
+      "EPG 更新已触发": "EPG update triggered",
+      "EPG 更新失败": "EPG update failed",
+      "EPG 加载失败": "Failed to load EPG sources",
+      "频道节目查询": "Channel program lookup",
+      "暂无节目数据": "No program data",
+      "查询": "Query",
+      "加载中...": "Loading...",
+      "EPG 频道": "EPG Channels",
+      "频道列表": "Channel List",
+      "获取频道列表失败": "Failed to fetch channel list",
+      "EPG 频道搜索说明": "Enter a channel id (e.g. CCTV1) to look up the program guide from EPG."
     }
 }

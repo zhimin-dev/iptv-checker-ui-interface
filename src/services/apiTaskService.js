@@ -94,6 +94,22 @@ export class ApiTaskService {
     //     return response.data;
     // }
 
+    async getBaseConfig() {
+        const response = await axios.get(`${this.baseUrl}/system/base-config`);
+        if (response.status !== 200) {
+            throw new Error(response.data?.msg || 'get base-config failed');
+        }
+        return response.data;
+    }
+
+    async saveBaseConfig(data) {
+        const response = await axios.post(`${this.baseUrl}/system/base-config`, data);
+        if (response.status !== 200) {
+            throw new Error(response.data?.msg || 'save base-config failed');
+        }
+        return response.data;
+    }
+
     async getSearchConfig() {
         const response = await axios.get(`${this.baseUrl}/system/info`);
         if (response.status !== 200) {
@@ -195,6 +211,40 @@ export class ApiTaskService {
                 'Content-Type': 'multipart/form-data'
             }
         });
+        return response.data;
+    }
+
+    async getEpgSources() {
+        const response = await axios.get(`${this.baseUrl}/epg/sources`);
+        return response.data;
+    }
+
+    async saveEpgSources(data) {
+        const response = await axios.post(`${this.baseUrl}/epg/sources`, data);
+        return response.data;
+    }
+
+    async getEpgByChannel(channel) {
+        const response = await axios.get(`${this.baseUrl}/epg`, {
+            params: { channel }
+        });
+        return response.data;
+    }
+
+    async getEpgChannelList() {
+        const response = await axios.get(`${this.baseUrl}/epg/channel-list`);
+        return response.data;
+    }
+
+    /** 立即更新 EPG：POST /epg/sync（与后端不一致时改此处） */
+    async refreshEpg() {
+        const response = await axios.post(`${this.baseUrl}/epg/sync`, {});
+        return response.data;
+    }
+
+    /** 清除已爬取的 EPG 缓存：GET /epg/cache */
+    async clearEpgCache() {
+        const response = await axios.get(`${this.baseUrl}/epg/cache`);
         return response.data;
     }
 }

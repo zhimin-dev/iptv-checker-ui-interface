@@ -33,6 +33,8 @@ import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
 import HomeIcon from '@mui/icons-material/Home';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
+import TvIcon from '@mui/icons-material/Tv';
+import LiveTvIcon from '@mui/icons-material/LiveTv';
 import _package from './../../../package';
 import { useTranslation, initReactI18next } from "react-i18next";
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
@@ -90,7 +92,9 @@ export default function Layout() {
             // 这里逻辑保持原样用于高亮，或者可以优化
             for (let i = 0; i < menuList.length; i++) {
                 if (location.pathname == menuList[i].path || location.pathname == menuList[i].uri) {
-                    setNowSelectedMenu(menuList[i])
+                    if (!menuList[i].children) {
+                        setNowSelectedMenu(menuList[i])
+                    }
                 }
                 if (menuList[i].children) {
                     for (let j = 0; j < menuList[i].children.length; j++) {
@@ -98,7 +102,9 @@ export default function Layout() {
                         const path = menuList[i].children[j].path || menuList[i].children[j].uri;
                         if (location.pathname == path) {
                             setNowSelectedMenu(menuList[i].children[j])
-                            setOpenSettings(true)
+                            if (menuList[i].path === '/settings') {
+                                setOpenSettings(true)
+                            }
                         }
                     }
                 }
@@ -111,7 +117,9 @@ export default function Layout() {
         if (uri === detailUri) {
             setOpenSubCheckedMenu(!openSubCheckedMenu)
         } else if (e.children) {
-            setOpenSettings(!openSettings)
+            if (e.path === '/settings') {
+                setOpenSettings(!openSettings)
+            }
         } else {
             setNowSelectedMenu(e)
             navigate(uri)
@@ -223,10 +231,16 @@ export default function Layout() {
                                                             value.icon === 'StickyNote2Icon' ? <StickyNote2Icon /> : ''
                                                         }
                                                         {
+                                                            value.icon === 'TvIcon' ? <TvIcon /> : ''
+                                                        }
+                                                        {
                                                             value.icon === 'FavoriteIcon' ? <FavoriteIcon /> : ''
                                                         }
                                                         {
                                                             value.icon === 'FavoriteBorderIcon' ? <FavoriteBorderIcon /> : ''
+                                                        }
+                                                        {
+                                                            value.icon === 'LiveTvIcon' ? <LiveTvIcon /> : ''
                                                         }
                                                         {
                                                             value.icon === 'HomeIcon' ? <HomeIcon /> : ''
@@ -256,7 +270,7 @@ export default function Layout() {
                                             </ListItem>
                                             {
                                                 value.children ? (
-                                                    <Collapse in={openSettings} timeout="auto" unmountOnExit>
+                                                    <Collapse in={value.path === '/settings' && openSettings} timeout="auto" unmountOnExit>
                                                         <List component="div" disablePadding>
                                                             {value.children.map((child, cIndex) => (
                                                                 !child.hideInMenu && (
@@ -264,11 +278,14 @@ export default function Layout() {
                                                                         <ListItemIcon>
                                                                             {child.icon === 'PublicIcon' ? <PublicIcon /> : ''}
                                                                             {child.icon === 'StickyNote2Icon' ? <StickyNote2Icon /> : ''}
+                                                                            {child.icon === 'TvIcon' ? <TvIcon /> : ''}
                                                                             {child.icon === 'SettingsIcon' ? <SettingsIcon /> : ''}
                                                                             {child.icon === 'SearchIcon' ? <SearchIcon /> : ''}
                                                                             {child.icon === 'ManageSearchIcon' ? <ManageSearchIcon /> : ''}
                                                                             {child.icon === 'PhotoLibraryIcon' ? <PhotoLibraryIcon /> : ''}
                                                                             {child.icon === 'FavoriteIcon' ? <FavoriteIcon /> : ''}
+                                                                            {child.icon === 'FavoriteBorderIcon' ? <FavoriteBorderIcon /> : ''}
+                                                                            {child.icon === 'LiveTvIcon' ? <LiveTvIcon /> : ''}
                                                                             {child.icon === 'VolunteerActivismIcon' ? <VolunteerActivismIcon /> : ''}
                                                                             {child.icon === 'SettingsBackupRestoreIcon' ? <SettingsBackupRestoreIcon /> : ''}
                                                                         </ListItemIcon>
