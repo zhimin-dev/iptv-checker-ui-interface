@@ -9,6 +9,11 @@ import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
 import LoadingButton from '@mui/lab/LoadingButton';
 import Typography from '@mui/material/Typography';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
 
 /** 将 GET /epg/sources 的多种返回形态规范为 URL 字符串数组 */
 function normalizeEpgUrlList(data) {
@@ -49,6 +54,7 @@ export default function EpgSettings() {
     const [snackbarMsg, setSnackbarMsg] = useState('');
     const [refreshing, setRefreshing] = useState(false);
     const [clearingCache, setClearingCache] = useState(false);
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
     useEffect(() => {
         fetchSources();
@@ -127,6 +133,19 @@ export default function EpgSettings() {
         }
     };
 
+    const openConfirmDialog = () => {
+        setConfirmDialogOpen(true);
+    };
+
+    const closeConfirmDialog = () => {
+        setConfirmDialogOpen(false);
+    };
+
+    const handleConfirmClearCache = () => {
+        closeConfirmDialog();
+        handleClearCache();
+    };
+
     return (
         <Box style={{ padding: '0 20px', width: '800px' }}>
             <Snackbar
@@ -149,7 +168,7 @@ export default function EpgSettings() {
                         color="error"
                         loading={clearingCache}
                         disabled={refreshing}
-                        onClick={handleClearCache}
+                        onClick={openConfirmDialog}
                     >
                         {t('清除已爬取的 EPG 信息')}
                     </LoadingButton>
@@ -198,6 +217,30 @@ export default function EpgSettings() {
                     {t('保存配置')}
                 </Button>
             </Box>
+
+            <Dialog
+                open={confirmDialogOpen}
+                onClose={closeConfirmDialog}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    {t('确认清除 EPG 缓存？')}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        {t('清除后将需要重新爬取 EPG 数据，可能会花费一些时间。您确定要继续吗？')}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeConfirmDialog} color="primary">
+                        {t('取消')}
+                    </Button>
+                    <Button onClick={handleConfirmClearCache} color="error" autoFocus>
+                        {t('确认')}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

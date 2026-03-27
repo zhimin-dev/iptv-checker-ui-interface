@@ -345,9 +345,6 @@ export default function EpgChannelSearch() {
 
             {/* Right Column: EPG Details */}
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, pl: 2 }}>
-                <Box sx={{ mb: 2, fontSize: '12px', color: '#666' }}>
-                    <p style={{ margin: 0 }}>{t('EPG 频道搜索说明')}</p>
-                </Box>
                 <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
                     {renderProgramBlock()}
                 </Box>

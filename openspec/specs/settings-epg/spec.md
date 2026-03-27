@@ -2,8 +2,9 @@
 
 > 由变更 `add-epg-settings`、`epg-string-list-and-search-under-favorite` 与 `epg-search-sibling-menu-and-sources-status` 合并至主 spec。
 
+## Purpose
+定义系统设置中 EPG 配置页面的功能，包括 EPG 源的管理、手动更新和缓存清理。
 ## Requirements
-
 ### Requirement: EPG 源列表在设置页可查看与编辑
 
 系统在设置中 SHALL 提供「EPG 配置」页面。用户打开该页面时，系统 MUST 通过 `GET /epg/sources` 加载配置；响应 **MUST** 支持形如 `{ "list": string[], "status": boolean }`（`list` 为 EPG 源 URL 字符串数组，`status` 表示当前是否允许用户触发「立即更新」类操作），并且系统 MUST 能够处理响应被包裹在 `data` 字段中的情况（如 `{ "code": 200, "data": { "list": [...], "status": true } }`）。界面 MUST 根据 `list` 展示可编辑的源列表；用户 MUST 能够新增源条目与删除已有条目。用户点击保存配置时，系统 MUST 通过 `POST /epg/sources` 提交 JSON 请求体，且 **MUST** 采用 `{ "list": [...] }` 形式，其中 **`list` MUST 为字符串数组**（trim、可过滤空串）。若 `GET` 返回的 `list` 元素为对象，前端 MUST 在展示前归一化为 URL 字符串（例如读取 `url` 字段）；保存前 MUST 输出 `string[]`。若 `GET` 仅返回数组（无对象包装），实现 MAY 将其视为 `list` 且不提供 `status`（此时「立即更新」可见性按 design 保守策略处理）。
@@ -64,19 +65,29 @@
 
 ### Requirement: 用户可手动清除已爬取的 EPG 缓存
 
-系统在 EPG 配置页面 SHALL 提供「清除已爬取的 EPG 信息」操作控件，且该控件 MUST 与「添加 EPG 源」控件处于同一操作区域。该控件 **MUST 仅在** 最近一次成功加载的响应中 **`status === true`**（严格布尔真）时渲染；当 `status` 为 `false`、缺失或非布尔时，系统 MUST **不展示**该按钮。用户触发该操作时，系统 MUST 调用后端清除缓存接口（`GET /epg/cache`），并在操作期间展示加载状态。操作完成后，系统 MUST 根据结果显示成功或失败反馈。
+系统在 EPG 配置页面 SHALL 提供「清除已爬取的 EPG 信息」操作控件，且该控件 MUST 与「添加 EPG 源」控件处于同一操作区域。该控件 **MUST 仅在** 最近一次成功加载的响应中 **`status === true`**（严格布尔真）时渲染；当 `status` 为 `false`、缺失或非布尔时，系统 MUST **不展示**该按钮。
+当用户点击该按钮时，系统 **MUST 弹出一个二次确认对话框**，询问用户是否确认清除。只有当用户在对话框中确认后，系统才 MUST 调用后端清除缓存接口（`GET /epg/cache`），并在操作期间展示加载状态。操作完成后，系统 MUST 根据结果显示成功或失败反馈。如果用户在对话框中选择取消，则不执行任何操作并关闭对话框。
+
+#### Scenario: 触发清除缓存确认
+- **WHEN** 用户点击「清除已爬取的 EPG 信息」按钮
+- **THEN** 系统弹出一个确认对话框，询问用户是否确认清除
+
+#### Scenario: 用户取消清除缓存
+- **WHEN** 用户在确认对话框中点击取消
+- **THEN** 对话框关闭，不调用清除缓存接口
 
 #### Scenario: 清除缓存成功
 
-- **WHEN** `status === true` 且用户点击清除缓存按钮且接口返回成功
+- **WHEN** `status === true` 且用户在确认对话框中点击确认且接口返回成功
 - **THEN** 系统在操作期间显示加载状态，完成后显示成功反馈
 
 #### Scenario: 清除缓存失败
 
-- **WHEN** 用户点击清除缓存按钮但接口失败或网络错误
+- **WHEN** 用户在确认对话框中点击确认但接口失败或网络错误
 - **THEN** 系统在操作期间显示加载状态，完成后显示错误反馈
 
 #### Scenario: 不可清除时不展示按钮
 
 - **WHEN** 加载完成后 `status` 不为 `true`（含 `false`、字段缺失、或非布尔）
 - **THEN** 系统不渲染「清除已爬取的 EPG 信息」按钮
+
