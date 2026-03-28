@@ -351,11 +351,12 @@ export default function Layout() {
                                         alignItems: 'center',
                                     }}>
                                         {layoutConfig.showSidebar && (
-                                            <Box>
-                                                <IconButton aria-label="delete" size="small" onClick={toggleDrawer(!openDrawer)}>
-                                                    <DehazeIcon />
-                                                </IconButton>
-                                            </Box>
+                                            // <Box>
+                                            //     <IconButton aria-label="delete" size="small" onClick={toggleDrawer(!openDrawer)}>
+                                            //         <DehazeIcon />
+                                            //     </IconButton>
+                                            // </Box>
+                                            <></>
                                         )}
                                         <Box style={{ fontWeight: 'bold', fontSize: '20px' }}>{
                                             nowSelectedMenu.name !== null && nowSelectedMenu.name !== undefined ?
