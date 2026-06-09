@@ -12,6 +12,7 @@ import { save } from '@tauri-apps/plugin-dialog';
 import { downloadDir } from '@tauri-apps/api/path';
 import { type } from '@tauri-apps/plugin-os';
 import CryptoJS from 'crypto-js'
+import { isTauriDesktop, primeApiBase, resolveApiBase } from '../utils/api'
 import _package from './../../package';
 const config_url = 'https://static.zmis.me/public/iptv-checker/init.json'
 
@@ -26,6 +27,7 @@ export const MainContextProvider = function ({ children }) {
     const [nowMod, setNowMod] = useState(0);// 当前运行模式 0服务端模式 1客户端模式
     const [nowPlatform, setNowPlatform] = useState('')
     const [showWindowsTopBar, setShowWindowsTopBar] = useState(true)
+    const [apiBaseUrl, setApiBaseUrl] = useState(primeApiBase())
     const [checkHistory, setCheckHistory] = useState([])// 检测历史
     const [showNewVersion, setShowNewVersion] = useState(false)//是否显示新版本
     const [ffmepgCheck, setFffmepgCheck] = useState(0)// 是否可以ffmepeg检查
@@ -228,6 +230,16 @@ export const MainContextProvider = function ({ children }) {
     }
 
     useEffect(() => {
+        if (isTauriDesktop()) {
+            try {
+                overrideGlobalXHR()
+            } catch (e) {
+                console.log("override xhr error", e)
+            }
+            resolveApiBase().then((value) => {
+                setApiBaseUrl(value)
+            }).catch(() => {})
+        }
         checkFFmpeg()
         init_config_info()//初始化配置文件
         initCheckHistory()//初始化检查历史
@@ -1124,7 +1136,8 @@ export const MainContextProvider = function ({ children }) {
             m3uObjectToM3uBody, m3uObjectToTxtBody, webSaveFile,
             detailList, detailQuery, detailMenu, ffmepgCheck,
             detailOriginal, updateDetailMd5, delDetailData,
-            detailMd5, configInfo, showNewVersion,check_version,saveFile
+            detailMd5, configInfo, showNewVersion,check_version,saveFile,
+            apiBaseUrl
         }}>
             {children}
         </MainContext.Provider>

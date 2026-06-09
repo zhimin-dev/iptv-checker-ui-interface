@@ -15,6 +15,7 @@ import DialogActions from '@mui/material/DialogActions';
 import { useTranslation } from "react-i18next";
 import { MainContext } from '../../context/main';
 import { ApiTaskService } from '../../services/apiTaskService';
+import { buildAbsoluteUrl } from '../../utils/api';
 
 export default function BackupSettings() {
     const { t } = useTranslation();
@@ -33,7 +34,7 @@ export default function BackupSettings() {
         try {
             const res = await taskService.exportConfig();
             if (res && res.file) {
-                const downloadUrl = res.file.startsWith('http') ? res.file : `${_mainContext.settings.privateHost || ''}${res.file}`;
+                const downloadUrl = buildAbsoluteUrl(res.file, _mainContext.settings.privateHost || _mainContext.apiBaseUrl);
                 window.open(downloadUrl);
                 setSnackbarMsg(t('导出成功'));
             } else {

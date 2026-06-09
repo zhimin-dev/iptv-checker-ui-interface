@@ -18,6 +18,7 @@ import Typography from '@mui/material/Typography';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
+import { buildAbsoluteUrl } from '../../utils/api';
 
 export default function FavoriteSettings() {
     const { t } = useTranslation();
@@ -119,6 +120,8 @@ export default function FavoriteSettings() {
     const rulesWithIndex = config.favorite_rules.map((r, i) => ({ ...r, originalIndex: i }));
     const includeRules = rulesWithIndex.filter(r => r.match_mode === 'include');
     const exactRules = rulesWithIndex.filter(r => r.match_mode === 'exact');
+    const allChannelUrl = config.all_channel_url ? buildAbsoluteUrl(config.all_channel_url) : '';
+    const likedChannelUrl = config.liked_channel_url ? buildAbsoluteUrl(config.liked_channel_url) : '';
 
     const renderRuleList = (rules, title) => (
         <Box sx={{ mb: 4 }}>
@@ -158,9 +161,9 @@ export default function FavoriteSettings() {
                     <Typography 
                         component="span" 
                         sx={{ cursor: 'pointer', color: 'primary.main', textDecoration: 'underline' }}
-                        onClick={() => handleOpenFile(t('爬取的全部频道列表'), window.document.location.origin + config.all_channel_url)}
+                        onClick={() => handleOpenFile(t('爬取的全部频道列表'), allChannelUrl)}
                     >
-                        {window.document.location.origin +config.all_channel_url || t('暂无链接')}
+                        {allChannelUrl || t('暂无链接')}
                     </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -168,9 +171,9 @@ export default function FavoriteSettings() {
                     <Typography 
                         component="span" 
                         sx={{ cursor: 'pointer', color: 'primary.main', textDecoration: 'underline' }}
-                        onClick={() => handleOpenFile(t('喜欢的频道列表'), window.document.location.origin + config.liked_channel_url)}
+                        onClick={() => handleOpenFile(t('喜欢的频道列表'), likedChannelUrl)}
                     >
-                        {window.document.location.origin + config.liked_channel_url || t('暂无链接')}
+                        {likedChannelUrl || t('暂无链接')}
                     </Typography>
                 </Box>
                 <Box sx={{ fontSize: '12px', color: 'text.secondary' }}>

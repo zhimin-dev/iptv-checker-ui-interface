@@ -2,7 +2,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use std::process::Command;
 use std::sync::Mutex;
+use std::{env, fs};
 use tauri::State;
+use tauri::AppHandle;
 
 struct AppState {
     ffmpeg_path: Mutex<String>,
@@ -12,6 +14,64 @@ struct AppState {
 #[tauri::command]
 fn now_mod() -> i32 {
     1
+}
+
+#[tauri::command]
+fn api_base(app: AppHandle) -> Result<String, String> {
+    Ok(read_api_base_from_runtime_file(&app).unwrap_or_else(|| "http://127.0.0.1:8089".to_string()))
+}
+
+fn read_api_base_from_runtime_file(app: &AppHandle) -> Option<String> {
+    let mut runtime_files = vec![];
+
+    if let Ok(current_dir) = env::current_dir() {
+        runtime_files.push(current_dir.join("config").join("runtime").join("server-info.json"));
+    }
+
+    if let Ok(app_local_data_dir) = app.path().app_local_data_dir() {
+        runtime_files.push(
+            app_local_data_dir
+                .join("config")
+                .join("runtime")
+                .join("server-info.json"),
+        );
+    }
+
+    if let Ok(app_data_dir) = app.path().app_data_dir() {
+        runtime_files.push(
+            app_data_dir
+                .join("config")
+                .join("runtime")
+                .join("server-info.json"),
+        );
+    }
+
+    for runtime_file in runtime_files {
+        let raw = match fs::read_to_string(&runtime_file) {
+            Ok(raw) => raw,
+            Err(_) => continue,
+        };
+        let value = match serde_json::from_str::<serde_json::Value>(&raw) {
+            Ok(value) => value,
+            Err(_) => continue,
+        };
+
+        if let Some(api_base) = value.get("api_base").and_then(|item| item.as_str()) {
+            return Some(api_base.trim_end_matches('/').to_string());
+        }
+
+        if let Some(host) = value.get("host").and_then(|item| item.as_str()) {
+            if !host.is_empty() {
+                return Some(host.trim_end_matches('/').to_string());
+            }
+        }
+
+        if let Some(port) = value.get("port").and_then(|item| item.as_u64()) {
+            return Some(format!("http://127.0.0.1:{}", port));
+        }
+    }
+
+    None
 }
 
 fn find_ffmpeg_path() -> Result<(String, String), String> {
@@ -85,7 +145,7 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![now_mod])
+        .invoke_handler(tauri::generate_handler![now_mod, api_base])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

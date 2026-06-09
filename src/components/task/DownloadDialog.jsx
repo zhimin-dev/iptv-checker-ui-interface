@@ -21,6 +21,7 @@ import {
     CircularProgress
 } from '@mui/material';
 import { MainContext } from '../../context/main';
+import { buildAbsoluteUrl, getCachedApiBase } from '../../utils/api';
 
 export const DownloadDialog = ({ onClose, formValue, open }) => {
     const { t } = useTranslation();
@@ -78,8 +79,9 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
                     setShowData(formValue.content);
                 }
                 if (formValue.url) {
-                    setUrl(window.document.location.origin + "/" + formValue.url);
-                    setWithLocalLogoUrl(window.document.location.origin + "/q?url=/" + formValue.url);
+                    const apiBaseUrl = getCachedApiBase() || _mainContext.apiBaseUrl;
+                    setUrl(buildAbsoluteUrl(formValue.url, apiBaseUrl));
+                    setWithLocalLogoUrl(buildAbsoluteUrl(`/q?url=/${formValue.url}`, apiBaseUrl));
                 }
                 setCheckResultMap({});
                 return;
@@ -133,7 +135,7 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
         if (!rawUrl) return '';
         return rawUrl.startsWith('http')
             ? rawUrl
-            : `${window.document.location.origin}/${rawUrl}&r=${fileType}`;
+            : buildAbsoluteUrl(`/${rawUrl}&r=${fileType}`, getCachedApiBase() || _mainContext.apiBaseUrl);
     };
 
     const buildQualityValue = (selected) => {

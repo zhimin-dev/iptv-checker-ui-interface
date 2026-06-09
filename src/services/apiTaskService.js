@@ -1,17 +1,34 @@
 import axios from 'axios';
+import { resolveAbsoluteUrl } from '../utils/api';
 
 export class ApiTaskService {
     constructor(baseUrl = '') {
         this.baseUrl = baseUrl;
     }
 
+    async resolveUrl(path) {
+        return await resolveAbsoluteUrl(path, this.baseUrl);
+    }
+
+    async get(path, config) {
+        return await axios.get(await this.resolveUrl(path), config);
+    }
+
+    async post(path, data, config) {
+        return await axios.post(await this.resolveUrl(path), data, config);
+    }
+
+    async delete(path, config) {
+        return await axios.delete(await this.resolveUrl(path), config);
+    }
+
     async getTaskList() {
-        const response = await axios.get(`${this.baseUrl}/tasks/list?page=1`);
+        const response = await this.get('/tasks/list?page=1');
         return response.data;
     }
 
     async uploadFile(formData) {
-        const response = await axios.post(`${this.baseUrl}/media/upload`, formData,{
+        const response = await this.post('/media/upload', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
@@ -21,7 +38,7 @@ export class ApiTaskService {
     }
 
     async getReplaceList() {
-        const response = await axios.get(`${this.baseUrl}/system/replace`);
+        const response = await this.get('/system/replace');
         if (response.status !== 200) { 
             throw new Error(response.data.msg);
         }
@@ -29,7 +46,7 @@ export class ApiTaskService {
     }
 
     async updateReplaceList(replaceList) {
-        const response = await axios.post(`${this.baseUrl}/system/replace`, replaceList);
+        const response = await this.post('/system/replace', replaceList);
         if (response.status !== 200) {
             throw new Error(response.data.msg);
         }
@@ -37,7 +54,7 @@ export class ApiTaskService {
     }
 
     async addTask(taskData) {
-        const response = await axios.post(`${this.baseUrl}/tasks/add`, taskData);
+        const response = await this.post('/tasks/add', taskData);
         if (response.data.code !== "200") {
             throw new Error(response.data.msg);
         }
@@ -45,7 +62,7 @@ export class ApiTaskService {
     }
 
     async updateTask(taskId, taskData) {
-        const response = await axios.post(`${this.baseUrl}/tasks/update?task_id=${taskId}`, taskData);
+        const response = await this.post(`/tasks/update?task_id=${taskId}`, taskData);
         if (response.data.code !== "200") {
             throw new Error(response.data.msg);
         }
@@ -53,7 +70,7 @@ export class ApiTaskService {
     }
 
     async deleteTask(taskId) {
-        const response = await axios.delete(`${this.baseUrl}/tasks/delete/${taskId}`);
+        const response = await this.delete(`/tasks/delete/${taskId}`);
         if (response.data.code !== "200") {
             throw new Error(response.data.msg);
         }
@@ -61,7 +78,7 @@ export class ApiTaskService {
     }
 
     async runTask(taskId) {
-        const response = await axios.get(`${this.baseUrl}/tasks/run?task_id=${taskId}`);
+        const response = await this.get(`/tasks/run?task_id=${taskId}`);
         return response.data;
     }
 
@@ -78,7 +95,7 @@ export class ApiTaskService {
     // }
 
     async getTaskDetail(taskId) {
-        const response = await axios.get(`${this.baseUrl}/tasks/detail`, {
+        const response = await this.get('/tasks/detail', {
             params: { task_id: taskId }
         });
         return response.data;
@@ -95,7 +112,7 @@ export class ApiTaskService {
     // }
 
     async getBaseConfig() {
-        const response = await axios.get(`${this.baseUrl}/system/base-config`);
+        const response = await this.get('/system/base-config');
         if (response.status !== 200) {
             throw new Error(response.data?.msg || 'get base-config failed');
         }
@@ -103,7 +120,7 @@ export class ApiTaskService {
     }
 
     async saveBaseConfig(data) {
-        const response = await axios.post(`${this.baseUrl}/system/base-config`, data);
+        const response = await this.post('/system/base-config', data);
         if (response.status !== 200) {
             throw new Error(response.data?.msg || 'save base-config failed');
         }
@@ -111,7 +128,7 @@ export class ApiTaskService {
     }
 
     async getSearchConfig() {
-        const response = await axios.get(`${this.baseUrl}/system/info`);
+        const response = await this.get('/system/info');
         if (response.status !== 200) {
             throw new Error(response.data.msg);
         }
@@ -119,7 +136,7 @@ export class ApiTaskService {
     }
 
     async updateSearchConfig(config) {
-        const response = await axios.post(`${this.baseUrl}/system/global-config`, config);
+        const response = await this.post('/system/global-config', config);
         if (response.status !== 200) {
             throw new Error(response.data.msg);
         }
@@ -127,57 +144,57 @@ export class ApiTaskService {
     }
 
     async runSpider() {
-        const response = await axios.post(`${this.baseUrl}/system/spider/run`);
+        const response = await this.post('/system/spider/run');
         return response.data;
     }
 
     async getSpiderStatus() {
-        const response = await axios.get(`${this.baseUrl}/system/spider/status`);
+        const response = await this.get('/system/spider/status');
         return response.data;
     }
 
     async getTodayFiles() {
-        const response = await axios.get(`${this.baseUrl}/system/list-today-files`);
+        const response = await this.get('/system/list-today-files');
         return response.data;
     }
 
     async clearSearchFolder() {
-        const response = await axios.get(`${this.baseUrl}/system/clear-search-folder`);
+        const response = await this.get('/system/clear-search-folder');
         return response.data;
     }
 
     async initSearchData() {
-        const response = await axios.get(`${this.baseUrl}/system/init-search-data`);
+        const response = await this.get('/system/init-search-data');
         return response.data;
     }
 
     async getFavourite() {
-        const response = await axios.get(`${this.baseUrl}/system/get-favourite`);
+        const response = await this.get('/system/get-favourite');
         return response.data;
     }
 
     async saveFavourite(data) {
-        const response = await axios.post(`${this.baseUrl}/system/save-favourite`, data);
+        const response = await this.post('/system/save-favourite', data);
         return response.data;
     }
 
     async openUrl(url) {
-        const response = await axios.get(url);
+        const response = await this.get(url);
         return response.data;
     }
 
     async getChannelLogos() {
-        const response = await axios.get(`${this.baseUrl}/media/logos`);
+        const response = await this.get('/media/logos');
         return response.data;
     }
 
     async getLogosConfig() {
-        const response = await axios.get(`${this.baseUrl}/system/channel-logos`);
+        const response = await this.get('/system/channel-logos');
         return response.data;
     }
 
     async uploadLogos(formData) {
-        const response = await axios.post(`${this.baseUrl}/media/upload-logos`, formData, {
+        const response = await this.post('/media/upload-logos', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
@@ -186,27 +203,27 @@ export class ApiTaskService {
     }
 
     async updateLogo(data) {
-        const response = await axios.post(`${this.baseUrl}/media/logos/update`, data);
+        const response = await this.post('/media/logos/update', data);
         return response.data;
     }
 
     async saveChannelLogos(data) {
-        const response = await axios.post(`${this.baseUrl}/system/channel-logos`, data);
+        const response = await this.post('/system/channel-logos', data);
         return response.data;
     }
 
     async saveChannelLogosConfig(data) {
-        const response = await axios.post(`${this.baseUrl}/media/logos/config`, data);
+        const response = await this.post('/media/logos/config', data);
         return response.data;
     }
 
     async exportConfig() {
-        const response = await axios.get(`${this.baseUrl}/system/export`);
+        const response = await this.get('/system/export');
         return response.data;
     }
 
     async importConfig(formData) {
-        const response = await axios.post(`${this.baseUrl}/system/import`, formData, {
+        const response = await this.post('/system/import', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
@@ -215,36 +232,36 @@ export class ApiTaskService {
     }
 
     async getEpgSources() {
-        const response = await axios.get(`${this.baseUrl}/epg/sources`);
+        const response = await this.get('/epg/sources');
         return response.data;
     }
 
     async saveEpgSources(data) {
-        const response = await axios.post(`${this.baseUrl}/epg/sources`, data);
+        const response = await this.post('/epg/sources', data);
         return response.data;
     }
 
     async getEpgByChannel(channel) {
-        const response = await axios.get(`${this.baseUrl}/epg`, {
+        const response = await this.get('/epg', {
             params: { channel }
         });
         return response.data;
     }
 
     async getEpgChannelList() {
-        const response = await axios.get(`${this.baseUrl}/epg/channel-list`);
+        const response = await this.get('/epg/channel-list');
         return response.data;
     }
 
     /** 立即更新 EPG：POST /epg/sync（与后端不一致时改此处） */
     async refreshEpg() {
-        const response = await axios.post(`${this.baseUrl}/epg/sync`, {});
+        const response = await this.post('/epg/sync', {});
         return response.data;
     }
 
     /** 清除已爬取的 EPG 缓存：GET /epg/cache */
     async clearEpgCache() {
-        const response = await axios.get(`${this.baseUrl}/epg/cache`);
+        const response = await this.get('/epg/cache');
         return response.data;
     }
 }
