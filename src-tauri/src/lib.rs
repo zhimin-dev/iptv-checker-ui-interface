@@ -3,8 +3,8 @@
 use std::process::Command;
 use std::sync::Mutex;
 use std::{env, fs};
-use tauri::State;
 use tauri::AppHandle;
+use tauri::State;
 
 struct AppState {
     ffmpeg_path: Mutex<String>,
@@ -18,14 +18,22 @@ fn now_mod() -> i32 {
 
 #[tauri::command]
 fn api_base(app: AppHandle) -> Result<String, String> {
-    Ok(read_api_base_from_runtime_file(&app).unwrap_or_else(|| "http://127.0.0.1:8089".to_string()))
+    Ok(
+        read_api_base_from_runtime_file(&app)
+            .unwrap_or_else(|| "http://127.0.0.1:8089".to_string()),
+    )
 }
 
 fn read_api_base_from_runtime_file(app: &AppHandle) -> Option<String> {
     let mut runtime_files = vec![];
 
     if let Ok(current_dir) = env::current_dir() {
-        runtime_files.push(current_dir.join("config").join("runtime").join("server-info.json"));
+        runtime_files.push(
+            current_dir
+                .join("config")
+                .join("runtime")
+                .join("server-info.json"),
+        );
     }
 
     if let Ok(app_local_data_dir) = app.path().app_local_data_dir() {
