@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Box from '@mui/material/Box';
 import { useTranslation } from "react-i18next";
 import { ApiTaskService } from '../../services/apiTaskService';
+import { MainContext } from '../../context/main';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
@@ -22,6 +23,7 @@ import { buildAbsoluteUrl } from '../../utils/api';
 
 export default function FavoriteSettings() {
     const { t } = useTranslation();
+    const _mainContext = useContext(MainContext);
     const [config, setConfig] = useState({
         favorite_rules: []
     });
@@ -120,8 +122,8 @@ export default function FavoriteSettings() {
     const rulesWithIndex = config.favorite_rules.map((r, i) => ({ ...r, originalIndex: i }));
     const includeRules = rulesWithIndex.filter(r => r.match_mode === 'include');
     const exactRules = rulesWithIndex.filter(r => r.match_mode === 'exact');
-    const allChannelUrl = config.all_channel_url ? buildAbsoluteUrl(config.all_channel_url) : '';
-    const likedChannelUrl = config.liked_channel_url ? buildAbsoluteUrl(config.liked_channel_url) : '';
+    const allChannelUrl = config.all_channel_url ? buildAbsoluteUrl(config.all_channel_url, _mainContext.apiBaseUrl) : '';
+    const likedChannelUrl = config.liked_channel_url ? buildAbsoluteUrl(config.liked_channel_url, _mainContext.apiBaseUrl) : '';
 
     const renderRuleList = (rules, title) => (
         <Box sx={{ mb: 4 }}>
