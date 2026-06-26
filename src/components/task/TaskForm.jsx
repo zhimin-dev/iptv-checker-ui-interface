@@ -363,18 +363,12 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
         });
     }
 
-    const handleChangeSortValue = (e) => {
-        let checked = false
-        if (e.target.defaultValue === "false") {
-            checked = false
-        } else {
-            checked = true
-        }
+    const handleChangeSortValue = (e, value) => {
         setTask({
             ...task,
             original: {
                 ...task.original,
-                sort: checked
+                sort: value === "true"
             }
         });
     }
@@ -389,66 +383,42 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
         });
     }
 
-    const handleChangeRename = (e) => {
-        let checked = false
-        if (e.target.defaultValue === "false") {
-            checked = false
-        } else {
-            checked = true
-        }
+    const handleChangeRename = (e, value) => {
         setTask({
             ...task,
             original: {
                 ...task.original,
-                rename: checked
+                rename: value === "true"
             }
         });
     }
 
-    const handleChangeNotHttpSkip = (e) => {
-        let checked = false
-        if (e.target.defaultValue === "false") {
-            checked = false
-        } else {
-            checked = true
-        }
+    const handleChangeNotHttpSkip = (e, value) => {
         setTask({
             ...task,
             original: {
                 ...task.original,
-                not_http_skip: checked
+                not_http_skip: value === "true"
             }
         });
     }
 
-    const handleChangeFfmepgCheck = (e) => {
-        let checked = false
-        if (e.target.defaultValue === "false") {
-            checked = false
-        } else {
-            checked = true
-        }
+    const handleChangeFfmepgCheck = (e, value) => {
         setTask({
             ...task,
             original: {
                 ...task.original,
-                ffmpeg_check: checked
+                ffmpeg_check: value === "true"
             }
         });
     }
 
-    const handleChangeNoCheckValue = (e) => {
-        let checked = false
-        if (e.target.defaultValue === "false") {
-            checked = false
-        } else {
-            checked = true
-        }
+    const handleChangeNoCheckValue = (e, value) => {
         setTask({
             ...task,
             original: {
                 ...task.original,
-                no_check: checked
+                no_check: value === "true"
             }
         });
     }

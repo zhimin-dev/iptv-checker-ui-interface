@@ -70,6 +70,7 @@ export const MainContextProvider = function ({ children }) {
         language: 'zh',//语言
         privateHost: '',//私有host
         playerSource: "application/x-mpegURL",// 视频播放平台
+        githubToken: '',// GitHub Token
     })
 
     let debugMode = true
@@ -113,10 +114,6 @@ export const MainContextProvider = function ({ children }) {
                 }
             }
         })
-    }
-
-    const saveFile = () => {
-
     }
 
     const check_version = () => {
@@ -1124,7 +1121,7 @@ export const MainContextProvider = function ({ children }) {
             m3uObjectToM3uBody, m3uObjectToTxtBody, webSaveFile,
             detailList, detailQuery, detailMenu, ffmepgCheck,
             detailOriginal, updateDetailMd5, delDetailData,
-            detailMd5, configInfo, showNewVersion,check_version,saveFile
+            detailMd5, configInfo, showNewVersion,check_version
         }}>
             {children}
         </MainContext.Provider>

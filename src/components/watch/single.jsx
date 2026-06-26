@@ -39,19 +39,6 @@ export default function Single(props) {
     const [m3u8Link, setM3u8Link] = useState('')
     const [httpHeaders, setHttpHeaders] = useState([])
 
-    const listenEvent = async () => {
-        const appWindow = getCurrentWebviewWindow()
-        const unlisten = await listen('changeWatchUrl', (event) => {
-            // event.event 是事件名称 (当你想用一个回调函数处理不同类型的事件时很有用)
-            // event.payload 是负载对象
-            if (event.event === 'changeWatchUrl') {
-                setM3u8Link(event.payload.data.url)
-                onloadM3u8Link(event.payload.data.url)
-                appWindow.setTitle(event.payload.data.name)
-            }
-        })
-    }
-
     useEffect(() => {
         let paramsObject = {};
         let list = new URLSearchParams(window.location.search).entries();
@@ -62,7 +49,17 @@ export default function Single(props) {
             setM3u8Link(paramsObject["url"])
             onloadM3u8Link(paramsObject["url"])
         }
-        listenEvent()
+        const appWindow = getCurrentWebviewWindow()
+        const unlistenPromise = listen('changeWatchUrl', (event) => {
+            if (event.event === 'changeWatchUrl') {
+                setM3u8Link(event.payload.data.url)
+                onloadM3u8Link(event.payload.data.url)
+                appWindow.setTitle(event.payload.data.name)
+            }
+        })
+        return () => {
+            unlistenPromise.then(unlisten => unlisten())
+        }
     }, [])
 
     const onloadM3u8Link = (targetUrl) => {

@@ -60,17 +60,13 @@ export default function Detail() {
 
   useEffect(() => {
     setVTableHeight(window.innerHeight - _mainContext.headerHeight - 50)
-    window.addEventListener("resize", e => {
+    const handleResize = (e) => {
       setVTableHeight(e.currentTarget.innerHeight - _mainContext.headerHeight - 50)
-    })
-    // window.addEventListener('beforeunload', (e) => {
-    //   e.preventDefault()
-    //   let returnValue = t('刷新后将跳转首页')
-    //   e.returnValue = returnValue
-    // })
-    // if (_mainContext.showM3uBody.length === 0) {
-    //   navigate("/check")
-    // }
+    }
+    window.addEventListener("resize", handleResize)
+    return () => {
+      window.removeEventListener("resize", handleResize)
+    }
   }, [])
 
   // const deleteThisRow = (index, tableIndex) => {

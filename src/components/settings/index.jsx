@@ -89,6 +89,7 @@ export default function Settings() {
     const [replaceMap, setReplaceMap] = useState({})
     const [dialogMsg, setDialogMsg] = useState('');
     const [playerSource, setPlayerSource] = useState('');
+    const [githubToken, setGithubToken] = useState('');
     const [openDialog, setOpenDialog] = useState(false);
     const [newVersion, setNewVersion] = useState('');
     const { t } = useTranslation();
@@ -108,6 +109,7 @@ export default function Settings() {
             setLanguage(config.language ?? 'zh')
             setPrivateHost(config.privateHost ?? '')
             setPlayerSource(config.playerSource ?? 'video/mp2t')
+            setGithubToken(config.githubToken ?? '')
         }
     }, [_mainContext])
 
@@ -115,9 +117,11 @@ export default function Settings() {
         taskService.getBaseConfig().then((data) => {
             setBaseHost(data?.host ?? '')
             setReplaceString(data?.replace_string ?? false)
+            setGithubToken(data?.github_token ?? '')
         }).catch(() => {
             setBaseHost('')
             setReplaceString(false)
+            setGithubToken('')
         })
     }, [])
 
@@ -141,12 +145,14 @@ export default function Settings() {
             setBaseHost(e.target.value)
         } else if (name === 'replaceString') {
             setReplaceString(e.target.checked)
-        } 
+        } else if (name === 'githubToken') {
+            setGithubToken(e.target.value)
+        }
     }
 
     const doSaveConfigSettings = async () => {
         try {
-            await taskService.saveBaseConfig({ host: baseHost, replace_string: replaceString })
+            await taskService.saveBaseConfig({ host: baseHost, replace_string: replaceString, github_token: githubToken })
         } catch (e) {
             setDialogMsg(t('保存失败') + (e?.message ? ': ' + e.message : ''))
             setOpenDialog(true)
@@ -159,6 +165,7 @@ export default function Settings() {
             language: language,
             privateHost: privateHost,
             playerSource: playerSource,
+            githubToken: githubToken,
         })
         _mainContext.changeLanguage(language)
         setOpenDialog(true)
@@ -234,6 +241,18 @@ export default function Settings() {
                         <Switch
                             checked={replaceString}
                             onChange={(e) => setReplaceString(e.target.checked)}
+                        />
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                        <Typography sx={{ width: '150px' }}>GitHub Token</Typography>
+                        <TextField
+                            name="githubToken"
+                            type="password"
+                            value={githubToken}
+                            onChange={handleChangeConfigSettings}
+                            size="small"
+                            sx={{ flex: 1 }}
+                            placeholder="ghp_xxxxxxxxxxxx"
                         />
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
