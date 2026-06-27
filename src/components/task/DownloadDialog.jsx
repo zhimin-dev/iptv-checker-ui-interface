@@ -21,6 +21,7 @@ import {
     CircularProgress
 } from '@mui/material';
 import { MainContext } from '../../context/main';
+import { ApiTaskService } from '../../services/apiTaskService';
 
 export const DownloadDialog = ({ onClose, formValue, open }) => {
     const { t } = useTranslation();
@@ -40,6 +41,16 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
     const [qualityFetchContent, setQualityFetchContent] = useState('');
     const [qualityFetchLoading, setQualityFetchLoading] = useState(false);
     const [qualityFetchError, setQualityFetchError] = useState('');
+    const [globalHost, setGlobalHost] = useState('');
+
+    // Load global host from base config
+    useEffect(() => {
+        const svc = new ApiTaskService();
+        svc.getBaseConfig().then(data => {
+            const host = (data?.host || '').trim().replace(/\/+$/, '');
+            setGlobalHost(host);
+        }).catch(() => setGlobalHost(''));
+    }, [open]);
 
     const qualityOptions = [
         { label: '8K', value: '8K' },
@@ -78,8 +89,9 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
                     setShowData(formValue.content);
                 }
                 if (formValue.url) {
-                    setUrl(window.document.location.origin + "/" + formValue.url);
-                    setWithLocalLogoUrl(window.document.location.origin + "/q?url=/" + formValue.url);
+                    const host = globalHost || window.document.location.origin;
+                    setUrl(host + "/" + formValue.url);
+                    setWithLocalLogoUrl(host + "/q?url=/" + formValue.url);
                 }
                 setCheckResultMap({});
                 return;
@@ -112,7 +124,7 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
         };
         
         parseCheckResult();
-    }, [formValue, open]);
+    }, [formValue, open, globalHost]);
 
 
     const downloadFile = async () => {
@@ -131,9 +143,10 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
     };
     const buildSubUrl = (rawUrl) => {
         if (!rawUrl) return '';
-        return rawUrl.startsWith('http')
-            ? rawUrl
-            : `${window.document.location.origin}/${rawUrl}&r=${fileType}`;
+        if (rawUrl.startsWith('http')) return rawUrl;
+        // Use global host from base config if configured, else current page origin
+        const host = globalHost || window.document.location.origin;
+        return `${host}/${rawUrl}&r=${fileType}`;
     };
 
     const buildQualityValue = (selected) => {
@@ -194,7 +207,8 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
     const currentContent = currentData.content || '';
     const currentUrl = buildSubUrl(currentData.url || url);
     const isFfmpegTask = Boolean(formValue?.original?.ffmpeg_check);
-    const currentUrlWithQuality = isFfmpegTask ? buildQualityUrl(currentUrl) : currentUrl;
+    const hasSameSaveNum = Boolean(formValue?.original?.same_save_num);
+    const currentUrlWithQuality = isFfmpegTask && !hasSameSaveNum ? buildQualityUrl(currentUrl) : currentUrl;
     const selectedQualityLabels = qualityOptions
         .filter((item) => selectedQualities.includes(item.value))
         .map((item) => item.label)
@@ -221,7 +235,7 @@ export const DownloadDialog = ({ onClose, formValue, open }) => {
                             </Select>
                         </FormControl>
                         <div>{t('订阅链接')}：<b>{currentUrlWithQuality}</b></div>
-                        {isFfmpegTask ? (
+                        {isFfmpegTask && !hasSameSaveNum ? (
                             <Button
                                 size="small"
                                 variant="outlined"

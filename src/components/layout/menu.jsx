@@ -33,6 +33,7 @@ import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
 import HomeIcon from '@mui/icons-material/Home';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
+import HubIcon from '@mui/icons-material/Hub';
 import TvIcon from '@mui/icons-material/Tv';
 import LiveTvIcon from '@mui/icons-material/LiveTv';
 import _package from './../../../package';
@@ -288,6 +289,7 @@ export default function Layout() {
                                                                             {child.icon === 'LiveTvIcon' ? <LiveTvIcon /> : ''}
                                                                             {child.icon === 'VolunteerActivismIcon' ? <VolunteerActivismIcon /> : ''}
                                                                             {child.icon === 'SettingsBackupRestoreIcon' ? <SettingsBackupRestoreIcon /> : ''}
+                                                                            {child.icon === 'HubIcon' ? <HubIcon /> : ''}
                                                                         </ListItemIcon>
                                                                         <ListItemText primary={t(child.name)} />
                                                                     </ListItemButton>

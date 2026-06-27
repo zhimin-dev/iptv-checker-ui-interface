@@ -15,6 +15,8 @@ import Welcome from '../components/welcome';
 import DonateSettings from '../components/settings/donate';
 import BackupSettings from '../components/settings/backup';
 import EpgSettings from '../components/settings/epg';
+import NetworkSettings from '../components/settings/network';
+import GroupMapping from '../components/settings/group';
 
 // 路由配置项说明：
 // path: 路由路径
@@ -134,6 +136,7 @@ export const routes = [
                 name: "特殊字符替换",
                 icon: "StickyNote2Icon",
                 element: <KeywordSettings />,
+                hideInMenu: true,
                 handle: { showHeader: true, showSidebar: true }
             },
             {
@@ -141,6 +144,13 @@ export const routes = [
                 name: "爬取配置",
                 icon: "SearchIcon",
                 element: <SearchSettings />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/settings/network",
+                name: "网络设置",
+                icon: "HubIcon",
+                element: <NetworkSettings />,
                 handle: { showHeader: true, showSidebar: true }
             },
             {
@@ -155,6 +165,13 @@ export const routes = [
                 name: "EPG 配置",
                 icon: "TvIcon",
                 element: <EpgSettings />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/settings/group",
+                name: "分组映射",
+                icon: "StickyNote2Icon",
+                element: <GroupMapping />,
                 handle: { showHeader: true, showSidebar: true }
             },
             {

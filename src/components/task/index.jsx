@@ -41,6 +41,7 @@ const defaultValue = {
         "ffmpeg_check": false,
         "not_http_skip": false,
         "same_save_num": 0,
+        "fast_sort": false,
     },
     "id": "",
     "create_time": 0,
@@ -114,6 +115,7 @@ export default function TaskList() {
             "ffmpeg_check": value.original.ffmpeg_check,
             "not_http_skip": value.original.not_http_skip,
             "same_save_num": value.original.same_save_num,
+            "fast_sort": value.original.fast_sort,
         };
     };
 

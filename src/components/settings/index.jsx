@@ -90,6 +90,7 @@ export default function Settings() {
     const [dialogMsg, setDialogMsg] = useState('');
     const [playerSource, setPlayerSource] = useState('');
     const [githubToken, setGithubToken] = useState('');
+    const [channelNameDisplayMode, setChannelNameDisplayMode] = useState(0);
     const [openDialog, setOpenDialog] = useState(false);
     const [newVersion, setNewVersion] = useState('');
     const { t } = useTranslation();
@@ -110,6 +111,7 @@ export default function Settings() {
             setPrivateHost(config.privateHost ?? '')
             setPlayerSource(config.playerSource ?? 'video/mp2t')
             setGithubToken(config.githubToken ?? '')
+            setChannelNameDisplayMode(config.channelNameDisplayMode ?? 0)
         }
     }, [_mainContext])
 
@@ -147,12 +149,19 @@ export default function Settings() {
             setReplaceString(e.target.checked)
         } else if (name === 'githubToken') {
             setGithubToken(e.target.value)
+        } else if (name === 'channelNameDisplayMode') {
+            setChannelNameDisplayMode(valueInt)
         }
     }
 
     const doSaveConfigSettings = async () => {
         try {
-            await taskService.saveBaseConfig({ host: baseHost, replace_string: replaceString, github_token: githubToken })
+            await taskService.saveBaseConfig({
+                host: baseHost,
+                replace_string: false,
+                github_token: githubToken,
+                rename_channel_type: channelNameDisplayMode,
+            })
         } catch (e) {
             setDialogMsg(t('保存失败') + (e?.message ? ': ' + e.message : ''))
             setOpenDialog(true)
@@ -166,6 +175,7 @@ export default function Settings() {
             privateHost: privateHost,
             playerSource: playerSource,
             githubToken: githubToken,
+            channelNameDisplayMode: channelNameDisplayMode,
         })
         _mainContext.changeLanguage(language)
         setOpenDialog(true)
@@ -237,11 +247,18 @@ export default function Settings() {
                         />
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-                        <Typography sx={{ width: '150px' }}>{t('特殊字符替换')}</Typography>
-                        <Switch
-                            checked={replaceString}
-                            onChange={(e) => setReplaceString(e.target.checked)}
-                        />
+                        <Typography sx={{ width: '150px' }}>{t('频道名称显示方式')}</Typography>
+                        <Select
+                            name="channelNameDisplayMode"
+                            value={channelNameDisplayMode}
+                            size="small"
+                            sx={{ flex: 1 }}
+                            onChange={handleChangeConfigSettings}
+                        >
+                            <MenuItem value={0}>{t('默认')}</MenuItem>
+                            <MenuItem value={1}>{t('频道名 + 分辨率标签 (HD, FHD)')}</MenuItem>
+                            <MenuItem value={2}>{t('频道名 + 分辨率数值 (720p, 1080p)')}</MenuItem>
+                        </Select>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
                         <Typography sx={{ width: '150px' }}>GitHub Token</Typography>

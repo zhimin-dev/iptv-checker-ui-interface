@@ -158,19 +158,19 @@ export default function FavoriteSettings() {
                     <Typography 
                         component="span" 
                         sx={{ cursor: 'pointer', color: 'primary.main', textDecoration: 'underline' }}
-                        onClick={() => handleOpenFile(t('爬取的全部频道列表'), window.document.location.origin + config.all_channel_url)}
+                        onClick={() => handleOpenFile(t('爬取的全部频道列表'), (config.all_channel_url?.startsWith('http') ? config.all_channel_url : window.document.location.origin + config.all_channel_url))}
                     >
-                        {window.document.location.origin +config.all_channel_url || t('暂无链接')}
+                        {(config.all_channel_url?.startsWith('http') ? config.all_channel_url : window.document.location.origin + config.all_channel_url) || t('暂无链接')}
                     </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography>{t('喜欢的频道列表')}：</Typography>
-                    <Typography 
-                        component="span" 
+                    <Typography
+                        component="span"
                         sx={{ cursor: 'pointer', color: 'primary.main', textDecoration: 'underline' }}
-                        onClick={() => handleOpenFile(t('喜欢的频道列表'), window.document.location.origin + config.liked_channel_url)}
+                        onClick={() => handleOpenFile(t('喜欢的频道列表'), (config.liked_channel_url?.startsWith('http') ? config.liked_channel_url : window.document.location.origin + config.liked_channel_url))}
                     >
-                        {window.document.location.origin + config.liked_channel_url || t('暂无链接')}
+                        {(config.liked_channel_url?.startsWith('http') ? config.liked_channel_url : window.document.location.origin + config.liked_channel_url) || t('暂无链接')}
                     </Typography>
                 </Box>
                 <Box sx={{ fontSize: '12px', color: 'text.secondary' }}>

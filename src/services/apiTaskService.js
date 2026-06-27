@@ -110,6 +110,22 @@ export class ApiTaskService {
         return response.data;
     }
 
+    async getNetworkConfig() {
+        const response = await axios.get(`${this.baseUrl}/system/network-config`);
+        if (response.status !== 200) {
+            throw new Error(response.data?.msg || 'get network-config failed');
+        }
+        return response.data;
+    }
+
+    async saveNetworkConfig(data) {
+        const response = await axios.post(`${this.baseUrl}/system/network-config`, data);
+        if (response.status !== 200) {
+            throw new Error(response.data?.msg || 'save network-config failed');
+        }
+        return response.data;
+    }
+
     async getSearchConfig() {
         const response = await axios.get(`${this.baseUrl}/system/info`);
         if (response.status !== 200) {
@@ -245,6 +261,21 @@ export class ApiTaskService {
     /** 清除已爬取的 EPG 缓存：GET /epg/cache */
     async clearEpgCache() {
         const response = await axios.get(`${this.baseUrl}/epg/cache`);
+        return response.data;
+    }
+
+    async getGroupMapping() {
+        const response = await axios.get(`${this.baseUrl}/system/group-mapping`);
+        return response.data;
+    }
+
+    async saveGroupMapping(data) {
+        const response = await axios.post(`${this.baseUrl}/system/group-mapping`, data);
+        return response.data;
+    }
+
+    async getUnmappedEpgChannels() {
+        const response = await axios.get(`${this.baseUrl}/system/group-mapping/unmapped`);
         return response.data;
     }
 }

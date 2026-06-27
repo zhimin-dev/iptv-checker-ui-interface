@@ -71,6 +71,7 @@ export const MainContextProvider = function ({ children }) {
         privateHost: '',//私有host
         playerSource: "application/x-mpegURL",// 视频播放平台
         githubToken: '',// GitHub Token
+        channelNameDisplayMode: 0,// 频道名称显示方式 0默认 1HD/FHD 2 720p/1080p
     })
 
     let debugMode = true

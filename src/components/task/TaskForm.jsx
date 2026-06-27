@@ -50,10 +50,10 @@ const defaultValue = {
         "concurrent": 30,
         "sort": false,
         "no_check": false,
-        "rename": false,
         "ffmpeg_check": false,
         "not_http_skip": false,
         "same_save_num": 0,
+        "fast_sort": false,
     },
     "id": "",
     "create_time": 0,
@@ -106,10 +106,10 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                     concurrent: formValue.original.concurrent ?? 0,
                     sort: formValue.original.sort ?? false,
                     no_check: formValue.original.no_check ?? false,
-                    rename: formValue.original.rename ?? false,
                     ffmpeg_check: formValue.original.ffmpeg_check ?? false,
                     not_http_skip: formValue.original.not_http_skip ?? false,
                     same_save_num: formValue.original.same_save_num ?? 0,
+                    fast_sort: formValue.original.fast_sort ?? false,
                 }
             };
             setTask(processedFormValue);
@@ -379,16 +379,6 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
             original: {
                 ...task.original,
                 same_save_num: parseInt(e.target.value, 10)
-            }
-        });
-    }
-
-    const handleChangeRename = (e, value) => {
-        setTask({
-            ...task,
-            original: {
-                ...task.original,
-                rename: value === "true"
             }
         });
     }
@@ -667,8 +657,8 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                 value={task.original.no_check}
                                 onChange={handleChangeNoCheckValue}
                             >
-                                <FormControlLabel value="false" control={<Radio />} label={t('是')} />
-                                <FormControlLabel value="true" control={<Radio />} label={t('否')} />
+                                <FormControlLabel value={false} control={<Radio />} label={t('是')} />
+                                <FormControlLabel value={true} control={<Radio />} label={t('否')} />
                             </RadioGroup>
                         </FormControl>
                         {
@@ -691,8 +681,8 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                             value={task.original.ffmpeg_check}
                                             onChange={handleChangeFfmepgCheck}
                                         >
-                                            <FormControlLabel value="false" control={<Radio />} label={t('http快速检查')} />
-                                            <FormControlLabel value="true" disabled={_mainContext.ffmepgCheck == 0 && _mainContext.nowMod === 1} control={<Radio />} label={t('ffmpeg慢速检查')} />
+                                            <FormControlLabel value={false} control={<Radio />} label={t('http快速检查')} />
+                                            <FormControlLabel value={true} disabled={_mainContext.ffmepgCheck == 0 && _mainContext.nowMod === 1} control={<Radio />} label={t('ffmpeg慢速检查')} />
                                         </RadioGroup>
                                     </FormControl>
                                     {
@@ -708,8 +698,8 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                                     value={task.original.not_http_skip}
                                                     onChange={handleChangeNotHttpSkip}
                                                 >
-                                                    <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                                                    <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                                    <FormControlLabel value={false} control={<Radio />} label={t('否')} />
+                                                    <FormControlLabel value={true} control={<Radio />} label={t('是')} />
                                                 </RadioGroup>
                                             </FormControl>
                                         ) : ''
@@ -717,21 +707,6 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                 </>
                             ) : ''
                         }
-                        <FormControl fullWidth style={{
-                            margin: "10px 0 20px",
-                        }}>
-                            <Typography variant="subtitle1" component="div">{t('是否需要去掉频道多余字符(比如"[HD]CCTV1"将去掉"[HD]"字符)')}</Typography>
-                            <RadioGroup
-                                row
-                                aria-labelledby="demo-row-radio-buttons-group-label"
-                                name="row-radio-buttons-group"
-                                value={task.original.rename}
-                                onChange={handleChangeRename}
-                            >
-                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
-                            </RadioGroup>
-                        </FormControl>
                         <FormControl fullWidth style={{
                             margin: "10px 0 20px",
                         }}>
@@ -743,8 +718,8 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                 value={task.original.sort}
                                 onChange={handleChangeSortValue}
                             >
-                                <FormControlLabel value="false" control={<Radio />} label={t('否')} />
-                                <FormControlLabel value="true" control={<Radio />} label={t('是')} />
+                                <FormControlLabel value={false} control={<Radio />} label={t('否')} />
+                                <FormControlLabel value={true} control={<Radio />} label={t('是')} />
                             </RadioGroup>
                         </FormControl>
                         <FormControl fullWidth style={{
@@ -752,6 +727,24 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                         }}>
                             <Typography variant="subtitle1" component="div">{t('相同名称保存条数(默认0全部保存， 设置大于0则保存相应数量频道)')}</Typography>
                             <TextField id="standard-basic" variant="standard" value={task.original.same_save_num} onChange={changeSameSaveNum} />
+                        </FormControl>
+                        <FormControl fullWidth style={{
+                            margin: "10px 0 20px",
+                        }}>
+                            <Typography variant="subtitle1" component="div">{t('按网速最快的前N个输出')}</Typography>
+                            <FormHelperText sx={{ mb: 1 }}>
+                                {t('开启后，将按响应速度排序，配合上方"相同名称保存条数"使用，仅保留每组中网速最快的N个频道')}
+                            </FormHelperText>
+                            <RadioGroup
+                                row
+                                aria-labelledby="demo-row-radio-buttons-group-label"
+                                name="row-radio-buttons-group"
+                                value={task.original.fast_sort}
+                                onChange={(e, value) => handleInputChange('fast_sort', value)}
+                            >
+                                <FormControlLabel value={false} control={<Radio />} label={t('否')} />
+                                <FormControlLabel value={true} control={<Radio />} label={t('是')} />
+                            </RadioGroup>
                         </FormControl>
 
                     </Box>

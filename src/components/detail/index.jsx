@@ -191,6 +191,7 @@ export default function Detail() {
           seeDetail={seeDetail}
           watchRow={watchThisRow}
           nowMod={_mainContext.nowMod}
+          channelNameDisplayMode={_mainContext.settings.channelNameDisplayMode || 0}
           t={() => t}
           selectedArr={selectedArr}
           selectAll={handleSelectCheckedAll}

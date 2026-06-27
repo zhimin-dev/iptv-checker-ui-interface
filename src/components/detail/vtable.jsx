@@ -79,8 +79,22 @@ class MuiVirtualizedTable extends React.PureComponent {
         return 0
     }
 
+    formatChannelName = (entry, displayMode) => {
+        const name = entry.tvgName || entry.name || '';
+        if (!displayMode || displayMode === 0) return name;
+        const vt = entry.videoType;
+        if (!vt) return name;
+        if (displayMode === 1) {
+            return name + ' ' + vt;
+        } else if (displayMode === 2) {
+            const numMap = { SD: '480p', HD: '720p', FHD: '1080p', UHD: '2160p', FUHD: '4320p' };
+            return name + ' ' + (numMap[vt] || vt);
+        }
+        return name;
+    }
+
     cellRenderer = ({ cellData, columnIndex }) => {
-        const { t, rowHeight, onRowClick, showMultiSelect, selectRow, watchRow, originalData, columns, seeDetail, nowMod } = this.props;
+        const { t, rowHeight, onRowClick, showMultiSelect, selectRow, watchRow, originalData, columns, seeDetail, nowMod, channelNameDisplayMode } = this.props;
         return (
             <TableCell
                 component="div"
@@ -114,7 +128,7 @@ class MuiVirtualizedTable extends React.PureComponent {
                     columnIndex === 1 ? (
                         <div>
                             <div style={{ fontWeight: '600', cursor: 'pointer' }}>
-                                {cellData} - <span onClick={() => seeDetail(originalData[this.getObjectIndexIndex(cellData)])}>{originalData[this.getObjectIndexIndex(cellData)].name}</span>
+                                {cellData} - <span onClick={() => seeDetail(originalData[this.getObjectIndexIndex(cellData)])}>{this.formatChannelName(originalData[this.getObjectIndexIndex(cellData)], channelNameDisplayMode)}</span>
                                 {
                                     nowMod === 1 ? (
                                         <IconButton size="small" onClick={() => watchRow(originalData[this.getObjectIndexIndex(cellData)])}>
