@@ -492,14 +492,14 @@ export const TaskProvider = ({ children }) => {
     }
 
     useEffect(() => {
-        loadFromLocalStorage()
-        console.log("-----task start--", tasks, tasksRef.current)
+        // loadFromLocalStorage()
+        // console.log("-----task start--", tasks, tasksRef.current)
         // 开启worker
-        startTask();
-        // 清理 Worker
-        return () => {
-            stopTask()
-        };
+        // startTask();
+        // // 清理 Worker
+        // return () => {
+        //     stopTask()
+        // };
     }, []);
 
     const updateTaskListResultWithoutRef = (list) => {
