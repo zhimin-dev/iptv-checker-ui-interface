@@ -57,6 +57,10 @@ export default defineConfig(async () => ({
         target: 'http://127.0.0.1:8089',
         changeOrigin: true,
       },
+      '^/api/player/.*': {
+        target: 'http://127.0.0.1:8089',
+        changeOrigin: true,
+      },
     }
   }
 }));

@@ -14,6 +14,10 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
+import List from '@mui/material/List';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 
 /** 将 GET /epg/sources 的多种返回形态规范为 URL 字符串数组 */
 function normalizeEpgUrlList(data) {
@@ -124,12 +128,46 @@ export default function EpgSettings() {
             await taskService.clearEpgCache();
             setSnackbarMsg(t('清除 EPG 缓存成功'));
             setOpenSnackbar(true);
+            // 缓存已清除：立即切换为「立即更新 EPG」按钮，无需刷新页面
+            setSourcesStatus(false);
         } catch (err) {
             console.error('Error clearing EPG cache:', err);
             setSnackbarMsg(t('清除 EPG 缓存失败'));
             setOpenSnackbar(true);
         } finally {
             setClearingCache(false);
+        }
+    };
+
+    const [epgFiles, setEpgFiles] = useState([]);
+    const [showEpgFilesDialog, setShowEpgFilesDialog] = useState(false);
+    const [showEpgContentDialog, setShowEpgContentDialog] = useState(false);
+    const [epgContentName, setEpgContentName] = useState('');
+    const [epgContent, setEpgContent] = useState('');
+    const [epgContentTruncated, setEpgContentTruncated] = useState(false);
+
+    const handleOpenEpgFiles = async () => {
+        try {
+            const data = await taskService.getEpgFiles();
+            setEpgFiles(data.list || []);
+            setShowEpgFilesDialog(true);
+        } catch (e) {
+            setSnackbarMsg(t('获取 EPG 文件失败'));
+            setOpenSnackbar(true);
+        }
+    };
+
+    const handleOpenEpgFileContent = async (name) => {
+        try {
+            const data = await taskService.getEpgFileContent(name);
+            setEpgContentName(name);
+            setEpgContent(data.content || '');
+            setEpgContentTruncated(!!data.truncated);
+            setShowEpgFilesDialog(false);
+            setShowEpgContentDialog(true);
+        } catch (e) {
+            setSnackbarMsg(t('读取 EPG 文件失败'));
+            setOpenSnackbar(true);
         }
     };
 
@@ -161,6 +199,9 @@ export default function EpgSettings() {
             <Box sx={{ display: 'flex', gap: 1, mb: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                 <Button variant="contained" onClick={handleAddRow}>
                     {t('添加 EPG 源')}
+                </Button>
+                <Button variant="outlined" startIcon={<FolderOpenIcon />} onClick={handleOpenEpgFiles}>
+                    {t('查看 EPG 源文件')}
                 </Button>
                 {sourcesStatus === true ? (
                     <LoadingButton
@@ -239,6 +280,51 @@ export default function EpgSettings() {
                     <Button onClick={handleConfirmClearCache} color="error" autoFocus>
                         {t('确认')}
                     </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* EPG 源文件列表 */}
+            <Dialog open={showEpgFilesDialog} onClose={() => setShowEpgFilesDialog(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>{t('当前 EPG 源文件')}</DialogTitle>
+                <DialogContent>
+                    {epgFiles.length === 0 ? (
+                        <Typography variant="body2" color="textSecondary" sx={{ py: 2 }}>
+                            {t('暂无数据')}
+                        </Typography>
+                    ) : (
+                        <List dense>
+                            {epgFiles.map((f) => (
+                                <ListItemButton key={f.name} onClick={() => handleOpenEpgFileContent(f.name)} divider>
+                                    <ListItemText
+                                        primary={f.name}
+                                        secondary={Math.round((f.size || 0) / 1024) + ' KB'}
+                                        primaryTypographyProps={{ fontSize: 13 }}
+                                    />
+                                </ListItemButton>
+                            ))}
+                        </List>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setShowEpgFilesDialog(false)}>{t('关闭')}</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* EPG 源文件内容（自动解压） */}
+            <Dialog open={showEpgContentDialog} onClose={() => setShowEpgContentDialog(false)} maxWidth="lg" fullWidth>
+                <DialogTitle>{epgContentName}</DialogTitle>
+                <DialogContent>
+                    {epgContentTruncated ? (
+                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 1 }}>
+                            {t('文件过大，仅展示前 50K 字符')}
+                        </Typography>
+                    ) : null}
+                    <Box sx={{ maxHeight: 480, overflow: 'auto', whiteSpace: 'pre-wrap', fontSize: 12, bgcolor: '#fafafa', p: 1.5, borderRadius: 1 }}>
+                        {epgContent}
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setShowEpgContentDialog(false)}>{t('关闭')}</Button>
                 </DialogActions>
             </Dialog>
         </Box>

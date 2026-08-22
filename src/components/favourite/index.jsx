@@ -18,6 +18,7 @@ import Typography from '@mui/material/Typography';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
+import Chip from '@mui/material/Chip';
 
 export default function FavoriteSettings() {
     const { t } = useTranslation();
@@ -34,10 +35,51 @@ export default function FavoriteSettings() {
     const [showFileDialog, setShowFileDialog] = useState(false);
     const [fileTitle, setFileTitle] = useState('');
     const [fileContent, setFileContent] = useState('');
+    const [suggestions, setSuggestions] = useState([]);
+    const [favChannels, setFavChannels] = useState([]);
+    const [copiedSubscribe, setCopiedSubscribe] = useState(false);
 
     useEffect(() => {
         fetchData();
+        // 加载「经常搜索」推荐
+        taskService.getSearchHistory('', 10)
+            .then((d) => setSuggestions((d && d.list) || []))
+            .catch(() => {});
+        fetchFavChannels();
     }, []);
+
+    const fetchFavChannels = async () => {
+        try {
+            const d = await taskService.getFavouriteChannels();
+            setFavChannels((d && d.list) || []);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const handleRemoveFavChannel = async (id) => {
+        try {
+            await taskService.removeFavouriteChannel(id);
+            setSnackbarMsg(t('删除成功'));
+            setOpenSnackbar(true);
+            fetchFavChannels();
+        } catch (e) {
+            setSnackbarMsg(t('保存失败'));
+            setOpenSnackbar(true);
+        }
+    };
+
+    const subscribeUrl = window.document.location.origin + '/api/player/favourites.m3u8';
+
+    const handleCopySubscribe = async () => {
+        try {
+            await navigator.clipboard.writeText(subscribeUrl);
+            setCopiedSubscribe(true);
+            setTimeout(() => setCopiedSubscribe(false), 1500);
+        } catch (e) {
+            // 忽略
+        }
+    };
 
     const fetchData = async () => {
         try {
@@ -214,6 +256,28 @@ export default function FavoriteSettings() {
                     {t('添加想看的频道名')}
                 </Button>
             </Box>
+
+            {suggestions.length > 0 ? (
+                <Box sx={{ mb: 4, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        {t('经常搜索')}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                        {t('搜索推荐')}
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {suggestions.map((s) => (
+                            <Chip
+                                key={s.name}
+                                label={s.name}
+                                size="small"
+                                variant="outlined"
+                                onClick={() => setNewName(s.name)}
+                            />
+                        ))}
+                    </Box>
+                </Box>
+            ) : null}
             
             {renderRuleList(includeRules, t('包含匹配'))}
             {renderRuleList(exactRules, t('完全匹配'))}

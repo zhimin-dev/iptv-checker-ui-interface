@@ -75,6 +75,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
     const [keywordType, setKeywordType] = useState('like'); // 'like' or 'dislike'
     const [activeStep, setActiveStep] = useState(0);
     const [delOpen, setDelOpen] = useState(false);
+    const [bulkUrls, setBulkUrls] = useState('');
 
     const steps = ['基础配置', '个性化配置', '检查配置'];
 
@@ -185,6 +186,24 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
         addNewM3uLinkByUrl("")
     }
 
+    /** 批量添加链接：每行一个（支持逗号分隔） */
+    const handleBulkAddUrls = () => {
+        const urls = bulkUrls
+            .split(/[\n,，]+/)
+            .map((u) => u.trim())
+            .filter(Boolean);
+        if (urls.length === 0) return;
+        const newUrls = [...task.original.urls];
+        urls.forEach((u) => {
+            if (!newUrls.includes(u)) newUrls.push(u);
+        });
+        setTask({
+            ...task,
+            original: { ...task.original, urls: newUrls }
+        });
+        setBulkUrls('');
+    }
+
     const handleDelClickOpen = () => {
         setDelOpen(true);
     };
@@ -269,7 +288,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
     const addKeyword = (type) => {
         if (type === 1 && filterFavKeyword != '') {
             let kw = task.original.keyword_like ?? [];
-            kw.push(filterFavKeyword)
+            filterFavKeyword.split(/[,\n，]+/).map((k) => k.trim()).filter(Boolean).forEach((k) => kw.push(k));
             setTask({
                 ...task,
                 original: {
@@ -280,7 +299,7 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
             setFilterFavKeyword('')
         } else if (type === 2 && filterDisKeyword != '') {
             let kw = task.original.keyword_dislike ?? [];
-            kw.push(filterDisKeyword)
+            filterDisKeyword.split(/[,\n，]+/).map((k) => k.trim()).filter(Boolean).forEach((k) => kw.push(k));
             setTask({
                 ...task,
                 original: {
@@ -437,6 +456,22 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                 </FormControl>
                             ) : ''
                         }
+                        <FormControl fullWidth sx={{ mb: 1 }}>
+                            <TextField
+                                label={t('批量添加链接（每行一个，支持逗号分隔）')}
+                                multiline
+                                minRows={2}
+                                size="small"
+                                placeholder="https://example.com/a.m3u\nhttps://example.com/b.m3u"
+                                value={bulkUrls}
+                                onChange={(e) => setBulkUrls(e.target.value)}
+                            />
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                                <Button variant="outlined" size="small" onClick={handleBulkAddUrls} disabled={!bulkUrls.trim()}>
+                                    {t('批量添加')}
+                                </Button>
+                            </Box>
+                        </FormControl>
                         <FormControl fullWidth style={{
                             padding: "20px 0 20px", display: 'flex',
                             flexDirection: 'row',

@@ -19,7 +19,6 @@ import Select from '@mui/material/Select';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
 import { fontSize, fontWeight } from '@mui/system';
 
 function AddSourceDialog(props) {

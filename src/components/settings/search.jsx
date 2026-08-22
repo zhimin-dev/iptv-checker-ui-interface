@@ -69,7 +69,9 @@ export default function SearchSettings() {
         search: {
             source: [],
             search_list: [],
-            interval_hours: 24
+            interval_hours: 24,
+            auto_download_logos: false,
+            github_file_max_age_days: 0
         },
         today_fetch: false,
         host: ''
@@ -102,7 +104,9 @@ export default function SearchSettings() {
                             extensions: s.extensions ?? []
                         })),
                         search_list: response.search?.search_list ?? [],
-                        interval_hours: response.search?.interval_hours ?? 24
+                        interval_hours: response.search?.interval_hours ?? 24,
+                        auto_download_logos: response.search?.auto_download_logos ?? false,
+                        github_file_max_age_days: response.search?.github_file_max_age_days ?? 0
                     },
                     today_fetch: response.today_fetch ?? false,
                 });
@@ -163,18 +167,20 @@ export default function SearchSettings() {
         }
     };
 
+    const buildCleanConfig = (cfg) => ({
+        ...cfg,
+        search: {
+            ...cfg.search,
+            source: (cfg.search.source || []).map(s => ({
+                ...s,
+                urls: (s.urls || []).filter(u => u.trim()),
+                include_files: (s.include_files || []).filter(f => f.trim())
+            })).filter(s => s.urls.length > 0)
+        }
+    });
+
     const handleSave = async () => {
-        const cleanConfig = {
-            ...config,
-            search: {
-                ...config.search,
-                source: config.search.source.map(s => ({
-                    ...s,
-                    urls: s.urls.filter(u => u.trim()),
-                    include_files: s.include_files.filter(f => f.trim())
-                })).filter(s => s.urls.length > 0)
-            }
-        };
+        const cleanConfig = buildCleanConfig(config);
 
         try {
             await taskService.updateSearchConfig(cleanConfig);
@@ -190,6 +196,25 @@ export default function SearchSettings() {
 
     const handleSwitchChange = (e) => {
         setConfig(prev => ({ ...prev, remote_url2local_images: e.target.checked }));
+    };
+
+    // 切换即保存：避免切换 tab 后丢失未保存的配置
+    const handleAutoLogosChange = async (e) => {
+        const checked = e.target.checked;
+        const next = buildCleanConfig({
+            ...config,
+            search: { ...config.search, auto_download_logos: checked }
+        });
+        setConfig(next);
+        try {
+            await taskService.updateSearchConfig(next);
+            setSnackbarMsg(t('保存成功'));
+            setOpenSnackbar(true);
+        } catch (err) {
+            console.error('Error saving auto_download_logos:', err);
+            setSnackbarMsg(t('保存失败'));
+            setOpenSnackbar(true);
+        }
     };
 
     const sourceTypes = [
@@ -375,6 +400,42 @@ export default function SearchSettings() {
                         </CardContent>
                     </Card>
                 ))}
+            </Box>
+
+            {/* 爬取附加配置 */}
+            <Box sx={{ mb: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                <FormControlLabel
+                    control={
+                        <Switch
+                            size="small"
+                            checked={config.search.auto_download_logos ?? false}
+                            onChange={handleAutoLogosChange}
+                        />
+                    }
+                    label={<Typography variant="body2">{t('自动下载频道logo')}</Typography>}
+                />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                    <Typography variant="body2">{t('GitHub文件更新时间限制')}</Typography>
+                    <Select
+                        size="small"
+                        value={config.search.github_file_max_age_days ?? 0}
+                        onChange={(e) => setConfig(prev => ({
+                            ...prev,
+                            search: { ...prev.search, github_file_max_age_days: Number(e.target.value) }
+                        }))}
+                        sx={{ minWidth: 140, bgcolor: 'white' }}
+                    >
+                        <MenuItem value={0}>{t('不限制')}</MenuItem>
+                        <MenuItem value={7}>{t('最近7天')}</MenuItem>
+                        <MenuItem value={30}>{t('最近30天')}</MenuItem>
+                        <MenuItem value={90}>{t('最近90天')}</MenuItem>
+                        <MenuItem value={180}>{t('最近180天')}</MenuItem>
+                        <MenuItem value={365}>{t('最近一年')}</MenuItem>
+                    </Select>
+                    <Typography variant="caption" color="textSecondary">
+                        {t('GitHub更新时间限制说明')}
+                    </Typography>
+                </Box>
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', pb: 4 }}>

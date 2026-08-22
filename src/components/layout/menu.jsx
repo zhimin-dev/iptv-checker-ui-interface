@@ -36,6 +36,9 @@ import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore
 import HubIcon from '@mui/icons-material/Hub';
 import TvIcon from '@mui/icons-material/Tv';
 import LiveTvIcon from '@mui/icons-material/LiveTv';
+import HistoryIcon from '@mui/icons-material/History';
+import BlockIcon from '@mui/icons-material/Block';
+import SpeedIcon from '@mui/icons-material/Speed';
 import _package from './../../../package';
 import { useTranslation, initReactI18next } from "react-i18next";
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
@@ -250,7 +253,7 @@ export default function Layout() {
                                                             value.icon === 'HomeOutlinedIcon' ? <HomeOutlinedIcon /> : ''
                                                         }
                                                         {
-                                                            value.icon === 'SettingsOutlinedIcon' ? <SettingsOutlinedIcon /> : ''
+                                                            value.icon === 'SettingsOutlinedIcon' ? <SettingsOutlinedIcon /> : value.icon === 'HistoryIcon' ? <HistoryIcon /> : value.icon === 'SpeedIcon' ? <SpeedIcon /> : value.icon === 'PhotoLibraryIcon' ? <PhotoLibraryIcon /> : ''
                                                         }
                                                         {
                                                             value.icon === 'SettingsBackupRestoreIcon' ? <SettingsBackupRestoreIcon /> : ''
@@ -290,6 +293,7 @@ export default function Layout() {
                                                                             {child.icon === 'VolunteerActivismIcon' ? <VolunteerActivismIcon /> : ''}
                                                                             {child.icon === 'SettingsBackupRestoreIcon' ? <SettingsBackupRestoreIcon /> : ''}
                                                                             {child.icon === 'HubIcon' ? <HubIcon /> : ''}
+                                                                            {child.icon === 'BlockIcon' ? <BlockIcon /> : ''}
                                                                         </ListItemIcon>
                                                                         <ListItemText primary={t(child.name)} />
                                                                     </ListItemButton>

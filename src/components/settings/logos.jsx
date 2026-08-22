@@ -39,6 +39,9 @@ const ChannelLogos = () => {
     const [searchKeyword, setSearchKeyword] = useState('');
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
     const [isUploading, setIsUploading] = useState(false);
+    const [crawledLogos, setCrawledLogos] = useState([]);
+    const [selectedLogoIds, setSelectedLogoIds] = useState(new Set());
+    const [bindNames, setBindNames] = useState('');
     
     // Alias Dialog State
     const [aliasDialog, setAliasDialog] = useState({ 
@@ -51,7 +54,58 @@ const ChannelLogos = () => {
 
     useEffect(() => {
         fetchLogos();
+        fetchCrawledLogos();
     }, []);
+
+    const fetchCrawledLogos = async () => {
+        try {
+            const data = await taskService.getCrawledLogos();
+            setCrawledLogos(data.list || []);
+        } catch (e) {
+            console.error('Error fetching crawled logos:', e);
+        }
+    };
+
+    const toggleSelectLogo = (id) => {
+        setSelectedLogoIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
+    };
+
+    const handleBindCrawled = async () => {
+        const names = bindNames.split(/[,，\s]+/).map((n) => n.trim()).filter(Boolean);
+        if (names.length === 0 || selectedLogoIds.size === 0) {
+            setMessage({ open: true, text: t('请选择封面并输入频道名'), type: 'warning' });
+            return;
+        }
+        try {
+            await taskService.bindCrawledLogos(Array.from(selectedLogoIds), names);
+            setSelectedLogoIds(new Set());
+            setBindNames('');
+            setMessage({ open: true, text: t('绑定成功'), type: 'success' });
+            fetchCrawledLogos();
+            fetchLogos();
+        } catch (e) {
+            setMessage({ open: true, text: t('绑定失败'), type: 'error' });
+        }
+    };
+
+    const handleClearCrawled = async () => {
+        try {
+            await taskService.clearCrawledLogos();
+            setSelectedLogoIds(new Set());
+            setMessage({ open: true, text: t('清空成功'), type: 'success' });
+            fetchCrawledLogos();
+        } catch (e) {
+            setMessage({ open: true, text: t('清空失败'), type: 'error' });
+        }
+    };
 
     const fetchLogos = async () => {
         try {
@@ -191,6 +245,76 @@ const ChannelLogos = () => {
                     </Box>
                 </Box>
             </Card>
+
+            {/* 爬取的封面整理区 */}
+            {crawledLogos.length > 0 ? (
+                <Card sx={{ mb: 3, p: 2 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                {t('爬取的封面')}（{crawledLogos.length}）
+                            </Typography>
+                            <Typography variant="caption" color="textSecondary">
+                                {t('爬取封面说明')}
+                            </Typography>
+                            <Box sx={{ flexGrow: 1 }} />
+                            <Button variant="outlined" size="small" color="error" onClick={handleClearCrawled}>
+                                {t('清空')}
+                            </Button>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                            <TextField
+                                size="small"
+                                label={t('绑定到频道名（逗号分隔）')}
+                                placeholder={t('例如：CCTV-1, 湖南卫视')}
+                                value={bindNames}
+                                onChange={(e) => setBindNames(e.target.value)}
+                                sx={{ minWidth: 320, flexGrow: 1 }}
+                            />
+                            <Button
+                                variant="contained"
+                                size="small"
+                                disabled={selectedLogoIds.size === 0}
+                                onClick={handleBindCrawled}
+                            >
+                                {t('绑定所选封面')}（{selectedLogoIds.size}）
+                            </Button>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                            {crawledLogos.map((item) => (
+                                <Box
+                                    key={item.id}
+                                    onClick={() => toggleSelectLogo(item.id)}
+                                    sx={{
+                                        cursor: 'pointer',
+                                        border: selectedLogoIds.has(item.id) ? '2px solid #1976d2' : '2px solid transparent',
+                                        borderRadius: 1,
+                                        overflow: 'hidden',
+                                        bgcolor: '#f5f5f5',
+                                        width: 96,
+                                        position: 'relative',
+                                    }}
+                                >
+                                    <Box
+                                        component="img"
+                                        src={item.url}
+                                        alt={item.names?.[0] || ''}
+                                        sx={{ width: '100%', height: 64, objectFit: 'contain', display: 'block' }}
+                                    />
+                                    <Box sx={{ p: 0.5 }}>
+                                        <Typography variant="caption" noWrap sx={{ display: 'block', fontSize: 10 }}>
+                                            {item.names?.[0] || '-'}
+                                        </Typography>
+                                    </Box>
+                                    {selectedLogoIds.has(item.id) ? (
+                                        <Box sx={{ position: 'absolute', top: 2, right: 2, width: 12, height: 12, borderRadius: '50%', bgcolor: '#1976d2' }} />
+                                    ) : null}
+                                </Box>
+                            ))}
+                        </Box>
+                    </Box>
+                </Card>
+            ) : null}
 
             {/* Search & List Section */}
             <Box sx={{ mb: 2 }}>

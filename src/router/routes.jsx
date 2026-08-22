@@ -17,6 +17,11 @@ import BackupSettings from '../components/settings/backup';
 import EpgSettings from '../components/settings/epg';
 import NetworkSettings from '../components/settings/network';
 import GroupMapping from '../components/settings/group';
+import HistoryPage from '../components/history';
+import CheckSettings from '../components/settings/check';
+import FavouriteChannelsPage from '../components/favourite-channels';
+import RelayPage from '../components/relay';
+import SnapshotsPage from '../components/snapshots';
 
 // 路由配置项说明：
 // path: 路由路径
@@ -69,6 +74,50 @@ export const routes = [
         name: "定时检查任务",
         icon: "CloudQueueIcon",
         element: <Task />,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/relay",
+        name: "流畅模式",
+        icon: "SpeedIcon",
+        element: <RelayPage />,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/snapshots",
+        name: "频道画面",
+        icon: "PhotoLibraryIcon",
+        element: <SnapshotsPage />,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/favourite-channels",
+        name: "收藏的频道",
+        icon: "FavoriteBorderIcon",
+        element: <FavouriteChannelsPage />,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/history",
+        name: "历史记录",
+        icon: "HistoryIcon",
+        element: <HistoryPage />,
         handle: {
             showMod: [0],
             showHeader: true,
@@ -165,6 +214,13 @@ export const routes = [
                 name: "EPG 配置",
                 icon: "TvIcon",
                 element: <EpgSettings />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/settings/check",
+                name: "定时检查配置",
+                icon: "BlockIcon",
+                element: <CheckSettings />,
                 handle: { showHeader: true, showSidebar: true }
             },
             {

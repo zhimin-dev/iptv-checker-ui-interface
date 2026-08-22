@@ -8,7 +8,13 @@
 .side-bar {
   width: 240px;
   z-index: 99;
-  height: 100vh;
+  /* min-height 而非固定高度：菜单项较多（如展开设置子菜单）时背景随内容一起延伸，
+     避免内容超出视口后在底部露出白色背景 */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 16px;
+  box-sizing: border-box;
 }
 .side-bar-logo {
   height: 150px;
