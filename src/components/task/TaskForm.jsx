@@ -678,6 +678,9 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                         }}>
                             <Typography variant="subtitle1" component="div">{t('检查超时(毫秒ms)')}</Typography>
                             <TextField id="standard-basic" variant="standard" value={task.original.check_timeout} onChange={changeCheckTimeout} />
+                            <Typography variant="caption" color="textSecondary">
+                                {t('检查超时说明')}
+                            </Typography>
                         </FormControl>
 
 

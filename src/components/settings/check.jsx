@@ -11,6 +11,13 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Snackbar from '@mui/material/Snackbar';
 import Pagination from '@mui/material/Pagination';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { useTranslation } from "react-i18next";
 import { ApiTaskService } from '../../services/apiTaskService';
 
@@ -28,6 +35,22 @@ export default function CheckSettings() {
     const [autoCleanDays, setAutoCleanDays] = useState(7);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMsg, setSnackbarMsg] = useState('');
+    const [reports, setReports] = useState([]);
+
+    /** 加载最近的检测报告（按格式统计） */
+    const loadReports = async () => {
+        try {
+            const data = await taskService.getCheckReports();
+            setReports(data.list || []);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    useEffect(() => {
+        loadReports();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const showMsg = (msg) => {
         setSnackbarMsg(msg);
@@ -83,6 +106,20 @@ export default function CheckSettings() {
     };
 
     const fmtTime = (secs) => (secs ? new Date(secs * 1000).toLocaleString() : '-');
+
+    const reportRows = [
+        { label: t('总数'), key: 'total' },
+        { label: 'm3u8', key: 'm3u8_total' },
+        { label: t('无效m3u8'), key: 'm3u8_invalid' },
+        { label: 'rtmp', key: 'rtmp' },
+        { label: 'rtsp', key: 'rtsp' },
+        { label: 'flv', key: 'flv' },
+        { label: 'ts', key: 'ts' },
+        { label: 'mp4', key: 'mp4' },
+        { label: t('其他'), key: 'other' },
+        { label: t('成功'), key: 'success' },
+        { label: t('失败'), key: 'failed' },
+    ];
 
     return (
         <Box style={{ padding: '0 20px', width: '100%', maxWidth: '900px' }}>
@@ -162,6 +199,56 @@ export default function CheckSettings() {
                             />
                         </Box>
                     ) : null}
+                </CardContent>
+            </Card>
+
+            {/* 检测报告：每次定时检查完成后按格式统计 */}
+            <Card sx={{ mt: 3 }}>
+                <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1, flexWrap: 'wrap' }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                            {t('检测报告')}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                            {t('检测报告说明')}
+                        </Typography>
+                        <Box sx={{ flexGrow: 1 }} />
+                        <Button variant="outlined" size="small" startIcon={<RefreshIcon fontSize="small" />} onClick={loadReports}>
+                            {t('刷新列表')}
+                        </Button>
+                    </Box>
+                    {reports.length === 0 ? (
+                        <Typography variant="body2" color="textSecondary" sx={{ py: 2 }}>
+                            {t('暂无数据')}
+                        </Typography>
+                    ) : (
+                        <TableContainer sx={{ maxHeight: 420 }}>
+                            <Table size="small" stickyHeader>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>{t('生成时间')}</TableCell>
+                                        {reportRows.map((r) => (
+                                            <TableCell key={r.key} align="right">{r.label}</TableCell>
+                                        ))}
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {reports.map((item, idx) => (
+                                        <TableRow key={item.file || idx} hover>
+                                            <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                                                {fmtTime(item.generated_at)}
+                                            </TableCell>
+                                            {reportRows.map((r) => (
+                                                <TableCell key={r.key} align="right">
+                                                    {item[r.key] ?? 0}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    )}
                 </CardContent>
             </Card>
         </Box>

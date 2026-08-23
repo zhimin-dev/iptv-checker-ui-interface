@@ -19,7 +19,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { color, justifyContent } from '@mui/system';
 
-export const TaskRow = ({ isNowHandle, row, clickTask, doTaskRightNow, source, showDownloadDialog, checkTaskRefetch, checkTaskContinue, checkTaskAgain }) => {
+export const TaskRow = ({ isNowHandle, row, clickTask, doTaskRightNow, source, showDownloadDialog, checkTaskRefetch, checkTaskContinue, checkTaskAgain, onOpenReports }) => {
     const _mainContext = useContext(MainContext);
     const { t } = useTranslation();
 
@@ -94,6 +94,11 @@ export const TaskRow = ({ isNowHandle, row, clickTask, doTaskRightNow, source, s
                                             <Button color="success" onClick={() => handleTaskRightNow(row.id)}>{t('立即执行')}</Button>
                                         ) : ''
                                     }
+                                    {onOpenReports ? (
+                                        <Button color="info" size="small" onClick={() => onOpenReports(row.original.result_name || '')}>
+                                            {t('检测报告')}
+                                        </Button>
+                                    ) : null}
                                 </Box>
                             ) : (
                                 <Box style={{ display: "flex" }}>

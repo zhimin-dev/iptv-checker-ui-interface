@@ -198,25 +198,6 @@ export default function SearchSettings() {
         setConfig(prev => ({ ...prev, remote_url2local_images: e.target.checked }));
     };
 
-    // 切换即保存：避免切换 tab 后丢失未保存的配置
-    const handleAutoLogosChange = async (e) => {
-        const checked = e.target.checked;
-        const next = buildCleanConfig({
-            ...config,
-            search: { ...config.search, auto_download_logos: checked }
-        });
-        setConfig(next);
-        try {
-            await taskService.updateSearchConfig(next);
-            setSnackbarMsg(t('保存成功'));
-            setOpenSnackbar(true);
-        } catch (err) {
-            console.error('Error saving auto_download_logos:', err);
-            setSnackbarMsg(t('保存失败'));
-            setOpenSnackbar(true);
-        }
-    };
-
     const sourceTypes = [
         { value: 'github-home-page', label: t('GitHub 主页') },
         { value: 'raw-source', label: t('原始源') },
@@ -404,16 +385,6 @@ export default function SearchSettings() {
 
             {/* 爬取附加配置 */}
             <Box sx={{ mb: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                <FormControlLabel
-                    control={
-                        <Switch
-                            size="small"
-                            checked={config.search.auto_download_logos ?? false}
-                            onChange={handleAutoLogosChange}
-                        />
-                    }
-                    label={<Typography variant="body2">{t('自动下载频道logo')}</Typography>}
-                />
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
                     <Typography variant="body2">{t('GitHub文件更新时间限制')}</Typography>
                     <Select

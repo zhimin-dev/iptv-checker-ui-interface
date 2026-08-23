@@ -39,6 +39,7 @@ import LiveTvIcon from '@mui/icons-material/LiveTv';
 import HistoryIcon from '@mui/icons-material/History';
 import BlockIcon from '@mui/icons-material/Block';
 import SpeedIcon from '@mui/icons-material/Speed';
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import _package from './../../../package';
 import { useTranslation, initReactI18next } from "react-i18next";
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
@@ -76,6 +77,7 @@ export default function Layout() {
     const [nowSelectedMenu, setNowSelectedMenu] = useState(menuList[0])
     const [openSubCheckedMenu, setOpenSubCheckedMenu] = useState(false)
     const [openSettings, setOpenSettings] = useState(false)
+    const [openPlayback, setOpenPlayback] = useState(false)
     const [nowSelectedCheckedMenu, setNowSelectedCheckedMenu] = useState(null)
     const [showDonate, setShowDonate] = useState(false);
     const [openDrawer, setOpenDrawer] = useState(true);
@@ -109,6 +111,9 @@ export default function Layout() {
                             if (menuList[i].path === '/settings') {
                                 setOpenSettings(true)
                             }
+                            if (menuList[i].path === '/play') {
+                                setOpenPlayback(true)
+                            }
                         }
                     }
                 }
@@ -123,6 +128,9 @@ export default function Layout() {
         } else if (e.children) {
             if (e.path === '/settings') {
                 setOpenSettings(!openSettings)
+            } else if (e.path === '/play') {
+                // 点击「播放设置」仅展开/收起子菜单，不进入页面
+                setOpenPlayback(!openPlayback)
             }
         } else {
             setNowSelectedMenu(e)
@@ -253,7 +261,7 @@ export default function Layout() {
                                                             value.icon === 'HomeOutlinedIcon' ? <HomeOutlinedIcon /> : ''
                                                         }
                                                         {
-                                                            value.icon === 'SettingsOutlinedIcon' ? <SettingsOutlinedIcon /> : value.icon === 'HistoryIcon' ? <HistoryIcon /> : value.icon === 'SpeedIcon' ? <SpeedIcon /> : value.icon === 'PhotoLibraryIcon' ? <PhotoLibraryIcon /> : ''
+                                                            value.icon === 'SettingsOutlinedIcon' ? <SettingsOutlinedIcon /> : value.icon === 'HistoryIcon' ? <HistoryIcon /> : value.icon === 'SpeedIcon' ? <SpeedIcon /> : value.icon === 'PhotoLibraryIcon' ? <PhotoLibraryIcon /> : value.icon === 'PlayCircleOutlineIcon' ? <PlayCircleOutlineIcon /> : ''
                                                         }
                                                         {
                                                             value.icon === 'SettingsBackupRestoreIcon' ? <SettingsBackupRestoreIcon /> : ''
@@ -267,14 +275,14 @@ export default function Layout() {
                                                     }
                                                     {
                                                         value.children ? (
-                                                            openSettings ? <ExpandLess /> : <ExpandMore />
+                                                            (value.path === '/settings' ? openSettings : openPlayback) ? <ExpandLess /> : <ExpandMore />
                                                         ) : ''
                                                     }
                                                 </ListItemButton>
                                             </ListItem>
                                             {
                                                 value.children ? (
-                                                    <Collapse in={value.path === '/settings' && openSettings} timeout="auto" unmountOnExit>
+                                                    <Collapse in={(value.path === '/settings' && openSettings) || (value.path === '/play' && openPlayback)} timeout="auto" unmountOnExit>
                                                         <List component="div" disablePadding>
                                                             {value.children.map((child, cIndex) => (
                                                                 !child.hideInMenu && (
@@ -294,6 +302,9 @@ export default function Layout() {
                                                                             {child.icon === 'SettingsBackupRestoreIcon' ? <SettingsBackupRestoreIcon /> : ''}
                                                                             {child.icon === 'HubIcon' ? <HubIcon /> : ''}
                                                                             {child.icon === 'BlockIcon' ? <BlockIcon /> : ''}
+                                                                            {child.icon === 'SpeedIcon' ? <SpeedIcon /> : ''}
+                                                                            {child.icon === 'HistoryIcon' ? <HistoryIcon /> : ''}
+                                                                            {child.icon === 'HomeOutlinedIcon' ? <HomeOutlinedIcon /> : ''}
                                                                         </ListItemIcon>
                                                                         <ListItemText primary={t(child.name)} />
                                                                     </ListItemButton>

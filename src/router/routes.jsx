@@ -10,6 +10,7 @@ import KeywordSettings from '../components/settings/keywords';
 import FavoriteSettings from '../components/favourite';
 import EpgChannelSearch from '../components/favourite/epg-search';
 import ChannelLogos from '../components/settings/logos';
+import CrawledLogosPage from '../components/settings/crawled-logos';
 import Detail from '../components/detail';
 import Welcome from '../components/welcome';
 import DonateSettings from '../components/settings/donate';
@@ -22,6 +23,7 @@ import CheckSettings from '../components/settings/check';
 import FavouriteChannelsPage from '../components/favourite-channels';
 import RelayPage from '../components/relay';
 import SnapshotsPage from '../components/snapshots';
+import PlayIntro from '../components/play/intro';
 
 // 路由配置项说明：
 // path: 路由路径
@@ -81,50 +83,6 @@ export const routes = [
         }
     },
     {
-        path: "/relay",
-        name: "流畅模式",
-        icon: "SpeedIcon",
-        element: <RelayPage />,
-        handle: {
-            showMod: [0],
-            showHeader: true,
-            showSidebar: true
-        }
-    },
-    {
-        path: "/snapshots",
-        name: "频道画面",
-        icon: "PhotoLibraryIcon",
-        element: <SnapshotsPage />,
-        handle: {
-            showMod: [0],
-            showHeader: true,
-            showSidebar: true
-        }
-    },
-    {
-        path: "/favourite-channels",
-        name: "收藏的频道",
-        icon: "FavoriteBorderIcon",
-        element: <FavouriteChannelsPage />,
-        handle: {
-            showMod: [0],
-            showHeader: true,
-            showSidebar: true
-        }
-    },
-    {
-        path: "/history",
-        name: "历史记录",
-        icon: "HistoryIcon",
-        element: <HistoryPage />,
-        handle: {
-            showMod: [0],
-            showHeader: true,
-            showSidebar: true
-        }
-    },
-    {
         path: "/favorite",
         name: "想看的频道",
         icon: "FavoriteBorderIcon",
@@ -147,6 +105,17 @@ export const routes = [
         }
     },
     {
+        path: "/settings/logos",
+        name: "频道图标",
+        icon: "PhotoLibraryIcon",
+        element: <ChannelLogos />,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
         path: "/favorite/epg-search",
         element: <Navigate to="/epg-channel-search" replace />,
         hideInMenu: true,
@@ -155,6 +124,60 @@ export const routes = [
             showHeader: true,
             showSidebar: true
         }
+    },
+    {
+        path: "/play",
+        name: "播放设置",
+        icon: "PlayCircleOutlineIcon",
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        },
+        children: [
+            {
+                path: "/play",
+                index: true,
+                element: <PlayIntro />,
+                hideInMenu: true,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/play/intro",
+                name: "播放介绍",
+                icon: "HomeOutlinedIcon",
+                element: <PlayIntro />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/play/relay",
+                name: "流畅模式",
+                icon: "SpeedIcon",
+                element: <RelayPage />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/play/snapshots",
+                name: "频道画面",
+                icon: "PhotoLibraryIcon",
+                element: <SnapshotsPage />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/play/favourite-channels",
+                name: "收藏的频道",
+                icon: "FavoriteBorderIcon",
+                element: <FavouriteChannelsPage />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/play/history",
+                name: "历史记录",
+                icon: "HistoryIcon",
+                element: <HistoryPage />,
+                handle: { showHeader: true, showSidebar: true }
+            }
+        ]
     },
     {
         path: "/settings",
@@ -190,9 +213,16 @@ export const routes = [
             },
             {
                 path: "/settings/search",
-                name: "爬取配置",
+                name: "爬取源配置",
                 icon: "SearchIcon",
                 element: <SearchSettings />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/settings/crawled-logos",
+                name: "爬取频道图标",
+                icon: "PhotoLibraryIcon",
+                element: <CrawledLogosPage />,
                 handle: { showHeader: true, showSidebar: true }
             },
             {
@@ -200,13 +230,6 @@ export const routes = [
                 name: "网络设置",
                 icon: "HubIcon",
                 element: <NetworkSettings />,
-                handle: { showHeader: true, showSidebar: true }
-            },
-            {
-                path: "/settings/logos",
-                name: "频道封面配置",
-                icon: "PhotoLibraryIcon",
-                element: <ChannelLogos />,
                 handle: { showHeader: true, showSidebar: true }
             },
             {
@@ -247,6 +270,47 @@ export const routes = [
         ]
     },
     // 不在菜单中显示的路由
+    // 旧路径兼容跳转（播放相关页面已移入「播放设置」）
+    {
+        path: "/relay",
+        element: <Navigate to="/play/relay" replace />,
+        hideInMenu: true,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/snapshots",
+        element: <Navigate to="/play/snapshots" replace />,
+        hideInMenu: true,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/favourite-channels",
+        element: <Navigate to="/play/favourite-channels" replace />,
+        hideInMenu: true,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/history",
+        element: <Navigate to="/play/history" replace />,
+        hideInMenu: true,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
     {
         path: "/detail",
         element: <Detail />,

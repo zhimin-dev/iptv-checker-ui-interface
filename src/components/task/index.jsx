@@ -11,6 +11,12 @@ import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
 import Snackbar from '@mui/material/Snackbar';
+import Typography from '@mui/material/Typography';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import CircularProgress from '@mui/material/CircularProgress';
 import AddIcon from '@mui/icons-material/Add';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useTranslation } from "react-i18next";
@@ -70,6 +76,9 @@ export default function TaskList() {
     const [showExportDialog, setShowExportDialog] = useState(false);
     const [exportBody, setExportBody] = useState('');
     const [nowTaskId, setNowTaskId] = useState('')
+    const [reportOpen, setReportOpen] = useState(false);
+    const [reports, setReports] = useState([]);
+    const [reportsLoading, setReportsLoading] = useState(false);
 
     useEffect(() => {
         get_task_list();
@@ -173,6 +182,36 @@ export default function TaskList() {
         setOpenDownloadBody(val);
     };
 
+    /** 打开检测报告弹窗：可按任务过滤（output_id 为空时展示最近全部报告） */
+    const handleOpenReports = async (outputId) => {
+        setReportOpen(true);
+        setReportsLoading(true);
+        try {
+            const data = await taskService.getCheckReports(outputId);
+            setReports(data.list || []);
+        } catch (e) {
+            setReports([]);
+        } finally {
+            setReportsLoading(false);
+        }
+    };
+
+    const reportRows = [
+        { label: t('总数'), key: 'total' },
+        { label: 'm3u8', key: 'm3u8_total' },
+        { label: t('无效m3u8'), key: 'm3u8_invalid' },
+        { label: 'rtmp', key: 'rtmp' },
+        { label: 'rtsp', key: 'rtsp' },
+        { label: 'flv', key: 'flv' },
+        { label: 'ts', key: 'ts' },
+        { label: 'mp4', key: 'mp4' },
+        { label: t('其他'), key: 'other' },
+        { label: t('成功'), key: 'success' },
+        { label: t('失败'), key: 'failed' },
+    ];
+
+    const fmtReportTime = (secs) => (secs ? new Date(secs * 1000).toLocaleString() : '-');
+
     const refreshList = () => {
         setTaskList([]);
         get_task_list();
@@ -274,6 +313,50 @@ export default function TaskList() {
                 open={openDownloadBody}
                 onClose={handleDownloadClose}
             />
+            <Dialog open={reportOpen} onClose={() => setReportOpen(false)} maxWidth="lg" fullWidth>
+                <DialogTitle>{t('检测报告')}</DialogTitle>
+                <DialogContent dividers>
+                    {reportsLoading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : reports.length === 0 ? (
+                        <Typography variant="body2" color="textSecondary" sx={{ py: 2 }}>
+                            {t('暂无数据')}
+                        </Typography>
+                    ) : (
+                        <TableContainer sx={{ maxHeight: 480 }}>
+                            <Table size="small" stickyHeader>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>{t('生成时间')}</TableCell>
+                                        {reportRows.map((r) => (
+                                            <TableCell key={r.key} align="right">{r.label}</TableCell>
+                                        ))}
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {reports.map((item, idx) => (
+                                        <TableRow key={item.file || idx} hover>
+                                            <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                                                {fmtReportTime(item.generated_at)}
+                                            </TableCell>
+                                            {reportRows.map((r) => (
+                                                <TableCell key={r.key} align="right">
+                                                    {item[r.key] ?? 0}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setReportOpen(false)}>{t('关闭')}</Button>
+                </DialogActions>
+            </Dialog>
             {/* <ImportDialog
                 open={showImportDialog}
                 onClose={handleImportDialog}
@@ -303,6 +386,7 @@ export default function TaskList() {
                                     clickTask={() => handleClickOpen(row)}
                                     source="task"
                                     isNowHandle={row.id===nowTaskId}
+                                    onOpenReports={handleOpenReports}
                                 />
                             ))}
                         </TableBody>

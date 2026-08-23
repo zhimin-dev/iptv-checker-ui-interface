@@ -260,11 +260,16 @@ export default function RelayPage() {
                                             {item.url}
                                         </TableCell>
                                         <TableCell>
-                                            {item.manual ? (
-                                                <Chip size="small" variant="outlined" label={t('手动添加')} />
-                                            ) : (
-                                                <Chip size="small" variant="outlined" color="primary" label={t('桌面播放')} />
-                                            )}
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                                {item.manual ? (
+                                                    <Chip size="small" variant="outlined" label={t('手动添加')} />
+                                                ) : (
+                                                    <Chip size="small" variant="outlined" color="primary" label={t('桌面播放')} />
+                                                )}
+                                                <Typography variant="caption" color="textSecondary">
+                                                    {item.engine === 'http' ? 'HTTP 直传' : item.engine === 'ffmpeg' ? 'ffmpeg 转码' : item.engine || '-'}
+                                                </Typography>
+                                            </Box>
                                         </TableCell>
                                         <TableCell>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

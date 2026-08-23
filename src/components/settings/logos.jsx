@@ -1,230 +1,139 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Box, 
-    Button, 
-    TextField, 
-    Typography, 
-    Card, 
-    CardContent, 
-    Grid,
-    InputAdornment,
-    Snackbar,
-    Alert,
-    Tooltip,
-    CircularProgress,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    IconButton,
-    Chip,
-    Stack,
-    Switch,
-    FormControlLabel
+import {
+    Box, Button, Typography, Card, CardContent, Snackbar, Alert,
+    CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
+    IconButton, TextField, Table, TableBody, TableCell, TableContainer,
+    TableHead, TableRow, Pagination,
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useTranslation } from 'react-i18next';
 import { ApiTaskService } from '../../services/apiTaskService';
 
+/**
+ * 频道图标（统一配置）：频道图标 + 分组 + tvg-id 合并为一组配置，支持分页。
+ * 上传/爬取绑定的图标会自动进入此列表，可在此编辑别名、tvg-id 与分组。
+ */
 const ChannelLogos = () => {
     const { t } = useTranslation();
     const [taskService] = useState(() => new ApiTaskService());
-    const [config, setConfig] = useState({
-        host: '',
-        remote_url2local_images: false,
-        logos: []
-    });
-    const [searchKeyword, setSearchKeyword] = useState('');
-    const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
+    const PAGE_SIZE = 20;
+    const [items, setItems] = useState([]);
+    const [page, setPage] = useState(0);
+    const [loading, setLoading] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
-    const [crawledLogos, setCrawledLogos] = useState([]);
-    const [selectedLogoIds, setSelectedLogoIds] = useState(new Set());
-    const [bindNames, setBindNames] = useState('');
-    
-    // Alias Dialog State
-    const [aliasDialog, setAliasDialog] = useState({ 
-        open: false, 
-        sourceName: '', 
-        sourceUrl: '', 
-        currentAliases: [], 
-        newAlias: '' 
-    });
+    const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
+
+    // 编辑弹窗
+    const [editDialog, setEditDialog] = useState({ open: false, item: null, aliasesText: '' });
+    const [saving, setSaving] = useState(false);
+
+    const showMsg = (text, type) => setMessage({ open: true, text, type });
+
+    const fetchIcons = async () => {
+        setLoading(true);
+        try {
+            const data = await taskService.getChannelIcons();
+            setItems(data.items || []);
+        } catch (e) {
+            console.error(e);
+            setItems([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        fetchLogos();
-        fetchCrawledLogos();
+        fetchIcons();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const fetchCrawledLogos = async () => {
-        try {
-            const data = await taskService.getCrawledLogos();
-            setCrawledLogos(data.list || []);
-        } catch (e) {
-            console.error('Error fetching crawled logos:', e);
-        }
-    };
-
-    const toggleSelectLogo = (id) => {
-        setSelectedLogoIds((prev) => {
-            const next = new Set(prev);
-            if (next.has(id)) {
-                next.delete(id);
-            } else {
-                next.add(id);
-            }
-            return next;
-        });
-    };
-
-    const handleBindCrawled = async () => {
-        const names = bindNames.split(/[,，\s]+/).map((n) => n.trim()).filter(Boolean);
-        if (names.length === 0 || selectedLogoIds.size === 0) {
-            setMessage({ open: true, text: t('请选择封面并输入频道名'), type: 'warning' });
-            return;
-        }
-        try {
-            await taskService.bindCrawledLogos(Array.from(selectedLogoIds), names);
-            setSelectedLogoIds(new Set());
-            setBindNames('');
-            setMessage({ open: true, text: t('绑定成功'), type: 'success' });
-            fetchCrawledLogos();
-            fetchLogos();
-        } catch (e) {
-            setMessage({ open: true, text: t('绑定失败'), type: 'error' });
-        }
-    };
-
-    const handleClearCrawled = async () => {
-        try {
-            await taskService.clearCrawledLogos();
-            setSelectedLogoIds(new Set());
-            setMessage({ open: true, text: t('清空成功'), type: 'success' });
-            fetchCrawledLogos();
-        } catch (e) {
-            setMessage({ open: true, text: t('清空失败'), type: 'error' });
-        }
-    };
-
-    const fetchLogos = async () => {
-        try {
-            const data = await taskService.getChannelLogos();
-            const baseConfig = await taskService.getBaseConfig().catch(() => ({}));
-            const host = baseConfig?.host ?? '';
-            if (data && data.logos) {
-                setConfig({ ...data, host });
-            } else if (Array.isArray(data)) {
-                setConfig(prev => ({ ...prev, logos: data, host }));
-            } else {
-                setConfig(prev => ({ ...prev, host }));
-            }
-        } catch (error) {
-            console.error('Error fetching logos:', error);
-        }
-    };
+    const pagedItems = items.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
     const handleUpload = async (e) => {
         const files = Array.from(e.target.files);
         if (files.length === 0) return;
-
         setIsUploading(true);
         const formData = new FormData();
-        files.forEach(file => {
+        files.forEach((file) => {
             formData.append('files', file);
         });
-            
         try {
             await taskService.uploadLogos(formData);
-            await fetchLogos();
-            setMessage({ 
-                open: true, 
-                text: t('上传完成'), 
-                type: 'success' 
-            });
+            showMsg(t('上传完成'), 'success');
+            fetchIcons();
         } catch (error) {
             console.error('Upload failed', error);
-            setMessage({ open: true, text: t('上传失败'), type: 'error' });
+            showMsg(t('上传失败'), 'error');
         } finally {
             setIsUploading(false);
             e.target.value = '';
         }
     };
 
-    const handleOpenAlias = (name, url, allAliases) => {
-        setAliasDialog({ 
-            open: true, 
-            sourceName: name, 
-            sourceUrl: url, 
-            currentAliases: allAliases || [], 
-            newAlias: '' 
+    const handleOpenEdit = (item) => {
+        setEditDialog({
+            open: true,
+            item: { ...item },
+            aliasesText: (item.aliases || []).join(', '),
         });
     };
 
-    const handleCloseAlias = () => {
-        setAliasDialog({ open: false, sourceName: '', sourceUrl: '', currentAliases: [], newAlias: '' });
+    const handleCloseEdit = () => {
+        setEditDialog({ open: false, item: null, aliasesText: '' });
     };
 
-    const handleAddChip = () => {
-        const val = aliasDialog.newAlias.trim();
-        if (!val) return;
-        if (aliasDialog.currentAliases.includes(val)) {
-             setMessage({ open: true, text: t('别名已存在'), type: 'warning' });
-             return;
-        }
-        setAliasDialog(prev => ({
-            ...prev,
-            currentAliases: [...prev.currentAliases, val],
-            newAlias: ''
-        }));
-    };
-
-    const handleDeleteChip = (aliasToDelete) => {
-        setAliasDialog(prev => ({
-            ...prev,
-            currentAliases: prev.currentAliases.filter(alias => alias !== aliasToDelete)
-        }));
-    };
-
-    const handleSaveAlias = async () => {
+    const handleSaveEdit = async () => {
+        const item = editDialog.item;
+        if (!item) return;
+        const aliases = editDialog.aliasesText
+            .split(/[,，\s]+/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+        const updated = { ...item, aliases };
+        const next = items.map((i) => (i.name === item.name ? updated : i));
+        setSaving(true);
         try {
-            await taskService.updateLogo({
-                url: aliasDialog.sourceUrl,
-                name: aliasDialog.currentAliases
-            });
-            await fetchLogos();
-            setMessage({ open: true, text: t('保存成功'), type: 'success' });
-            handleCloseAlias();
-        } catch (error) {
-            console.error('Save alias failed', error);
-            setMessage({ open: true, text: t('保存失败'), type: 'error' });
+            await taskService.saveChannelIcons(next);
+            setItems(next);
+            showMsg(t('保存成功'), 'success');
+            handleCloseEdit();
+        } catch (e) {
+            showMsg(t('保存失败'), 'error');
+        } finally {
+            setSaving(false);
         }
     };
 
-    const handleCloseMessage = () => {
-        setMessage({ ...message, open: false });
+    const handleDelete = async (item) => {
+        try {
+            await taskService.deleteChannelIcon(item.name);
+            setItems((prev) => prev.filter((i) => i.name !== item.name));
+            showMsg(t('删除成功'), 'success');
+        } catch (e) {
+            showMsg(t('删除失败'), 'error');
+        }
     };
 
-    const displayLogos = config.logos.reduce((acc, logo) => {
-        if (logo.name && Array.isArray(logo.name)) {
-            logo.name.forEach(n => {
-                acc.push({ name: n, url: logo.url, allNames: logo.name });
-            });
-        }
-        return acc;
-    }, []);
-
-    const filteredLogos = displayLogos.filter(item => 
-        item.name.toLowerCase().includes(searchKeyword.toLowerCase())
-    );
+    const setEditField = (key, value) => {
+        setEditDialog((prev) => ({ ...prev, item: { ...prev.item, [key]: value } }));
+    };
 
     return (
         <Box sx={{ width: '100%', p: 2 }}>
+            <Snackbar open={message.open} autoHideDuration={3000} onClose={() => setMessage({ ...message, open: false })}>
+                <Alert severity={message.type} sx={{ width: '100%' }}>{message.text}</Alert>
+            </Snackbar>
+
             {/* Upload Section */}
             <Card sx={{ mb: 3, p: 2 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>
                     <Typography variant="body2" color="textSecondary">
                         {t('上传的文件名就是电视频道名称')}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">
+                        {t('频道图标统一配置说明')}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Button
@@ -234,203 +143,151 @@ const ChannelLogos = () => {
                             disabled={isUploading}
                         >
                             {isUploading ? t('正在上传...') : t('批量上传图片')}
-                            <input 
-                                type="file" 
-                                hidden 
-                                accept="image/*" 
-                                multiple 
-                                onChange={handleUpload} 
+                            <input
+                                type="file"
+                                hidden
+                                accept="image/*"
+                                multiple
+                                onChange={handleUpload}
                             />
                         </Button>
                     </Box>
                 </Box>
             </Card>
 
-            {/* 爬取的封面整理区 */}
-            {crawledLogos.length > 0 ? (
-                <Card sx={{ mb: 3, p: 2 }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                {t('爬取的封面')}（{crawledLogos.length}）
-                            </Typography>
-                            <Typography variant="caption" color="textSecondary">
-                                {t('爬取封面说明')}
-                            </Typography>
-                            <Box sx={{ flexGrow: 1 }} />
-                            <Button variant="outlined" size="small" color="error" onClick={handleClearCrawled}>
-                                {t('清空')}
-                            </Button>
-                        </Box>
-                        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-                            <TextField
-                                size="small"
-                                label={t('绑定到频道名（逗号分隔）')}
-                                placeholder={t('例如：CCTV-1, 湖南卫视')}
-                                value={bindNames}
-                                onChange={(e) => setBindNames(e.target.value)}
-                                sx={{ minWidth: 320, flexGrow: 1 }}
-                            />
-                            <Button
-                                variant="contained"
-                                size="small"
-                                disabled={selectedLogoIds.size === 0}
-                                onClick={handleBindCrawled}
-                            >
-                                {t('绑定所选封面')}（{selectedLogoIds.size}）
-                            </Button>
-                        </Box>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                            {crawledLogos.map((item) => (
-                                <Box
-                                    key={item.id}
-                                    onClick={() => toggleSelectLogo(item.id)}
-                                    sx={{
-                                        cursor: 'pointer',
-                                        border: selectedLogoIds.has(item.id) ? '2px solid #1976d2' : '2px solid transparent',
-                                        borderRadius: 1,
-                                        overflow: 'hidden',
-                                        bgcolor: '#f5f5f5',
-                                        width: 96,
-                                        position: 'relative',
-                                    }}
-                                >
-                                    <Box
-                                        component="img"
-                                        src={item.url}
-                                        alt={item.names?.[0] || ''}
-                                        sx={{ width: '100%', height: 64, objectFit: 'contain', display: 'block' }}
-                                    />
-                                    <Box sx={{ p: 0.5 }}>
-                                        <Typography variant="caption" noWrap sx={{ display: 'block', fontSize: 10 }}>
-                                            {item.names?.[0] || '-'}
-                                        </Typography>
-                                    </Box>
-                                    {selectedLogoIds.has(item.id) ? (
-                                        <Box sx={{ position: 'absolute', top: 2, right: 2, width: 12, height: 12, borderRadius: '50%', bgcolor: '#1976d2' }} />
-                                    ) : null}
-                                </Box>
-                            ))}
-                        </Box>
+            {/* 统一配置表格（频道图标 + 分组 + tvg-id） */}
+            <Card>
+                <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1, flexWrap: 'wrap' }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                            {t('频道图标')}（{items.length}）
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary">
+                            {t('频道图标统一配置说明2')}
+                        </Typography>
                     </Box>
-                </Card>
-            ) : null}
-
-            {/* Search & List Section */}
-            <Box sx={{ mb: 2 }}>
-                <TextField
-                    fullWidth
-                    placeholder={t('搜索频道')}
-                    value={searchKeyword}
-                    onChange={(e) => setSearchKeyword(e.target.value)}
-                    InputProps={{
-                        startAdornment: (
-                            <InputAdornment position="start">
-                                <SearchIcon />
-                            </InputAdornment>
-                        ),
-                    }}
-                    size="small"
-                />
-            </Box>
-
-            <Grid container spacing={2}>
-                {filteredLogos.map((item, idx) => (
-                    <Grid item xs={6} sm={4} md={3} lg={2} key={`${item.name}-${idx}`}>
-                        <Card sx={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                            <Box sx={{ p: 1, display: 'flex', justifyContent: 'center', bgcolor: '#f5f5f5', height: 100, alignItems: 'center' }}>
-                                <Box 
-                                    component="img" 
-                                    src={item.url.startsWith('http') ? item.url : `${config.host}${item.url}`} 
-                                    alt={item.name}
-                                    sx={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                                />
-                            </Box>
-                            <CardContent sx={{ p: 1.5, flexGrow: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Tooltip title={item.name}>
-                                    <Typography variant="subtitle2" noWrap sx={{ maxWidth: '70%' }}>
-                                        {item.name}
-                                    </Typography>
-                                </Tooltip>
-                                <Tooltip title={t('编辑别名')}>
-                                    <IconButton size="small" color="primary" onClick={() => handleOpenAlias(item.name, item.url, item.allNames)}>
-                                        <DriveFileRenameOutlineIcon fontSize="small" />
-                                    </IconButton>
-                                </Tooltip>
-                            </CardContent>
-                        </Card>
-                    </Grid>
-                ))}
-                {filteredLogos.length === 0 && (
-                    <Grid item xs={12}>
-                        <Typography align="center" color="textSecondary" sx={{ py: 4 }}>
+                    {loading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : items.length === 0 ? (
+                        <Typography variant="body2" color="textSecondary" sx={{ py: 3 }}>
                             {t('暂无数据')}
                         </Typography>
-                    </Grid>
-                )}
-            </Grid>
-
-            {/* Alias Dialog */}
-            <Dialog open={aliasDialog.open} onClose={handleCloseAlias} maxWidth="sm" fullWidth>
-                <DialogTitle>{t('编辑别名')}</DialogTitle>
-                <DialogContent>
-                    <Box sx={{ pt: 1 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                             <Box 
-                                component="img" 
-                                src={aliasDialog.sourceUrl.startsWith('http') ? aliasDialog.sourceUrl : `${config.host}${aliasDialog.sourceUrl}`} 
-                                sx={{ maxHeight: 100, maxWidth: '100%', objectFit: 'contain' }} 
-                             />
-                        </Box>
-
-                        <Typography variant="subtitle2" gutterBottom>{t('已有别名')}</Typography>
-                        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 3 }}>
-                            {aliasDialog.currentAliases.map((alias) => (
-                                <Chip 
-                                    key={alias} 
-                                    label={alias} 
-                                    onDelete={() => handleDeleteChip(alias)} 
-                                />
-                            ))}
-                            {aliasDialog.currentAliases.length === 0 && (
-                                <Typography variant="caption" color="textSecondary">
-                                    {t('暂无别名')}
-                                </Typography>
-                            )}
-                        </Stack>
-
-                        <Typography variant="subtitle2" gutterBottom>{t('新增别名')}</Typography>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                            <TextField
-                                fullWidth
+                    ) : (
+                        <TableContainer sx={{ maxHeight: 560 }}>
+                            <Table size="small" stickyHeader>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>{t('图标')}</TableCell>
+                                        <TableCell>{t('频道名')}</TableCell>
+                                        <TableCell>{t('别名')}</TableCell>
+                                        <TableCell>tvg-id</TableCell>
+                                        <TableCell>{t('分组')}</TableCell>
+                                        <TableCell align="right">{t('操作')}</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {pagedItems.map((item) => (
+                                        <TableRow key={item.name} hover>
+                                            <TableCell>
+                                                <Box
+                                                    component="img"
+                                                    src={item.logo}
+                                                    alt={item.name}
+                                                    sx={{ width: 56, height: 40, objectFit: 'contain', display: 'block', bgcolor: '#f5f5f5', borderRadius: 0.5 }}
+                                                    onError={(ev) => { ev.target.style.visibility = 'hidden'; }}
+                                                />
+                                            </TableCell>
+                                            <TableCell sx={{ fontWeight: 500 }}>{item.name}</TableCell>
+                                            <TableCell>
+                                                <Typography variant="caption" color="textSecondary">
+                                                    {(item.aliases || []).join(', ') || '-'}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell>{item.tvg_id || '-'}</TableCell>
+                                            <TableCell>{item.group || '-'}</TableCell>
+                                            <TableCell align="right">
+                                                <IconButton size="small" color="primary" onClick={() => handleOpenEdit(item)} title={t('编辑')}>
+                                                    <DriveFileRenameOutlineIcon fontSize="small" />
+                                                </IconButton>
+                                                <IconButton size="small" color="error" onClick={() => handleDelete(item)} title={t('删除')}>
+                                                    <DeleteIcon fontSize="small" />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    )}
+                    {items.length > PAGE_SIZE ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
+                            <Pagination
+                                count={Math.ceil(items.length / PAGE_SIZE)}
+                                page={page + 1}
+                                onChange={(e, v) => setPage((v || 1) - 1)}
                                 size="small"
-                                label={t('输入别名')}
-                                value={aliasDialog.newAlias}
-                                onChange={(e) => setAliasDialog({ ...aliasDialog, newAlias: e.target.value })}
-                                onKeyPress={(e) => { if (e.key === 'Enter') handleAddChip(); }}
+                                showFirstButton
+                                showLastButton
                             />
-                            <Button onClick={handleAddChip} variant="contained" size="small">
-                                {t('添加')}
-                            </Button>
                         </Box>
+                    ) : null}
+                </CardContent>
+            </Card>
+
+            {/* 编辑弹窗：别名 / tvg-id / 分组 */}
+            <Dialog open={editDialog.open} onClose={handleCloseEdit} maxWidth="sm" fullWidth>
+                <DialogTitle>{t('编辑频道图标')}：{editDialog.item?.name || ''}</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+                        <TextField
+                            size="small"
+                            label={t('频道名')}
+                            value={editDialog.item?.name || ''}
+                            onChange={(e) => setEditField('name', e.target.value)}
+                            fullWidth
+                        />
+                        <TextField
+                            size="small"
+                            label={t('别名（逗号分隔）')}
+                            value={editDialog.aliasesText}
+                            onChange={(e) => setEditDialog((prev) => ({ ...prev, aliasesText: e.target.value }))}
+                            fullWidth
+                            helperText={t('别名也会参与图标匹配，例如 cctv1、cctv-1')}
+                        />
+                        <TextField
+                            size="small"
+                            label="tvg-id"
+                            value={editDialog.item?.tvg_id || ''}
+                            onChange={(e) => setEditField('tvg_id', e.target.value)}
+                            fullWidth
+                            helperText={t('用于 EPG 节目单匹配，可为空')}
+                        />
+                        <TextField
+                            size="small"
+                            label={t('分组')}
+                            value={editDialog.item?.group || ''}
+                            onChange={(e) => setEditField('group', e.target.value)}
+                            fullWidth
+                            helperText={t('检查时自动应用到该频道的 group-title')}
+                        />
+                        <TextField
+                            size="small"
+                            label={t('图标地址')}
+                            value={editDialog.item?.logo || ''}
+                            InputProps={{ readOnly: true }}
+                            fullWidth
+                        />
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseAlias}>{t('取消')}</Button>
-                    <Button onClick={handleSaveAlias} variant="contained" color="primary">{t('保存')}</Button>
+                    <Button onClick={handleCloseEdit}>{t('取消')}</Button>
+                    <Button variant="contained" disabled={saving} onClick={handleSaveEdit}>
+                        {saving ? t('保存中...') : t('保存')}
+                    </Button>
                 </DialogActions>
             </Dialog>
-
-            <Snackbar 
-                open={message.open} 
-                autoHideDuration={3000} 
-                onClose={handleCloseMessage}
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-            >
-                <Alert onClose={handleCloseMessage} severity={message.type} sx={{ width: '100%' }}>
-                    {message.text}
-                </Alert>
-            </Snackbar>
         </Box>
     );
 };

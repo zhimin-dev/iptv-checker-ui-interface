@@ -344,6 +344,30 @@ export class ApiTaskService {
         return response.data;
     }
 
+    async getCheckReports(outputId) {
+        const response = await axios.get(`${this.baseUrl}/system/check-reports`, {
+            params: outputId ? { output_id: outputId } : undefined,
+        });
+        return response.data;
+    }
+
+    // ---------- 统一频道图标配置（图标 + 分组 + tvg-id） ----------
+
+    async getChannelIcons() {
+        const response = await axios.get(`${this.baseUrl}/media/channel-icons`);
+        return response.data;
+    }
+
+    async saveChannelIcons(items) {
+        const response = await axios.post(`${this.baseUrl}/media/channel-icons`, { items });
+        return response.data;
+    }
+
+    async deleteChannelIcon(name) {
+        const response = await axios.delete(`${this.baseUrl}/media/channel-icons/${encodeURIComponent(name)}`);
+        return response.data;
+    }
+
     async setBlacklistConfig(data) {
         const response = await axios.post(`${this.baseUrl}/api/check/blacklist/config`, data);
         return response.data;
@@ -363,7 +387,8 @@ export class ApiTaskService {
 
     async startRelay(url) {
         // manual: true —— 后台手动添加的会话永不自动停止，需手动停止
-        const response = await axios.post(`${this.baseUrl}/api/player/relay/start`, { url, manual: true });
+        // mode: http —— 纯 HTTP 下载 TS 直传，不经 ffmpeg
+        const response = await axios.post(`${this.baseUrl}/api/player/relay/start`, { url, manual: true, mode: 'http' });
         return response.data;
     }
 
@@ -446,6 +471,11 @@ export class ApiTaskService {
 
     async getCrawledLogos() {
         const response = await axios.get(`${this.baseUrl}/media/logos-crawled`);
+        return response.data;
+    }
+
+    async crawlLogos() {
+        const response = await axios.post(`${this.baseUrl}/media/logos-crawled/crawl`);
         return response.data;
     }
 
