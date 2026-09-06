@@ -159,7 +159,6 @@ export default function Settings() {
         try {
             await taskService.saveBaseConfig({
                 host: baseHost,
-                replace_string: false,
                 github_token: githubToken,
                 rename_channel_type: channelNameDisplayMode,
             })
