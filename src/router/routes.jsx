@@ -11,6 +11,8 @@ import FavoriteSettings from '../components/favourite';
 import EpgChannelSearch from '../components/favourite/epg-search';
 import ChannelLogos from '../components/settings/logos';
 import CrawledLogosPage from '../components/settings/crawled-logos';
+import AiOrganizePage from '../components/settings/ai-organize';
+import AiConfigPage from '../components/settings/ai-config';
 import Detail from '../components/detail';
 import Welcome from '../components/welcome';
 import DonateSettings from '../components/settings/donate';
@@ -105,15 +107,70 @@ export const routes = [
         }
     },
     {
-        path: "/settings/logos",
-        name: "频道图标",
-        icon: "PhotoLibraryIcon",
-        element: <ChannelLogos />,
+        path: "/display",
+        name: "频道信息配置",
+        icon: "TvIcon",
         handle: {
             showMod: [0],
             showHeader: true,
             showSidebar: true
-        }
+        },
+        children: [
+            {
+                path: "/display/icons",
+                name: "频道图标",
+                icon: "PhotoLibraryIcon",
+                element: <ChannelLogos />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/display/group-mapping",
+                name: "分组映射",
+                icon: "StickyNote2Icon",
+                element: <GroupMapping />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/display/ai-organize",
+                name: "AI 整理",
+                icon: "AutoAwesomeIcon",
+                element: <AiOrganizePage />,
+                handle: { showHeader: true, showSidebar: true }
+            }
+        ]
+    },
+    {
+        path: "/crawl",
+        name: "爬取配置",
+        icon: "CloudQueueIcon",
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        },
+        children: [
+            {
+                path: "/crawl/sources",
+                name: "输入源",
+                icon: "SearchIcon",
+                element: <SearchSettings />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/crawl/logos",
+                name: "频道图标",
+                icon: "PhotoLibraryIcon",
+                element: <CrawledLogosPage />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/crawl/epg",
+                name: "EPG",
+                icon: "TvIcon",
+                element: <EpgSettings />,
+                handle: { showHeader: true, showSidebar: true }
+            }
+        ]
     },
     {
         path: "/favorite/epg-search",
@@ -212,31 +269,10 @@ export const routes = [
                 handle: { showHeader: true, showSidebar: true }
             },
             {
-                path: "/settings/search",
-                name: "爬取源配置",
-                icon: "SearchIcon",
-                element: <SearchSettings />,
-                handle: { showHeader: true, showSidebar: true }
-            },
-            {
-                path: "/settings/crawled-logos",
-                name: "爬取频道图标",
-                icon: "PhotoLibraryIcon",
-                element: <CrawledLogosPage />,
-                handle: { showHeader: true, showSidebar: true }
-            },
-            {
                 path: "/settings/network",
                 name: "网络设置",
                 icon: "HubIcon",
                 element: <NetworkSettings />,
-                handle: { showHeader: true, showSidebar: true }
-            },
-            {
-                path: "/settings/epg",
-                name: "EPG 配置",
-                icon: "TvIcon",
-                element: <EpgSettings />,
                 handle: { showHeader: true, showSidebar: true }
             },
             {
@@ -247,17 +283,17 @@ export const routes = [
                 handle: { showHeader: true, showSidebar: true }
             },
             {
-                path: "/settings/group",
-                name: "分组映射",
-                icon: "StickyNote2Icon",
-                element: <GroupMapping />,
-                handle: { showHeader: true, showSidebar: true }
-            },
-            {
                 path: "/settings/backup",
                 name: "备份与恢复",
                 icon: "SettingsBackupRestoreIcon",
                 element: <BackupSettings />,
+                handle: { showHeader: true, showSidebar: true }
+            },
+            {
+                path: "/settings/ai",
+                name: "AI 配置",
+                icon: "AutoAwesomeIcon",
+                element: <AiConfigPage />,
                 handle: { showHeader: true, showSidebar: true }
             },
             {
@@ -270,7 +306,67 @@ export const routes = [
         ]
     },
     // 不在菜单中显示的路由
-    // 旧路径兼容跳转（播放相关页面已移入「播放设置」）
+    // 旧路径兼容跳转（频道显示相关页面已移入「频道信息配置」）
+    {
+        path: "/settings/logos",
+        element: <Navigate to="/display/icons" replace />,
+        hideInMenu: true,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/group-bind",
+        element: <Navigate to="/display/group-bind" replace />,
+        hideInMenu: true,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/settings/group",
+        element: <Navigate to="/display/group-mapping" replace />,
+        hideInMenu: true,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/settings/epg",
+        element: <Navigate to="/crawl/epg" replace />,
+        hideInMenu: true,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/settings/search",
+        element: <Navigate to="/crawl/sources" replace />,
+        hideInMenu: true,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
+    {
+        path: "/settings/crawled-logos",
+        element: <Navigate to="/crawl/logos" replace />,
+        hideInMenu: true,
+        handle: {
+            showMod: [0],
+            showHeader: true,
+            showSidebar: true
+        }
+    },
     {
         path: "/relay",
         element: <Navigate to="/play/relay" replace />,

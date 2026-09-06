@@ -198,7 +198,7 @@ export default function EpgSettings() {
 
             <Box sx={{ display: 'flex', gap: 1, mb: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                 <Button variant="contained" onClick={handleAddRow}>
-                    {t('添加 EPG 源')}
+                    {t('添加 EPG')}
                 </Button>
                 <Button variant="outlined" startIcon={<FolderOpenIcon />} onClick={handleOpenEpgFiles}>
                     {t('查看 EPG 源文件')}

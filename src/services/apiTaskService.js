@@ -281,6 +281,11 @@ export class ApiTaskService {
         return response.data;
     }
 
+    async setActiveGroupType(active) {
+        const response = await axios.post(`${this.baseUrl}/system/group-mapping/active`, { active });
+        return response.data;
+    }
+
     async saveGroupMapping(data) {
         const response = await axios.post(`${this.baseUrl}/system/group-mapping`, data);
         return response.data;
@@ -365,6 +370,60 @@ export class ApiTaskService {
 
     async deleteChannelIcon(name) {
         const response = await axios.delete(`${this.baseUrl}/media/channel-icons/${encodeURIComponent(name)}`);
+        return response.data;
+    }
+
+    // ---------- AI 整理（DeepSeek） ----------
+
+    async getAiConfig() {
+        const response = await axios.get(`${this.baseUrl}/system/ai-config`);
+        return response.data;
+    }
+
+    async saveAiConfig(data) {
+        const response = await axios.post(`${this.baseUrl}/system/ai-config`, data);
+        return response.data;
+    }
+
+    async organizeAiChannels(names, groups, allowCreateGroups, groupMode) {
+        const response = await axios.post(`${this.baseUrl}/api/ai/organize`, {
+            names,
+            groups: groups || [],
+            allow_create_groups: !!allowCreateGroups,
+            group_mode: groupMode || 'prefix',
+        }, { timeout: 600000 });
+        return response.data;
+    }
+
+    async applyAiChannels(items, allowCreateGroups) {
+        const response = await axios.post(`${this.baseUrl}/api/ai/apply`, {
+            items,
+            allow_create_groups: !!allowCreateGroups,
+        });
+        return response.data;
+    }
+
+    // ---------- 两级分组定义（分组编辑页） ----------
+
+    async getGroups() {
+        const response = await axios.get(`${this.baseUrl}/media/groups`);
+        return response.data;
+    }
+
+    async saveGroups(groups) {
+        const response = await axios.post(`${this.baseUrl}/media/groups`, { groups });
+        return response.data;
+    }
+
+    async deleteGroup(group1, group2, clearChannels) {
+        const response = await axios.delete(`${this.baseUrl}/media/groups`, {
+            data: { group1, group2: group2 || '', clear_channels: !!clearChannels },
+        });
+        return response.data;
+    }
+
+    async addBlacklist(url) {
+        const response = await axios.post(`${this.baseUrl}/api/check/blacklist/add`, { url });
         return response.data;
     }
 

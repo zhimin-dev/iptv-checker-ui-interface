@@ -37,6 +37,8 @@ import HubIcon from '@mui/icons-material/Hub';
 import TvIcon from '@mui/icons-material/Tv';
 import LiveTvIcon from '@mui/icons-material/LiveTv';
 import HistoryIcon from '@mui/icons-material/History';
+import EditIcon from '@mui/icons-material/Edit';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import BlockIcon from '@mui/icons-material/Block';
 import SpeedIcon from '@mui/icons-material/Speed';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
@@ -67,6 +69,33 @@ const drawerWidth = 240;
 // 过滤出菜单项
 const menuList = routes.filter(r => !r.hideInMenu);
 
+/** 子菜单图标映射（供递归渲染复用） */
+function MenuIcon({ icon }) {
+    return (
+        <>
+            {icon === 'PublicIcon' ? <PublicIcon /> : null}
+            {icon === 'StickyNote2Icon' ? <StickyNote2Icon /> : null}
+            {icon === 'TvIcon' ? <TvIcon /> : null}
+            {icon === 'SettingsIcon' ? <SettingsIcon /> : null}
+            {icon === 'SearchIcon' ? <SearchIcon /> : null}
+            {icon === 'ManageSearchIcon' ? <ManageSearchIcon /> : null}
+            {icon === 'PhotoLibraryIcon' ? <PhotoLibraryIcon /> : null}
+            {icon === 'FavoriteIcon' ? <FavoriteIcon /> : null}
+            {icon === 'FavoriteBorderIcon' ? <FavoriteBorderIcon /> : null}
+            {icon === 'LiveTvIcon' ? <LiveTvIcon /> : null}
+            {icon === 'VolunteerActivismIcon' ? <VolunteerActivismIcon /> : null}
+            {icon === 'SettingsBackupRestoreIcon' ? <SettingsBackupRestoreIcon /> : null}
+            {icon === 'HubIcon' ? <HubIcon /> : null}
+            {icon === 'BlockIcon' ? <BlockIcon /> : null}
+            {icon === 'SpeedIcon' ? <SpeedIcon /> : null}
+            {icon === 'HistoryIcon' ? <HistoryIcon /> : null}
+            {icon === 'HomeOutlinedIcon' ? <HomeOutlinedIcon /> : null}
+            {icon === 'EditIcon' ? <EditIcon /> : null}
+            {icon === 'AutoAwesomeIcon' ? <AutoAwesomeIcon /> : null}
+        </>
+    );
+}
+
 export default function Layout() {
     const { t } = useTranslation();
     let location = useLocation();
@@ -78,6 +107,17 @@ export default function Layout() {
     const [openSubCheckedMenu, setOpenSubCheckedMenu] = useState(false)
     const [openSettings, setOpenSettings] = useState(false)
     const [openPlayback, setOpenPlayback] = useState(false)
+    // 三级及以上嵌套子菜单的展开状态（key 为节点 path）
+    const [openSubMenus, setOpenSubMenus] = useState(() => new Set())
+
+    const toggleSubMenu = (p) => {
+        setOpenSubMenus((prev) => {
+            const next = new Set(prev);
+            if (next.has(p)) next.delete(p);
+            else next.add(p);
+            return next;
+        });
+    };
     const [nowSelectedCheckedMenu, setNowSelectedCheckedMenu] = useState(null)
     const [showDonate, setShowDonate] = useState(false);
     const [openDrawer, setOpenDrawer] = useState(true);
@@ -94,29 +134,41 @@ export default function Layout() {
             // setNowSelectedMenu({ 'showHeader': false }) // 已废弃，由 handle 控制
         } else {
             _mainContext.updateDetailMd5("")
-            // 查找当前选中的菜单
-            // 这里逻辑保持原样用于高亮，或者可以优化
-            for (let i = 0; i < menuList.length; i++) {
-                if (location.pathname == menuList[i].path || location.pathname == menuList[i].uri) {
-                    if (!menuList[i].children) {
-                        setNowSelectedMenu(menuList[i])
-                    }
+            // 递归查找当前选中的菜单（支持三级及以上的嵌套菜单），
+            // 沿途自动展开所有父级分组
+            const expandAlongPath = (node) => {
+                const path = node.path || node.uri;
+                if (path && location.pathname == path) {
+                    setNowSelectedMenu(node);
+                    return true;
                 }
-                if (menuList[i].children) {
-                    for (let j = 0; j < menuList[i].children.length; j++) {
-                         // 兼容旧 uri 和新 path
-                        const path = menuList[i].children[j].path || menuList[i].children[j].uri;
-                        if (location.pathname == path) {
-                            setNowSelectedMenu(menuList[i].children[j])
-                            if (menuList[i].path === '/settings') {
-                                setOpenSettings(true)
+                if (node.children) {
+                    for (let i = 0; i < node.children.length; i++) {
+                        const child = node.children[i];
+                        if (expandAlongPath(child)) {
+                            const p = node.path || node.uri;
+                            // 同一时间只展开一个顶级菜单
+                            if (p === '/settings') {
+                                setOpenSettings(true);
+                                setOpenPlayback(false);
+                                setOpenSubMenus(new Set());
+                            } else if (p === '/play') {
+                                setOpenPlayback(true);
+                                setOpenSettings(false);
+                                setOpenSubMenus(new Set());
+                            } else if (p) {
+                                setOpenSubMenus(new Set([p]));
+                                setOpenSettings(false);
+                                setOpenPlayback(false);
                             }
-                            if (menuList[i].path === '/play') {
-                                setOpenPlayback(true)
-                            }
+                            return true;
                         }
                     }
                 }
+                return false;
+            };
+            for (let i = 0; i < menuList.length; i++) {
+                expandAlongPath(menuList[i]);
             }
         }
     }, [location, menuList])
@@ -127,10 +179,22 @@ export default function Layout() {
             setOpenSubCheckedMenu(!openSubCheckedMenu)
         } else if (e.children) {
             if (e.path === '/settings') {
+                // 同一时间只展开一个顶级菜单（互斥）
                 setOpenSettings(!openSettings)
+                setOpenPlayback(false)
+                setOpenSubMenus(new Set())
             } else if (e.path === '/play') {
                 // 点击「播放设置」仅展开/收起子菜单，不进入页面
                 setOpenPlayback(!openPlayback)
+                setOpenSettings(false)
+                setOpenSubMenus(new Set())
+            } else {
+                // 三级及以上的嵌套分组：仅展开/收起，且互斥
+                const p = e.path || e.uri;
+                const wasOpen = openSubMenus.has(p)
+                setOpenSettings(false)
+                setOpenPlayback(false)
+                setOpenSubMenus(wasOpen ? new Set() : new Set([p]))
             }
         } else {
             setNowSelectedMenu(e)
@@ -175,6 +239,36 @@ export default function Layout() {
     const showDonateData = () => {
         setShowDonate(!showDonate)
     }
+
+    // 递归渲染子菜单（支持三级及以上）：有 children 的节点可展开/收起
+    const renderChild = (child, cIndex, depth) => {
+        if (child.hideInMenu) return null;
+        const childPath = child.path || child.uri;
+        const hasChildren = !!(child.children && child.children.length > 0);
+        const isOpen = childPath ? openSubMenus.has(childPath) : false;
+        const pl = 2 + depth * 2;
+        return (
+            <Box key={cIndex}>
+                <ListItemButton
+                    sx={{ pl }}
+                    onClick={() => (hasChildren ? (childPath && toggleSubMenu(childPath)) : changePath(child))}
+                >
+                    <ListItemIcon>
+                        <MenuIcon icon={child.icon} />
+                    </ListItemIcon>
+                    <ListItemText primary={t(child.name)} />
+                    {hasChildren ? (isOpen ? <ExpandLess /> : <ExpandMore />) : null}
+                </ListItemButton>
+                {hasChildren ? (
+                    <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                        <List component="div" disablePadding>
+                            {child.children.map((g, gi) => renderChild(g, gi, depth + 1))}
+                        </List>
+                    </Collapse>
+                ) : null}
+            </Box>
+        );
+    };
 
     const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
@@ -261,6 +355,9 @@ export default function Layout() {
                                                             value.icon === 'HomeOutlinedIcon' ? <HomeOutlinedIcon /> : ''
                                                         }
                                                         {
+                                                            value.icon === 'HubIcon' ? <HubIcon /> : ''
+                                                        }
+                                                        {
                                                             value.icon === 'SettingsOutlinedIcon' ? <SettingsOutlinedIcon /> : value.icon === 'HistoryIcon' ? <HistoryIcon /> : value.icon === 'SpeedIcon' ? <SpeedIcon /> : value.icon === 'PhotoLibraryIcon' ? <PhotoLibraryIcon /> : value.icon === 'PlayCircleOutlineIcon' ? <PlayCircleOutlineIcon /> : ''
                                                         }
                                                         {
@@ -275,41 +372,20 @@ export default function Layout() {
                                                     }
                                                     {
                                                         value.children ? (
-                                                            (value.path === '/settings' ? openSettings : openPlayback) ? <ExpandLess /> : <ExpandMore />
+                                                            (value.path === '/settings'
+                                                                ? openSettings
+                                                                : value.path === '/play'
+                                                                    ? openPlayback
+                                                                    : openSubMenus.has(value.path)) ? <ExpandLess /> : <ExpandMore />
                                                         ) : ''
                                                     }
                                                 </ListItemButton>
                                             </ListItem>
                                             {
                                                 value.children ? (
-                                                    <Collapse in={(value.path === '/settings' && openSettings) || (value.path === '/play' && openPlayback)} timeout="auto" unmountOnExit>
+                                                    <Collapse in={(value.path === '/settings' && openSettings) || (value.path === '/play' && openPlayback) || openSubMenus.has(value.path)} timeout="auto" unmountOnExit>
                                                         <List component="div" disablePadding>
-                                                            {value.children.map((child, cIndex) => (
-                                                                !child.hideInMenu && (
-                                                                    <ListItemButton key={cIndex} sx={{ pl: 4 }} onClick={() => changePath(child)}>
-                                                                        <ListItemIcon>
-                                                                            {child.icon === 'PublicIcon' ? <PublicIcon /> : ''}
-                                                                            {child.icon === 'StickyNote2Icon' ? <StickyNote2Icon /> : ''}
-                                                                            {child.icon === 'TvIcon' ? <TvIcon /> : ''}
-                                                                            {child.icon === 'SettingsIcon' ? <SettingsIcon /> : ''}
-                                                                            {child.icon === 'SearchIcon' ? <SearchIcon /> : ''}
-                                                                            {child.icon === 'ManageSearchIcon' ? <ManageSearchIcon /> : ''}
-                                                                            {child.icon === 'PhotoLibraryIcon' ? <PhotoLibraryIcon /> : ''}
-                                                                            {child.icon === 'FavoriteIcon' ? <FavoriteIcon /> : ''}
-                                                                            {child.icon === 'FavoriteBorderIcon' ? <FavoriteBorderIcon /> : ''}
-                                                                            {child.icon === 'LiveTvIcon' ? <LiveTvIcon /> : ''}
-                                                                            {child.icon === 'VolunteerActivismIcon' ? <VolunteerActivismIcon /> : ''}
-                                                                            {child.icon === 'SettingsBackupRestoreIcon' ? <SettingsBackupRestoreIcon /> : ''}
-                                                                            {child.icon === 'HubIcon' ? <HubIcon /> : ''}
-                                                                            {child.icon === 'BlockIcon' ? <BlockIcon /> : ''}
-                                                                            {child.icon === 'SpeedIcon' ? <SpeedIcon /> : ''}
-                                                                            {child.icon === 'HistoryIcon' ? <HistoryIcon /> : ''}
-                                                                            {child.icon === 'HomeOutlinedIcon' ? <HomeOutlinedIcon /> : ''}
-                                                                        </ListItemIcon>
-                                                                        <ListItemText primary={t(child.name)} />
-                                                                    </ListItemButton>
-                                                                )
-                                                            ))}
+                                                            {value.children.map((child, cIndex) => renderChild(child, cIndex, 1))}
                                                         </List>
                                                     </Collapse>
                                                 ) : ''

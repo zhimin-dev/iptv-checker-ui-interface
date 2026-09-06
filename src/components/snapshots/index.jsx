@@ -9,6 +9,8 @@ import Pagination from '@mui/material/Pagination';
 import Snackbar from '@mui/material/Snackbar';
 import CircularProgress from '@mui/material/CircularProgress';
 import IconButton from '@mui/material/IconButton';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import { useTranslation } from "react-i18next";
@@ -31,8 +33,28 @@ export default function SnapshotsPage() {
     const [version, setVersion] = useState(0);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMsg, setSnackbarMsg] = useState('');
+    // 当前 tab：checked = 已检查频道，fav = 收藏的频道
+    const [tab, setTab] = useState('checked');
     // 当前页展示的频道
     const pagedItems = items.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+    // 每 30 秒重渲染一次，更新「画面多久之前」角标（与 player 展示逻辑一致）
+    const [tick, setTick] = useState(0);
+    useEffect(() => {
+        const timer = setInterval(() => setTick((v) => v + 1), 30000);
+        return () => clearInterval(timer);
+    }, []);
+    // 引用 tick 避免 lint 未使用告警，同时作为角标重算的触发点
+    void tick;
+
+    /** 把抓帧时间格式化为「刚刚 / X秒前 / X分钟前 / X小时前」（与 player 一致） */
+    const fmtSnapAge = (ts) => {
+        if (!ts) return '';
+        const diff = Math.max(0, Math.floor(Date.now() / 1000) - ts);
+        if (diff < 5) return t('snapAgeNow');
+        if (diff < 60) return t('snapAgeSec', { s: diff });
+        if (diff < 3600) return t('snapAgeMin', { m: Math.floor(diff / 60) });
+        return t('snapAgeHour', { h: Math.floor(diff / 3600) });
+    };
 
     const showMsg = (msg) => {
         setSnackbarMsg(msg);
@@ -48,11 +70,17 @@ export default function SnapshotsPage() {
         }
     };
 
-    /** 加载已检查频道（最多 200 个），返回列表 */
-    const loadChannels = async () => {
+    /** 加载频道列表（最多 200 个），按当前 tab 选择已检查 / 收藏，返回列表 */
+    const loadChannels = async (which) => {
         try {
-            const d = await taskService.getPlayerChannels('checked', false);
-            const list = (d.list || []).slice(0, 200).map((c) => ({ ...c }));
+            let list = [];
+            if (which === 'fav') {
+                const d = await taskService.getFavouriteChannels(0, 200);
+                list = (d.list || []).slice(0, 200).map((c) => ({ name: c.name, url: c.url }));
+            } else {
+                const d = await taskService.getPlayerChannels('checked', false);
+                list = (d.list || []).slice(0, 200).map((c) => ({ ...c }));
+            }
             setItems(list);
             setPage(0);
             return list;
@@ -132,7 +160,7 @@ export default function SnapshotsPage() {
             setLoading(true);
             try {
                 await loadConfig();
-                const list = await loadChannels();
+                const list = await loadChannels(tab);
                 if (cancelled || list.length === 0) {
                     setLoading(false);
                     return;
@@ -169,13 +197,16 @@ export default function SnapshotsPage() {
             cancelled = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [tab]);
 
     return (
         <Box style={{ padding: '0 20px', width: '100%' }}>
             <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={() => setOpenSnackbar(false)} message={snackbarMsg} />
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-                <Typography variant="h6">{t('频道画面')}</Typography>
+                <Tabs value={tab} onChange={(e, v) => setTab(v)} sx={{ minHeight: 0 }}>
+                    <Tab value="checked" label={t('已检查频道')} sx={{ minHeight: 0, py: 0.5 }} />
+                    <Tab value="fav" label={t('收藏的频道')} sx={{ minHeight: 0, py: 0.5 }} />
+                </Tabs>
                 <FormControlLabel
                     control={
                         <Switch
@@ -220,6 +251,7 @@ export default function SnapshotsPage() {
                             <Box key={c.url} sx={{ width: 240, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                                 <Box
                                     sx={{
+                                        position: 'relative',
                                         width: '100%',
                                         height: 135,
                                         bgcolor: '#0d0d0d',
@@ -230,6 +262,27 @@ export default function SnapshotsPage() {
                                         overflow: 'hidden',
                                     }}
                                 >
+                                    {/* 右上角：最后一次更新时间 */}
+                                    {c.snapshot && c.captured_at ? (
+                                        <Box
+                                            sx={{
+                                                position: 'absolute',
+                                                top: 4,
+                                                right: 4,
+                                                bgcolor: 'rgba(0,0,0,0.68)',
+                                                color: '#fff',
+                                                fontSize: 10,
+                                                lineHeight: 1.4,
+                                                px: 0.8,
+                                                py: 0.2,
+                                                borderRadius: '4px',
+                                                zIndex: 2,
+                                                pointerEvents: 'none',
+                                            }}
+                                        >
+                                            {fmtSnapAge(c.captured_at)}
+                                        </Box>
+                                    ) : null}
                                     {c._loading ? (
                                         <CircularProgress size={20} color="inherit" />
                                     ) : c.snapshot ? (

@@ -2,30 +2,28 @@ import React, { useState, useEffect } from 'react';
 import {
     Box, Button, Typography, Card, CardContent, Snackbar, Alert,
     CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
-    IconButton, TextField, Table, TableBody, TableCell, TableContainer,
-    TableHead, TableRow, Pagination,
+    TextField, Pagination,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { useTranslation } from 'react-i18next';
 import { ApiTaskService } from '../../services/apiTaskService';
 
 /**
- * 频道图标（统一配置）：频道图标 + 分组 + tvg-id 合并为一组配置，支持分页。
- * 上传/爬取绑定的图标会自动进入此列表，可在此编辑别名、tvg-id 与分组。
+ * 频道图标：只展示图标本身（纯图片网格，分页）。
+ * 点击图标可编辑别名（匹配用）；上传的图标自动进入此列表。
+ * 分组与 tvg-id 的批量配置请使用「分组绑定」页面。
  */
 const ChannelLogos = () => {
     const { t } = useTranslation();
     const [taskService] = useState(() => new ApiTaskService());
-    const PAGE_SIZE = 20;
+    const PAGE_SIZE = 48;
     const [items, setItems] = useState([]);
     const [page, setPage] = useState(0);
     const [loading, setLoading] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [message, setMessage] = useState({ open: false, text: '', type: 'info' });
 
-    // 编辑弹窗
+    // 编辑弹窗（别名/名称）
     const [editDialog, setEditDialog] = useState({ open: false, item: null, aliasesText: '' });
     const [saving, setSaving] = useState(false);
 
@@ -106,16 +104,6 @@ const ChannelLogos = () => {
         }
     };
 
-    const handleDelete = async (item) => {
-        try {
-            await taskService.deleteChannelIcon(item.name);
-            setItems((prev) => prev.filter((i) => i.name !== item.name));
-            showMsg(t('删除成功'), 'success');
-        } catch (e) {
-            showMsg(t('删除失败'), 'error');
-        }
-    };
-
     const setEditField = (key, value) => {
         setEditDialog((prev) => ({ ...prev, item: { ...prev.item, [key]: value } }));
     };
@@ -131,9 +119,6 @@ const ChannelLogos = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>
                     <Typography variant="body2" color="textSecondary">
                         {t('上传的文件名就是电视频道名称')}
-                    </Typography>
-                    <Typography variant="caption" color="textSecondary">
-                        {t('频道图标统一配置说明')}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Button
@@ -155,17 +140,9 @@ const ChannelLogos = () => {
                 </Box>
             </Card>
 
-            {/* 统一配置表格（频道图标 + 分组 + tvg-id） */}
+            {/* 纯图标网格 */}
             <Card>
                 <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1, flexWrap: 'wrap' }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                            {t('频道图标')}（{items.length}）
-                        </Typography>
-                        <Typography variant="caption" color="textSecondary">
-                            {t('频道图标统一配置说明2')}
-                        </Typography>
-                    </Box>
                     {loading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                             <CircularProgress />
@@ -175,68 +152,80 @@ const ChannelLogos = () => {
                             {t('暂无数据')}
                         </Typography>
                     ) : (
-                        <TableContainer sx={{ maxHeight: 560 }}>
-                            <Table size="small" stickyHeader>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>{t('图标')}</TableCell>
-                                        <TableCell>{t('频道名')}</TableCell>
-                                        <TableCell>{t('别名')}</TableCell>
-                                        <TableCell>tvg-id</TableCell>
-                                        <TableCell>{t('分组')}</TableCell>
-                                        <TableCell align="right">{t('操作')}</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {pagedItems.map((item) => (
-                                        <TableRow key={item.name} hover>
-                                            <TableCell>
+                        <>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                {pagedItems.map((item) => (
+                                    <Box
+                                        key={item.name}
+                                        onClick={() => handleOpenEdit(item)}
+                                        title={item.name}
+                                        sx={{
+                                            width: 120,
+                                            p: 0.5,
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: 0.5,
+                                            bgcolor: '#fafafa',
+                                            borderRadius: 1,
+                                            cursor: 'pointer',
+                                            border: '1px solid transparent',
+                                            '&:hover': { borderColor: 'primary.main' },
+                                        }}
+                                    >
+                                        <Box
+                                            sx={{
+                                                width: '100%',
+                                                height: 64,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                overflow: 'hidden',
+                                            }}
+                                        >
+                                            {item.logo ? (
                                                 <Box
                                                     component="img"
                                                     src={item.logo}
                                                     alt={item.name}
-                                                    sx={{ width: 56, height: 40, objectFit: 'contain', display: 'block', bgcolor: '#f5f5f5', borderRadius: 0.5 }}
-                                                    onError={(ev) => { ev.target.style.visibility = 'hidden'; }}
+                                                    sx={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }}
+                                                    onError={(ev) => { ev.target.style.display = 'none'; }}
                                                 />
-                                            </TableCell>
-                                            <TableCell sx={{ fontWeight: 500 }}>{item.name}</TableCell>
-                                            <TableCell>
-                                                <Typography variant="caption" color="textSecondary">
-                                                    {(item.aliases || []).join(', ') || '-'}
-                                                </Typography>
-                                            </TableCell>
-                                            <TableCell>{item.tvg_id || '-'}</TableCell>
-                                            <TableCell>{item.group || '-'}</TableCell>
-                                            <TableCell align="right">
-                                                <IconButton size="small" color="primary" onClick={() => handleOpenEdit(item)} title={t('编辑')}>
-                                                    <DriveFileRenameOutlineIcon fontSize="small" />
-                                                </IconButton>
-                                                <IconButton size="small" color="error" onClick={() => handleDelete(item)} title={t('删除')}>
-                                                    <DeleteIcon fontSize="small" />
-                                                </IconButton>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                                            ) : (
+                                                <Typography variant="caption" color="textSecondary">-</Typography>
+                                            )}
+                                        </Box>
+                                        <Typography variant="caption" noWrap sx={{ maxWidth: '100%', fontWeight: 500 }}>
+                                            {item.name}
+                                        </Typography>
+                                        <Typography
+                                            variant="caption"
+                                            noWrap
+                                            sx={{ maxWidth: '100%', color: 'text.secondary', fontSize: 10 }}
+                                        >
+                                            {(item.aliases || []).join(', ')}
+                                        </Typography>
+                                    </Box>
+                                ))}
+                            </Box>
+                            {items.length > PAGE_SIZE ? (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
+                                    <Pagination
+                                        count={Math.ceil(items.length / PAGE_SIZE)}
+                                        page={page + 1}
+                                        onChange={(e, v) => setPage((v || 1) - 1)}
+                                        size="small"
+                                        showFirstButton
+                                        showLastButton
+                                    />
+                                </Box>
+                            ) : null}
+                        </>
                     )}
-                    {items.length > PAGE_SIZE ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
-                            <Pagination
-                                count={Math.ceil(items.length / PAGE_SIZE)}
-                                page={page + 1}
-                                onChange={(e, v) => setPage((v || 1) - 1)}
-                                size="small"
-                                showFirstButton
-                                showLastButton
-                            />
-                        </Box>
-                    ) : null}
                 </CardContent>
             </Card>
 
-            {/* 编辑弹窗：别名 / tvg-id / 分组 */}
+            {/* 编辑弹窗：别名 */}
             <Dialog open={editDialog.open} onClose={handleCloseEdit} maxWidth="sm" fullWidth>
                 <DialogTitle>{t('编辑频道图标')}：{editDialog.item?.name || ''}</DialogTitle>
                 <DialogContent>
@@ -255,29 +244,6 @@ const ChannelLogos = () => {
                             onChange={(e) => setEditDialog((prev) => ({ ...prev, aliasesText: e.target.value }))}
                             fullWidth
                             helperText={t('别名也会参与图标匹配，例如 cctv1、cctv-1')}
-                        />
-                        <TextField
-                            size="small"
-                            label="tvg-id"
-                            value={editDialog.item?.tvg_id || ''}
-                            onChange={(e) => setEditField('tvg_id', e.target.value)}
-                            fullWidth
-                            helperText={t('用于 EPG 节目单匹配，可为空')}
-                        />
-                        <TextField
-                            size="small"
-                            label={t('分组')}
-                            value={editDialog.item?.group || ''}
-                            onChange={(e) => setEditField('group', e.target.value)}
-                            fullWidth
-                            helperText={t('检查时自动应用到该频道的 group-title')}
-                        />
-                        <TextField
-                            size="small"
-                            label={t('图标地址')}
-                            value={editDialog.item?.logo || ''}
-                            InputProps={{ readOnly: true }}
-                            fullWidth
                         />
                     </Box>
                 </DialogContent>

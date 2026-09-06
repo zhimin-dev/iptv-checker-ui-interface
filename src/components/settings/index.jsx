@@ -8,7 +8,6 @@ import TextField from '@mui/material/TextField';
 import LoadingButton from '@mui/lab/LoadingButton';
 import FormLabel from '@mui/material/FormLabel';
 import Dialog from '@mui/material/Dialog';
-import _package from './../../../package';
 import DialogTitle from '@mui/material/DialogTitle';
 import Snackbar from '@mui/material/Snackbar';
 import { useTranslation, initReactI18next } from "react-i18next";
@@ -91,17 +90,14 @@ export default function Settings() {
     const [githubToken, setGithubToken] = useState('');
     const [channelNameDisplayMode, setChannelNameDisplayMode] = useState(0);
     const [openDialog, setOpenDialog] = useState(false);
-    const [newVersion, setNewVersion] = useState('');
+    // 分组类型：prefix = 前缀/地域分组，category = 电视分类分组
+    const [groupType, setGroupType] = useState('prefix');
     const { t } = useTranslation();
 
     useEffect(() => {
         let config = _mainContext.settings
+        // 检测新版本（提示显示在「捐赠」页）
         _mainContext.check_version()
-        if(_mainContext.nowMod === 1) {
-            setNewVersion(_mainContext.configInfo.app_version)
-        } else {
-            setNewVersion(_mainContext.configInfo.version)
-        }
         if (config !== null) {
             setHttpRequestTimeout(config.httpRequestTimeout ?? 1000)
             setCustomLink(config.customLink ?? [])
@@ -124,7 +120,13 @@ export default function Settings() {
             setReplaceString(false)
             setGithubToken('')
         })
+        // 读取当前分组类型
+        taskService.getGroupMapping().then((data) => {
+            if (data?.active) setGroupType(data.active)
+        }).catch(() => {})
     }, [])
+
+
 
     const handleChangeConfigSettings = (e) => {
         const { name, value } = e.target;
@@ -166,6 +168,12 @@ export default function Settings() {
             setOpenDialog(true)
             return
         }
+        // 分组类型随主保存按钮一并保存
+        try {
+            await taskService.setActiveGroupType(groupType)
+        } catch (e) {
+            // 保存失败不阻塞
+        }
         _mainContext.onChangeSettings({
             httpRequestTimeout: httpRequestTimeout,
             customLink: customLink,
@@ -200,8 +208,6 @@ export default function Settings() {
         }
         setShowAddSourceDialog(false)
     }
-
-    const nowVersion = _package.version;
 
     const delCustomLink = (i) => {
         setCustomLink(customLink.filter((url, index) => index !== i))
@@ -260,6 +266,18 @@ export default function Settings() {
                         </Select>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                        <Typography sx={{ width: '150px' }}>{t('aiGroupMode')}</Typography>
+                        <Select
+                            value={groupType}
+                            size="small"
+                            sx={{ flex: 1 }}
+                            onChange={(e) => setGroupType(e.target.value)}
+                        >
+                            <MenuItem value="prefix">{t('aiGroupModePrefix')}</MenuItem>
+                            <MenuItem value="category">{t('aiGroupModeCategory')}</MenuItem>
+                        </Select>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
                         <Typography sx={{ width: '150px' }}>GitHub Token</Typography>
                         <TextField
                             name="githubToken"
@@ -313,14 +331,6 @@ export default function Settings() {
                         </LoadingButton>
                     </Box>
                 </Box>
-                <FormControl sx={{ marginTop: '20px',paddingLeft: '20px', }}>
-                    <Box>{t('当前版本')}: {nowVersion}</Box>
-                    {
-                        _mainContext.showNewVersion ? (
-                            <Box style={{ color: 'green', fontWeight:"bold" }}>{t('有新版本')}: {newVersion}</Box>
-                        ) : ''
-                    }
-                </FormControl>
             </Box>
         </Box>
     )

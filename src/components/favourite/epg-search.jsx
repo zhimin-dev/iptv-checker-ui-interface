@@ -47,6 +47,8 @@ export default function EpgChannelSearch() {
     const [channelListLoading, setChannelListLoading] = useState(false);
     const [selectedChannel, setSelectedChannel] = useState(null);
     const [listSearchQuery, setListSearchQuery] = useState('');
+    // 频道图标映射：频道名（小写）→ logo 地址，用于列表展示
+    const [iconMap, setIconMap] = useState({});
 
     useEffect(() => {
         const fetchChannelList = async () => {
@@ -71,6 +73,25 @@ export default function EpgChannelSearch() {
             }
         };
         fetchChannelList();
+        // 拉取频道图标配置，EPG 频道列表展示对应 logo
+        (async () => {
+            try {
+                const icons = await taskService.getChannelIcons();
+                const map = {};
+                (icons.items || []).forEach((it) => {
+                    if (!it.logo) return;
+                    const keys = [it.name, ...(it.aliases || [])]
+                        .map((k) => (k || '').trim().toLowerCase())
+                        .filter(Boolean);
+                    keys.forEach((k) => {
+                        if (!map[k]) map[k] = it.logo;
+                    });
+                });
+                setIconMap(map);
+            } catch (e2) {
+                console.error('load channel icons failed', e2);
+            }
+        })();
 
         const timer = setInterval(() => {
             setCurrentTime(Date.now());
@@ -323,7 +344,24 @@ export default function EpgChannelSearch() {
                                             selected={isSelected}
                                             onClick={() => handleChannelClick(ch)}
                                         >
-                                            <ListItemText primary={ch.name || ch.channel} />
+                                            <ListItemText
+                                                primary={
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        {iconMap[(ch.name || ch.channel || '').trim().toLowerCase()] ? (
+                                                            <Box
+                                                                component="img"
+                                                                src={iconMap[(ch.name || ch.channel || '').trim().toLowerCase()]}
+                                                                alt=""
+                                                                sx={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0 }}
+                                                                onError={(ev) => { ev.target.style.display = 'none'; }}
+                                                            />
+                                                        ) : null}
+                                                        <Typography variant="body2" noWrap>
+                                                            {ch.name || ch.channel}
+                                                        </Typography>
+                                                    </Box>
+                                                }
+                                            />
                                         </ListItemButton>
                                     </ListItem>
                                 );

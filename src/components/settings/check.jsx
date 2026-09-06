@@ -35,22 +35,12 @@ export default function CheckSettings() {
     const [autoCleanDays, setAutoCleanDays] = useState(7);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [snackbarMsg, setSnackbarMsg] = useState('');
-    const [reports, setReports] = useState([]);
+    // 手动添加黑名单
+    const [newUrl, setNewUrl] = useState('');
+    const [adding, setAdding] = useState(false);
 
-    /** 加载最近的检测报告（按格式统计） */
-    const loadReports = async () => {
-        try {
-            const data = await taskService.getCheckReports();
-            setReports(data.list || []);
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
-    useEffect(() => {
-        loadReports();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    /** 时间戳（秒）-> 本地时间文本 */
+    const fmtTime = (secs) => (secs ? new Date(secs * 1000).toLocaleString() : '-');
 
     const showMsg = (msg) => {
         setSnackbarMsg(msg);
@@ -94,6 +84,24 @@ export default function CheckSettings() {
         }
     };
 
+    /** 手动添加黑名单（不想要的 m3u8 链接） */
+    const handleAddBlacklist = async () => {
+        const u = newUrl.trim();
+        if (!u) return;
+        setAdding(true);
+        try {
+            await taskService.addBlacklist(u);
+            setNewUrl('');
+            showMsg(t('添加成功'));
+            setPage(0);
+            load(0);
+        } catch (e) {
+            showMsg(t('添加失败'));
+        } finally {
+            setAdding(false);
+        }
+    };
+
     const handleClear = async () => {
         try {
             await taskService.clearBlacklist();
@@ -104,22 +112,6 @@ export default function CheckSettings() {
             showMsg(t('清空失败'));
         }
     };
-
-    const fmtTime = (secs) => (secs ? new Date(secs * 1000).toLocaleString() : '-');
-
-    const reportRows = [
-        { label: t('总数'), key: 'total' },
-        { label: 'm3u8', key: 'm3u8_total' },
-        { label: t('无效m3u8'), key: 'm3u8_invalid' },
-        { label: 'rtmp', key: 'rtmp' },
-        { label: 'rtsp', key: 'rtsp' },
-        { label: 'flv', key: 'flv' },
-        { label: 'ts', key: 'ts' },
-        { label: 'mp4', key: 'mp4' },
-        { label: t('其他'), key: 'other' },
-        { label: t('成功'), key: 'success' },
-        { label: t('失败'), key: 'failed' },
-    ];
 
     return (
         <Box style={{ padding: '0 20px', width: '100%', maxWidth: '900px' }}>
@@ -163,6 +155,20 @@ export default function CheckSettings() {
 
             <Card>
                 <CardContent>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 1.5, flexWrap: 'wrap' }}>
+                        <TextField
+                            size="small"
+                            label={t('手动添加黑名单')}
+                            placeholder="http://.../xxx.m3u8"
+                            value={newUrl}
+                            onChange={(e) => setNewUrl(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddBlacklist()}
+                            sx={{ flex: 1, minWidth: 320 }}
+                        />
+                        <Button variant="contained" size="small" disabled={adding || !newUrl.trim()} onClick={handleAddBlacklist}>
+                            {adding ? t('添加中...') : t('添加')}
+                        </Button>
+                    </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                             {t('黑名单列表')}
@@ -202,55 +208,6 @@ export default function CheckSettings() {
                 </CardContent>
             </Card>
 
-            {/* 检测报告：每次定时检查完成后按格式统计 */}
-            <Card sx={{ mt: 3 }}>
-                <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1, flexWrap: 'wrap' }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                            {t('检测报告')}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                            {t('检测报告说明')}
-                        </Typography>
-                        <Box sx={{ flexGrow: 1 }} />
-                        <Button variant="outlined" size="small" startIcon={<RefreshIcon fontSize="small" />} onClick={loadReports}>
-                            {t('刷新列表')}
-                        </Button>
-                    </Box>
-                    {reports.length === 0 ? (
-                        <Typography variant="body2" color="textSecondary" sx={{ py: 2 }}>
-                            {t('暂无数据')}
-                        </Typography>
-                    ) : (
-                        <TableContainer sx={{ maxHeight: 420 }}>
-                            <Table size="small" stickyHeader>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>{t('生成时间')}</TableCell>
-                                        {reportRows.map((r) => (
-                                            <TableCell key={r.key} align="right">{r.label}</TableCell>
-                                        ))}
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {reports.map((item, idx) => (
-                                        <TableRow key={item.file || idx} hover>
-                                            <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                                                {fmtTime(item.generated_at)}
-                                            </TableCell>
-                                            {reportRows.map((r) => (
-                                                <TableCell key={r.key} align="right">
-                                                    {item[r.key] ?? 0}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    )}
-                </CardContent>
-            </Card>
         </Box>
     );
 }

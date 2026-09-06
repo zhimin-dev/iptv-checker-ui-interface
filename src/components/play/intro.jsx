@@ -14,7 +14,7 @@ import PhotoLibraryIcon from '@mui/icons-material/PhotoLibrary';
 import LiveTvIcon from '@mui/icons-material/LiveTv';
 import { useTranslation } from "react-i18next";
 
-const GITHUB_RELEASES = 'https://github.com/zhimin-dev/iptv-checker/releases';
+const GITHUB_RELEASES = 'https://github.com/zhimin-dev/iptv-checker-player';
 
 /**
  * 播放介绍：引导用户下载配套客户端 iptv-checker-player（GitHub Releases）

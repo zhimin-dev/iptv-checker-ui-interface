@@ -170,11 +170,13 @@ export default function FavoriteSettings() {
             {rules.length === 0 ? (
                 <Typography variant="body2" color="textSecondary" sx={{ pl: 2 }}>{t('暂无数据')}</Typography>
             ) : (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                     {rules.map((rule) => (
-                        <Card key={rule.originalIndex} variant="outlined">
-                            <CardContent sx={{ display: 'flex', gap: 2, alignItems: 'center', p: '8px 16px !important' }}>
-                                <Typography sx={{ flexGrow: 1 }}>{rule.name}</Typography>
+                        <Card key={rule.originalIndex} variant="outlined" sx={{ flex: '0 0 auto', maxWidth: '100%' }}>
+                            <CardContent sx={{ display: 'flex', gap: 1, alignItems: 'center', p: '6px 10px !important' }}>
+                                <Typography noWrap sx={{ maxWidth: 360, minWidth: 0 }}>
+                                    {rule.name}
+                                </Typography>
                                 <IconButton onClick={() => handleRemoveRule(rule.originalIndex)} color="error" size="small">
                                     <DeleteIcon />
                                 </IconButton>

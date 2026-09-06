@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { MainContext } from '../../context/main';
 import { useTranslation } from 'react-i18next';
 import { Box, Typography, Button, Grid, Dialog, DialogTitle, DialogContent, Card, CardContent, CardActionArea } from '@mui/material';
@@ -15,6 +15,18 @@ const DonateSettings = () => {
     const [step, setStep] = useState(0); // 0: Initial, 1: Choose Type, 2: Show Content
     const [rewardType, setRewardType] = useState(null); // 'money', 'star'
     const [selectedSponsor, setSelectedSponsor] = useState(null);
+
+    // 版本信息（从「基础设置」移到这里展示）
+    const nowVersion = _package.version;
+    const newVersion = mainContext.nowMod === 1
+        ? mainContext.configInfo.app_version
+        : mainContext.configInfo.version;
+
+    useEffect(() => {
+        // 打开捐赠页时检测一次新版本
+        mainContext.check_version();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleLike = () => {
         setStep(1);
@@ -156,6 +168,18 @@ const DonateSettings = () => {
                     </Box>
                 </DialogContent>
             </Dialog>
+
+            {/* 版本信息（原在基础设置中展示） */}
+            <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Typography variant="body2" color="textSecondary">
+                    {t('当前版本')}: {nowVersion}
+                </Typography>
+                {mainContext.showNewVersion && newVersion ? (
+                    <Typography variant="body2" sx={{ color: 'green', fontWeight: 'bold', mt: 0.5 }}>
+                        {t('有新版本')}: {newVersion}
+                    </Typography>
+                ) : null}
+            </Box>
         </Box>
     );
 };

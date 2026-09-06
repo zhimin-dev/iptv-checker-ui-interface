@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { MainContext } from './../../context/main';
 import { useTranslation } from "react-i18next";
 import {
@@ -22,6 +22,21 @@ import { color, justifyContent } from '@mui/system';
 export const TaskRow = ({ isNowHandle, row, clickTask, doTaskRightNow, source, showDownloadDialog, checkTaskRefetch, checkTaskContinue, checkTaskAgain, onOpenReports }) => {
     const _mainContext = useContext(MainContext);
     const { t } = useTranslation();
+
+    // 当前时间戳（秒）：每 10 秒刷新一次，用于判断「立即执行」按钮是否展示
+    const [nowTs, setNowTs] = useState(() => Math.floor(Date.now() / 1000));
+    useEffect(() => {
+        const timer = setInterval(() => setNowTs(Math.floor(Date.now() / 1000)), 10000);
+        return () => clearInterval(timer);
+    }, []);
+
+    /** 定时任务：下一次运行时间距当前超过 3 分钟才展示「立即执行」；
+     *  未排程任务（next_run_time 为 0）始终展示 */
+    const showRunNow = () => {
+        const next = row.task_info && row.task_info.next_run_time;
+        if (!next || next <= 0) return true;
+        return next - nowTs > 180;
+    };
 
     const handleTaskRightNow = (id) => {
         doTaskRightNow(id);
@@ -89,8 +104,7 @@ export const TaskRow = ({ isNowHandle, row, clickTask, doTaskRightNow, source, s
                                         {t('查看')}
                                     </Button>
                                     {
-                                        !isNowHandle && row.task_info.next_run_time > 0 &&
-                                            row.task_info.next_run_time - new Date().getTime() / 1000 >= 120 ? (
+                                        !isNowHandle && showRunNow() ? (
                                             <Button color="success" onClick={() => handleTaskRightNow(row.id)}>{t('立即执行')}</Button>
                                         ) : ''
                                     }

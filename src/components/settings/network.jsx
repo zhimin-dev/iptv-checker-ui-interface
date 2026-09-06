@@ -17,6 +17,7 @@ export default function NetworkSettings() {
     const [proxyUrl, setProxyUrl] = useState('');
     const [useSystemProxy, setUseSystemProxy] = useState(true);
     const [customHeadersStr, setCustomHeadersStr] = useState('');
+    const [noUaHeader, setNoUaHeader] = useState(false);
     const [dialogMsg, setDialogMsg] = useState('');
     const [openDialog, setOpenDialog] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -27,6 +28,7 @@ export default function NetworkSettings() {
         taskService.getNetworkConfig().then((data) => {
             setProxyUrl(data?.proxy_url ?? '');
             setUseSystemProxy(data?.use_system_proxy ?? true);
+            setNoUaHeader(data?.no_ua_header ?? false);
             const headerLines = [];
             if (data?.user_agent && data.user_agent.trim() !== '') {
                 headerLines.push(`User-Agent: ${data.user_agent}`);
@@ -73,6 +75,7 @@ export default function NetworkSettings() {
                 use_system_proxy: useSystemProxy,
                 custom_headers: customHeadersObj,
                 user_agent: userAgent,
+                no_ua_header: noUaHeader,
             });
             setOpenDialog(true);
             setDialogMsg(t('保存成功'));
@@ -141,6 +144,23 @@ export default function NetworkSettings() {
                         </Typography>
                     </Box>
                 )}
+
+                {/* 不带默认 UA 开关 */}
+                <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                    <Typography sx={{ width: '150px', flexShrink: 0 }}>{t('不带默认UA')}</Typography>
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                checked={noUaHeader}
+                                onChange={(e) => setNoUaHeader(e.target.checked)}
+                            />
+                        }
+                        label={noUaHeader ? t('已开启') : t('已关闭')}
+                    />
+                </Box>
+                <Typography variant="caption" color="textSecondary" sx={{ mb: 2, ml: '150px', display: 'block' }}>
+                    {t('开启后请求不再携带 iptv-checker 默认 UA；自定义请求头里的 User-Agent 仍然生效')}
+                </Typography>
 
                 {/* 自定义请求头 */}
                 <Box sx={{ marginBottom: '20px' }}>
